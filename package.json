@@ -5,6 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:admin": "vite --port 5173 --open /admin/login",
+    "dev:couple": "vite --port 5174 --open /couple-login",
+    "dev:guest": "vite --port 5175 --open /",
     "build": "vite build",
     "preview": "vite preview"
   },

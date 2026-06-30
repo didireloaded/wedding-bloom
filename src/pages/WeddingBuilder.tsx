@@ -270,8 +270,9 @@ export default function WeddingBuilder() {
   );
 
   return (
-    <div className="min-h-screen bg-[#f7f3ed]" style={{ fontFamily: '"Manrope", system-ui, sans-serif' }}>
-      <style>{`.display{font-family:"Cormorant Garamond",Georgia,serif}.wedding-label{letter-spacing:.26em;text-transform:uppercase;font-size:11px;color:#b7834c}`}</style>
+    <div className="min-h-screen bg-[#f7f3ed]">
+
+
 
       <header className="sticky top-0 z-20 bg-white/90 backdrop-blur-xl border-b border-[#e6d4be]">
         <div className="mx-auto max-w-6xl px-5 h-[72px] flex items-center justify-between gap-4">

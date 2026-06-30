@@ -16,8 +16,8 @@ export function CommandCenter({ wedding, rsvps, moments, guestPhotos }: any) {
   const greet = hour < 12 ? "Good Morning" : hour < 18 ? "Good Afternoon" : "Good Evening";
   const days = wedding.wedding_date ? differenceInDays(new Date(wedding.wedding_date + "T16:00:00"), new Date()) : null;
 
-  const confirmed = rsvps.filter((r: any) => r.attending === "confirmed" || r.attending === true).length;
-  const pending = rsvps.filter((r: any) => r.attending === "pending" || r.attending === null).length;
+  const confirmed = rsvps.filter((r: any) => r.attending === "confirmed").length;
+  const pending = rsvps.filter((r: any) => r.attending === "pending" || r.attending === "maybe").length;
   
   const latestAct = buildNotifications(wedding, rsvps, moments, guestPhotos)[0];
 
@@ -181,9 +181,9 @@ export function HealthWidget({ wedding, gallery, events, accommodations }: any) 
    SUMMARY STATS GRID
    ───────────────────────────────────────────── */
 export function SummaryGrid({ rsvps, moments, guestPhotos, wedding, onNavigate }: any) {
-  const confirmed = rsvps.filter((r: any) => r.attending === "confirmed" || r.attending === true).length;
-  const pending = rsvps.filter((r: any) => r.attending === "pending" || r.attending === null).length;
-  const declined = rsvps.filter((r: any) => r.attending === "declined" || r.attending === false).length;
+  const confirmed = rsvps.filter((r: any) => r.attending === "confirmed").length;
+  const pending = rsvps.filter((r: any) => r.attending === "pending" || r.attending === "maybe").length;
+  const declined = rsvps.filter((r: any) => r.attending === "declined").length;
   const views = Number(localStorage.getItem(`wb_viewed_${wedding.id}`) || 0);
   const qrScans = Number(localStorage.getItem(`wb_qr_${wedding.id}`) || 0);
 
@@ -266,7 +266,7 @@ export function ActivityTimeline({ rsvps, moments, guestPhotos, updates }: any) 
       list.push({
         ts: new Date(r.submitted_at).getTime(),
         icon: <Heart size={13} className="text-[#b7794a]" />,
-        text: `${r.guest_name} ${r.attending === "confirmed" || r.attending === true ? "confirmed attendance" : r.attending === "declined" || r.attending === false ? "declined" : "submitted an RSVP"}`,
+        text: `${r.guest_name} ${r.attending === "confirmed" ? "confirmed attendance" : r.attending === "declined" ? "declined" : "submitted an RSVP"}`,
         sub: r.guest_count > 1 ? `${r.guest_count} guests` : "",
       });
     });
@@ -321,7 +321,7 @@ export function ActivityTimeline({ rsvps, moments, guestPhotos, updates }: any) 
    ───────────────────────────────────────────── */
 export function InsightsWidget({ wedding, rsvps, guestPhotos, moments }: any) {
   const totalInvited = rsvps.length;
-  const responded = rsvps.filter((r: any) => r.attending === "confirmed" || r.attending === "declined" || r.attending === true || r.attending === false).length;
+  const responded = rsvps.filter((r: any) => r.attending === "confirmed" || r.attending === "declined").length;
   const responseRate = totalInvited > 0 ? Math.round((responded / totalInvited) * 100) : 0;
   const todayMs = new Date(); todayMs.setHours(0,0,0,0);
   const photosToday = guestPhotos.filter((p: any) => new Date(p.created_at) >= todayMs).length;
@@ -372,7 +372,7 @@ export function buildNotifications(wedding: any, rsvps: any[], moments: any[], g
   rsvps.forEach((r: any) => items.push({
     id: `rsvp_${r.id}`,
     type: "rsvp",
-    text: `${r.guest_name} ${r.attending === "confirmed" || r.attending === true ? "confirmed attendance" : r.attending === "declined" || r.attending === false ? "declined" : "sent an RSVP"}`,
+    text: `${r.guest_name} ${r.attending === "confirmed" ? "confirmed attendance" : r.attending === "declined" ? "declined" : "sent an RSVP"}`,
     ts: new Date(r.submitted_at).getTime(),
     tab: "rsvp",
     icon: <Heart size={14} className="text-[#b0743c]" />

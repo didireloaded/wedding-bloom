@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { QRCodeSVG } from "qrcode.react";
 import { format } from "date-fns";
@@ -10,6 +10,8 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { store } from "@/store/weddingStore";
+import { ConfirmModal } from "@/components/ui/ConfirmModal";
+import { PromptModal } from "@/components/ui/PromptModal";
 import {
   CountdownWidget, HealthWidget, SummaryGrid, QuickActionsWidget,
   ActivityTimeline, InsightsWidget, NotificationCenter, WorkspaceSearch, unreadCount,
@@ -39,6 +41,14 @@ export default function CoupleDashboard() {
   const [unread, setUnread] = useState(0);
   const [newEvent, setNewEvent] = useState({ title: "", description: "", location: "", event_date: "", event_time: "" });
   const [showEventForm, setShowEventForm] = useState(false);
+  const [galleryUrl, setGalleryUrl] = useState("");
+  const [galleryCap, setGalleryCap] = useState("");
+  const [updateTitle, setUpdateTitle] = useState("");
+  const [updateMsg, setUpdateMsg] = useState("");
+  const [hotelPromptOpen, setHotelPromptOpen] = useState(false);
+  const [markerPromptOpen, setMarkerPromptOpen] = useState(false);
+  const [markerCoords, setMarkerCoords] = useState<{ x: number; y: number } | null>(null);
+  const [deleteMarker, setDeleteMarker] = useState<{ id: string; title: string } | null>(null);
 
   useEffect(() => {
     if (!weddingId) { navigate("/admin/login"); return; }
@@ -131,20 +141,18 @@ export default function CoupleDashboard() {
     );
   }
 
-  const confirmed = rsvps.filter(r => r.attending === true).length;
-  const pending = rsvps.filter(r => r.attending === null).length;
-  const totalGuests = rsvps.filter(r => r.attending === true).reduce((s, r) => s + (r.guest_count || 0), 0);
+  const confirmed = rsvps.filter(r => r.attending === 'confirmed').length;
+  const pending = rsvps.filter(r => r.attending === 'pending').length;
+  const totalGuests = rsvps.filter(r => r.attending === 'confirmed').reduce((s, r) => s + (r.guest_count || 0), 0);
   const dietary = rsvps
     .filter(r => r.attending && r.dietary_preference && r.dietary_preference !== "No preference")
     .reduce((acc, r) => { acc[r.dietary_preference] = (acc[r.dietary_preference] || 0) + 1; return acc; }, {} as Record<string, number>);
   const weddingUrl = `${window.location.origin}/wedding/${slug}`;
 
   return (
-    <div className="min-h-screen bg-[#faf8f5]" style={{ fontFamily: '"Manrope", system-ui, sans-serif' }}>
-      <style>{`
-        .display { font-family: "Cormorant Garamond", Georgia, serif; }
-        .wedding-label { letter-spacing: .26em; text-transform: uppercase; font-size: 11px; color: #b7834c; }
-      `}</style>
+    <div className="min-h-screen bg-[#faf8f5]">
+
+
 
       <header className="bg-white border-b border-[#e6d4be] sticky top-0 z-20">
         <div className="mx-auto max-w-7xl px-4 md:px-6 h-[64px] flex items-center gap-3 md:gap-5">
@@ -443,8 +451,8 @@ export default function CoupleDashboard() {
                         <div className="text-[14.5px] text-[#2a231d]">{r.guest_name}</div>
                         <div className="text-[12px] text-[#8d7962]">{r.guest_count} guest{r.guest_count !== 1 ? "s" : ""}</div>
                       </div>
-                      <div className={`text-[11.5px] tracking-[0.15em] uppercase px-2.5 py-1 rounded-full ${r.attending === true ? "bg-[#eff6ee] text-[#4f7a56]" : r.attending === false ? "bg-[#fde9e6] text-[#a64838]" : "bg-[#f8eee0] text-[#b0743c]"}`}>
-                        {r.attending === true ? "Going" : r.attending === false ? "Declined" : "Pending"}
+                      <div className={`text-[11.5px] tracking-[0.15em] uppercase px-2.5 py-1 rounded-full ${r.attending === 'confirmed' ? "bg-[#eff6ee] text-[#4f7a56]" : r.attending === 'declined' ? "bg-[#fde9e6] text-[#a64838]" : "bg-[#f8eee0] text-[#b0743c]"}`}>
+                        {r.attending === 'confirmed' ? "Going" : r.attending === 'declined' ? "Declined" : "Pending"}
                       </div>
                     </div>
                   ))}
@@ -491,8 +499,8 @@ export default function CoupleDashboard() {
                         {r.email && <div className="text-[11.5px] text-[#8d7962]">{r.email}</div>}
                       </td>
                       <td className="px-5 py-3">
-                        <span className={`text-[11px] tracking-[0.15em] uppercase px-2 py-1 rounded-full ${r.attending === true ? "bg-[#eff6ee] text-[#4f7a56]" : r.attending === false ? "bg-[#fde9e6] text-[#a64838]" : "bg-[#f8eee0] text-[#b0743c]"}`}>
-                          {r.attending === true ? "Going" : r.attending === false ? "Declined" : "Pending"}
+                        <span className={`text-[11px] tracking-[0.15em] uppercase px-2 py-1 rounded-full ${r.attending === 'confirmed' ? "bg-[#eff6ee] text-[#4f7a56]" : r.attending === 'declined' ? "bg-[#fde9e6] text-[#a64838]" : "bg-[#f8eee0] text-[#b0743c]"}`}>
+                          {r.attending === 'confirmed' ? "Going" : r.attending === 'declined' ? "Declined" : "Pending"}
                         </span>
                       </td>
                       <td className="px-5 py-3 text-[#5a4f45]">{r.guest_count}</td>
@@ -561,16 +569,14 @@ export default function CoupleDashboard() {
           <div>
             <div className="bg-white rounded-[20px] border border-[#e6d4be] p-5 mb-5">
               <div className="flex items-center gap-3">
-                <input id="gallery-url" placeholder="Image URL" className="flex-1 rounded-[12px] border border-[#e0ccb2] px-3 py-2.5 text-[14px] outline-none focus:border-[#d3a76b]" />
-                <input id="gallery-cap" placeholder="Caption" className="flex-1 rounded-[12px] border border-[#e0ccb2] px-3 py-2.5 text-[14px] outline-none focus:border-[#d3a76b]" />
+                <input value={galleryUrl} onChange={e => setGalleryUrl(e.target.value)} placeholder="Image URL" className="flex-1 rounded-[12px] border border-[#e0ccb2] px-3 py-2.5 text-[14px] outline-none focus:border-[#d3a76b]" />
+                <input value={galleryCap} onChange={e => setGalleryCap(e.target.value)} placeholder="Caption" className="flex-1 rounded-[12px] border border-[#e0ccb2] px-3 py-2.5 text-[14px] outline-none focus:border-[#d3a76b]" />
                 <button
                   onClick={() => {
-                    const url = (document.getElementById("gallery-url") as HTMLInputElement)?.value.trim();
-                    const cap = (document.getElementById("gallery-cap") as HTMLInputElement)?.value.trim();
-                    if (!url) { toast.error("URL required"); return; }
-                    store.insert("gallery", { wedding_id: weddingId, url, caption: cap || null });
-                    (document.getElementById("gallery-url") as HTMLInputElement).value = "";
-                    (document.getElementById("gallery-cap") as HTMLInputElement).value = "";
+                    if (!galleryUrl.trim()) { toast.error("URL required"); return; }
+                    store.insert("gallery", { wedding_id: weddingId, url: galleryUrl.trim(), caption: galleryCap.trim() || null });
+                    setGalleryUrl("");
+                    setGalleryCap("");
                     toast.success("Photo added");
                   }}
                   className="px-4 py-[10px] rounded-full bg-[#2b2723] text-[#f9f2e8] text-[13px]"
@@ -618,13 +624,7 @@ export default function CoupleDashboard() {
                 <div className="wedding-label">Accommodations</div>
                 <p className="text-[14px] text-[#6b5d4f] mt-1">Manage hotels and stay options.</p>
               </div>
-              <button onClick={() => {
-                const name = prompt("Hotel Name:");
-                if (name) {
-                  store.insert("accommodations", { wedding_id: weddingId, name, photo_url: null, price: null, phone: null, distance: null, booking_url: null });
-                  refresh();
-                }
-              }} className="px-4 py-[10px] bg-[#2b2723] text-[#f9f2e8] text-[12.5px] rounded-full">Add Hotel</button>
+              <button onClick={() => setHotelPromptOpen(true)} className="px-4 py-[10px] bg-[#2b2723] text-[#f9f2e8] text-[12.5px] rounded-full">Add Hotel</button>
             </div>
             
             <div className="space-y-3">
@@ -672,19 +672,8 @@ export default function CoupleDashboard() {
                     const rect = e.currentTarget.getBoundingClientRect();
                     const x = ((e.clientX - rect.left) / rect.width) * 100;
                     const y = ((e.clientY - rect.top) / rect.height) * 100;
-                    const title = prompt("Marker Title (e.g., Dance Floor):");
-                    if (title) {
-                      store.insert("venue_markers", {
-                        wedding_id: weddingId,
-                        title,
-                        category: "General",
-                        icon: "MapPin",
-                        description: null,
-                        x, y
-                      });
-                      refresh();
-                      toast.success("Marker added");
-                    }
+                    setMarkerCoords({ x, y });
+                    setMarkerPromptOpen(true);
                   }}
                 />
                 {markers.map((m: any) => (
@@ -694,10 +683,7 @@ export default function CoupleDashboard() {
                     style={{ left: `${m.x}%`, top: `${m.y}%` }}
                     onClick={(e) => {
                       e.stopPropagation();
-                      if (confirm(`Delete marker "${m.title}"?`)) {
-                        store.remove("venue_markers", m.id);
-                        refresh();
-                      }
+                      setDeleteMarker({ id: m.id, title: m.title });
                     }}
                   >
                     <MapPin size={16} />
@@ -727,17 +713,15 @@ export default function CoupleDashboard() {
             
             <form onSubmit={(e) => {
               e.preventDefault();
-              const title = (document.getElementById("update-title") as HTMLInputElement).value;
-              const msg = (document.getElementById("update-msg") as HTMLTextAreaElement).value;
-              if(!title || !msg) return;
-              store.insert("updates", { wedding_id: weddingId, title, message: msg });
+              if(!updateTitle || !updateMsg) return;
+              store.insert("updates", { wedding_id: weddingId, title: updateTitle, message: updateMsg });
               refresh();
               toast.success("Announcement published");
-              (document.getElementById("update-title") as HTMLInputElement).value = "";
-              (document.getElementById("update-msg") as HTMLTextAreaElement).value = "";
+              setUpdateTitle("");
+              setUpdateMsg("");
             }} className="mb-6 grid gap-3 border border-[#e6d4be] p-4 rounded-[16px] bg-[#fcf7f1]">
-              <input id="update-title" required placeholder="Announcement Title (e.g. Dinner is served)" className="rounded-[12px] border border-[#e0ccb2] px-3 py-2 text-[14px] outline-none" />
-              <textarea id="update-msg" required rows={2} placeholder="Add a short message..." className="rounded-[12px] border border-[#e0ccb2] px-3 py-2 text-[14px] outline-none resize-none" />
+              <input value={updateTitle} onChange={e => setUpdateTitle(e.target.value)} required placeholder="Announcement Title (e.g. Dinner is served)" className="rounded-[12px] border border-[#e0ccb2] px-3 py-2 text-[14px] outline-none" />
+              <textarea value={updateMsg} onChange={e => setUpdateMsg(e.target.value)} required rows={2} placeholder="Add a short message..." className="rounded-[12px] border border-[#e0ccb2] px-3 py-2 text-[14px] outline-none resize-none" />
               <div className="flex justify-end">
                 <button type="submit" className="px-5 py-2 rounded-full bg-[#b0743c] text-white text-[13px] hover:bg-[#8e5c2e]">Publish Update</button>
               </div>
@@ -857,6 +841,59 @@ export default function CoupleDashboard() {
         )}
         </main>
       </div>
+
+      <PromptModal
+        open={hotelPromptOpen}
+        title="Add Hotel"
+        label="Hotel Name"
+        placeholder="e.g. The Ritz-Carlton"
+        submitLabel="Add Hotel"
+        onCancel={() => setHotelPromptOpen(false)}
+        onSubmit={(name) => {
+          store.insert("accommodations", { wedding_id: weddingId, name, photo_url: null, price: null, phone: null, distance: null, booking_url: null });
+          refresh();
+        }}
+      />
+
+      <PromptModal
+        open={markerPromptOpen}
+        title="Add Map Marker"
+        label="Marker Title"
+        placeholder="e.g. Dance Floor, Entrance"
+        submitLabel="Add Marker"
+        onCancel={() => { setMarkerPromptOpen(false); setMarkerCoords(null); }}
+        onSubmit={(title) => {
+          if (markerCoords) {
+            store.insert("venue_markers", {
+              wedding_id: weddingId,
+              title,
+              category: "General",
+              icon: "MapPin",
+              description: null,
+              x: markerCoords.x,
+              y: markerCoords.y
+            });
+            refresh();
+            toast.success("Marker added");
+          }
+        }}
+      />
+
+      <ConfirmModal
+        open={!!deleteMarker}
+        title="Delete Marker"
+        message={`Are you sure you want to delete marker "${deleteMarker?.title}"?`}
+        destructive
+        confirmLabel="Delete"
+        onCancel={() => setDeleteMarker(null)}
+        onConfirm={() => {
+          if (deleteMarker) {
+            store.remove("venue_markers", deleteMarker.id);
+            refresh();
+            toast.success("Marker deleted");
+          }
+        }}
+      />
     </div>
   );
 }

@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { store } from "@/store/weddingStore";
+import { ConfirmModal } from "@/components/ui/ConfirmModal";
 
 type StatusFilter = "all" | "draft" | "published" | "upcoming" | "completed" | "archived";
 
@@ -51,7 +52,7 @@ function weddingGuestCount(weddingId: string) {
 function rsvpProgress(weddingId: string) {
   const rsvps = store.where("rsvps", (r: any) => r.wedding_id === weddingId);
   if (!rsvps.length) return 0;
-  const responded = rsvps.filter((r: any) => r.attending === "confirmed" || r.attending === "declined" || r.attending === true || r.attending === false).length;
+  const responded = rsvps.filter((r: any) => r.attending === "confirmed" || r.attending === "declined").length;
   return Math.round((responded / rsvps.length) * 100);
 }
 
@@ -73,6 +74,7 @@ export default function AdminDashboard() {
   const [newSlug, setNewSlug] = useState("");
   const [newDate, setNewDate] = useState("");
   const [newVenue, setNewVenue] = useState("");
+  const [deleteWeddingConfirm, setDeleteWeddingConfirm] = useState<any | null>(null);
 
   useEffect(() => {
     if (!sessionStorage.getItem("wb_admin") && !localStorage.getItem("wb_admin")) {
@@ -219,7 +221,10 @@ export default function AdminDashboard() {
   };
 
   const deleteWedding = (w: any) => {
-    if (!confirm(`Delete "${w.couple_names}"? This removes all linked data.`)) return;
+    setDeleteWeddingConfirm(w);
+  };
+
+  const performDeleteWedding = (w: any) => {
     store.remove("weddings", w.id);
     ["events", "gallery", "guest_photos", "rsvps", "guest_moments", "checkins", "updates", "accommodations", "venue_markers"].forEach(t => {
       store.where(t as any, (row: any) => row.wedding_id === w.id).forEach((row: any) => store.remove(t as any, row.id));
@@ -445,8 +450,9 @@ export default function AdminDashboard() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#f7f3ed]" style={{ fontFamily: '"Manrope", system-ui, sans-serif' }}>
-      <style>{`.display{font-family:"Cormorant Garamond",Georgia,serif}.wedding-label{letter-spacing:.26em;text-transform:uppercase;font-size:11px;color:#b7834c}`}</style>
+    <div className="min-h-screen bg-[#f7f3ed]">
+
+
 
       <header className="sticky top-0 z-30 bg-white/90 backdrop-blur-xl border-b border-[#e6d4be]">
         <div className="mx-auto max-w-[1500px] px-5 md:px-8 h-[72px] flex items-center gap-4">
@@ -1012,6 +1018,21 @@ export default function AdminDashboard() {
           </div>
         </div>
       )}
+
+      <ConfirmModal
+        open={!!deleteWeddingConfirm}
+        title="Delete Wedding"
+        message={`Delete "${deleteWeddingConfirm?.couple_names}"? This removes all linked data.`}
+        destructive
+        confirmLabel="Delete"
+        onCancel={() => setDeleteWeddingConfirm(null)}
+        onConfirm={() => {
+          if (deleteWeddingConfirm) {
+            performDeleteWedding(deleteWeddingConfirm);
+            setDeleteWeddingConfirm(null);
+          }
+        }}
+      />
     </div>
   );
 }

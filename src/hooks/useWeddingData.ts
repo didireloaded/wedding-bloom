@@ -1,42 +1,42 @@
 import { useEffect, useState } from "react";
-import { store } from "@/store/weddingStore";
+import { store, type Wedding, type WeddingEvent, type GalleryItem, type WeddingUpdate, type Accommodation, type VenueMarker } from "@/store/weddingStore";
 
 /**
  * Drop-in equivalent of the original repo's useWeddingData hook.
  * Reads from localStorage-backed store and subscribes to realtime-like updates.
  */
 export function useWeddingData(slug: string | undefined) {
-  const [wedding, setWedding] = useState<any>(null);
-  const [events, setEvents] = useState<any[]>([]);
-  const [gallery, setGallery] = useState<any[]>([]);
-  const [updates, setUpdates] = useState<any[]>([]);
-  const [accommodations, setAccommodations] = useState<any[]>([]);
-  const [markers, setMarkers] = useState<any[]>([]);
+  const [wedding, setWedding] = useState<Wedding | null>(null);
+  const [events, setEvents] = useState<WeddingEvent[]>([]);
+  const [gallery, setGallery] = useState<GalleryItem[]>([]);
+  const [updates, setUpdates] = useState<WeddingUpdate[]>([]);
+  const [accommodations, setAccommodations] = useState<Accommodation[]>([]);
+  const [markers, setMarkers] = useState<VenueMarker[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!slug) { setLoading(false); return; }
-    const w = store.find<any>("weddings", (r) => r.slug === slug && r.published);
+    const w = store.find<Wedding>("weddings", (r) => r.slug === slug && r.published);
     setWedding(w ?? null);
     if (w) {
-      setEvents(store.where<any>("events", (r) => r.wedding_id === w.id).sort((a, b) => a.sort_order - b.sort_order));
-      setGallery(store.where<any>("gallery", (r) => r.wedding_id === w.id));
-      setUpdates(store.where<any>("updates", (r) => r.wedding_id === w.id));
-      setAccommodations(store.where<any>("accommodations", (r) => r.wedding_id === w.id));
-      setMarkers(store.where<any>("venue_markers", (r) => r.wedding_id === w.id));
+      setEvents(store.where<WeddingEvent>("events", (r) => r.wedding_id === w.id).sort((a, b) => a.sort_order - b.sort_order));
+      setGallery(store.where<GalleryItem>("gallery", (r) => r.wedding_id === w.id));
+      setUpdates(store.where<WeddingUpdate>("updates", (r) => r.wedding_id === w.id));
+      setAccommodations(store.where<Accommodation>("accommodations", (r) => r.wedding_id === w.id));
+      setMarkers(store.where<VenueMarker>("venue_markers", (r) => r.wedding_id === w.id));
     }
     setLoading(false);
 
     const off1 = store.subscribe("events", () => {
-      if (w) setEvents(store.where<any>("events", (r) => r.wedding_id === w.id).sort((a, b) => a.sort_order - b.sort_order));
+      if (w) setEvents(store.where<WeddingEvent>("events", (r) => r.wedding_id === w.id).sort((a, b) => a.sort_order - b.sort_order));
     });
     const off2 = store.subscribe("gallery", () => {
-      if (w) setGallery(store.where<any>("gallery", (r) => r.wedding_id === w.id));
+      if (w) setGallery(store.where<GalleryItem>("gallery", (r) => r.wedding_id === w.id));
     });
     const off3 = store.subscribe("updates", () => {
-      if (w) setUpdates(store.where<any>("updates", (r) => r.wedding_id === w.id));
+      if (w) setUpdates(store.where<WeddingUpdate>("updates", (r) => r.wedding_id === w.id));
     });
-    const off4 = store.subscribe("weddings", (row: any, ev) => {
+    const off4 = store.subscribe("weddings", (row: Wedding, ev) => {
       if (ev === "UPDATE" && row.slug === slug) setWedding(row);
     });
 

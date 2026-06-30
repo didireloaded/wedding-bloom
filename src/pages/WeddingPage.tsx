@@ -58,11 +58,10 @@ function RSVPForm({ wedding, isPreview }: { wedding: any; isPreview?: boolean })
       wedding_id: wedding.id,
       guest_name: form.guest_name.trim(),
       email: form.email.trim() || null,
-      attending: form.attending === "yes" ? true : form.attending === "no" ? false : null,
+      attending: form.attending === "yes" ? "confirmed" : form.attending === "no" ? "declined" : "maybe",
       guest_count: Number(form.guest_count) || 1,
       dietary_preference: form.dietary_preference || null,
-      song_request: form.song_request || null,
-      note: form.note || null,
+      message: form.song_request || form.note || null,
       submitted_at: new Date().toISOString(),
     });
     setSubmitted(true);
@@ -377,14 +376,10 @@ export default function WeddingPage() {
         {wedding.cover_image && <meta property="og:image" content={wedding.cover_image} />}
       </Helmet>
 
-      <style>{`
-        ::selection { background:#ebdacf; color:#302928; }
-        .display { font-family: "Cormorant Garamond", Georgia, serif; }
-        .script { font-family: "Fraunces", "Cormorant Garamond", serif; font-style: italic; }
-        .wedding-label { letter-spacing: .26em; text-transform: uppercase; font-size: 11px; color: #b7834c; }
-      `}</style>
 
-      <div className="min-h-screen bg-[#faf8f5] text-[#2e2b28]" style={{ fontFamily: '"Manrope", system-ui, sans-serif' }}>
+
+
+      <div className="min-h-screen bg-[#faf8f5] text-[#2e2b28]">
         {/* Invitation overlay */}
         <AnimatePresence>
           {!invitationOpen && (

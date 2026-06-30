@@ -40,11 +40,9 @@ export default function AdminLogin() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#faf8f5] px-6" style={{ fontFamily: '"Manrope", system-ui, sans-serif' }}>
-      <style>{`
-        .display { font-family: "Cormorant Garamond", Georgia, serif; }
-        .wedding-label { letter-spacing: .26em; text-transform: uppercase; font-size: 11px; color: #b7834c; }
-      `}</style>
+    <div className="min-h-screen flex items-center justify-center bg-[#faf8f5] px-6">
+
+
 
       <Link to="/" className="absolute top-6 left-6 flex items-center gap-2 text-[13px] text-[#6b5d4f] hover:text-[#b0743c]">
         <ArrowLeft size={14}/> Home
