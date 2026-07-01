@@ -184,6 +184,12 @@ export default function AdminLogin() {
                 <ArrowRight size={16} className="text-[#D4A853] group-hover:translate-x-1 transition-transform" />
               </button>
             </div>
+
+            <div className="mt-6 pt-5 border-t border-white/[0.06] text-center">
+              <Link to="/couple-login" className="text-[12.5px] text-[#A8A29E] hover:text-[#FAF7F2] underline underline-offset-4 transition font-medium">
+                Are you a couple? Go to Couple Portal Gateway →
+              </Link>
+            </div>
           </GlassCard>
         </motion.div>
       </div>

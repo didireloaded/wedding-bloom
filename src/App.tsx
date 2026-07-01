@@ -7,6 +7,7 @@ const Index = lazy(() => import("@/pages/Index"));
 const WeddingPage = lazy(() => import("@/pages/WeddingPage"));
 const CoupleEntry = lazy(() => import("@/pages/CoupleEntry"));
 const CoupleDashboard = lazy(() => import("@/pages/CoupleDashboard"));
+const CoupleLogin = lazy(() => import("@/pages/CoupleLogin"));
 const AdminLogin = lazy(() => import("@/pages/AdminLogin"));
 const AdminDashboard = lazy(() => import("@/pages/AdminDashboard"));
 const WeddingBuilder = lazy(() => import("@/pages/WeddingBuilder"));
@@ -23,14 +24,13 @@ function LegacyCoupleDashboardRedirect() {
 }
 
 const Loader = () => (
-  <div className="min-h-screen flex items-center justify-center bg-[#0C0A09]">
+  <div className="min-h-screen flex items-center justify-center bg-[#09090B]">
     <div className="text-center relative">
-      {/* Ambient glow */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-40 h-40 rounded-full bg-[#D4A853]/10 blur-2xl pointer-events-none" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-40 h-40 rounded-full bg-[#EAB308]/15 blur-2xl pointer-events-none" />
       
       <div className="relative z-10 flex flex-col items-center">
-        <div className="w-12 h-12 mb-5 border-2 border-[#D4A853]/20 border-t-[#D4A853] rounded-full animate-spin" />
-        <div className="text-[#D4A853] text-[11px] tracking-[0.3em] uppercase font-semibold font-mono">
+        <div className="w-12 h-12 mb-5 border-2 border-[#EAB308]/20 border-t-[#EAB308] rounded-full animate-spin" />
+        <div className="text-[#EAB308] text-[11px] tracking-[0.3em] uppercase font-bold font-mono">
           Loading ForeverVow
         </div>
       </div>
@@ -47,11 +47,11 @@ export default function App() {
         richColors 
         toastOptions={{
           style: {
-            background: "rgba(12, 10, 9, 0.88)",
+            background: "rgba(18, 18, 21, 0.92)",
             backdropFilter: "blur(20px)",
-            border: "1px solid rgba(212, 168, 83, 0.2)",
-            color: "#FAF7F2",
-            fontFamily: '"DM Sans", sans-serif',
+            border: "1px solid rgba(234, 179, 8, 0.25)",
+            color: "#FAFAFA",
+            fontFamily: '"Plus Jakarta Sans", sans-serif',
           }
         }}
       />
@@ -63,7 +63,7 @@ export default function App() {
             <Route path="/wedding/:slug" element={<WeddingPage />} />
             <Route path="/couple/:slug" element={<CoupleEntry />} />
             <Route path="/couple/:slug/dashboard" element={<CoupleDashboard />} />
-            <Route path="/couple-login" element={<Navigate to="/admin/login" replace />} />
+            <Route path="/couple-login" element={<CoupleLogin />} />
             <Route path="/couple-dashboard" element={<LegacyCoupleDashboardRedirect />} />
             <Route path="/admin" element={<AdminLogin />} />
             <Route path="/admin/login" element={<AdminLogin />} />
