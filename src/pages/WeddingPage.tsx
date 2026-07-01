@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState, useRef } from "react";
 import { useParams, Link, useSearchParams } from "react-router-dom";
 import { HelmetProvider, Helmet } from "react-helmet-async";
-import { Eye, Calendar, MapPin, Heart, Clock, Camera, Send, Sparkles, Flower2, Mail, MessageCircle, X, Gift, Users, ArrowRight, Menu, Plane, Train, Car } from "lucide-react";
+import { Eye, Calendar, MapPin, Heart, Clock, Camera, Send, Sparkles, Flower2, Mail, MessageCircle, X, Gift, Users, ArrowRight, Menu, Plane, Train, Car, Navigation, ShieldCheck, CheckCircle2, Radio, Compass } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import { useWeddingData } from "@/hooks/useWeddingData";
@@ -75,7 +75,9 @@ function RSVPForm({ wedding, isPreview }: { wedding: any; isPreview?: boolean })
     await submitRSVPToBackend(payload);
     setLoading(false);
     setSubmitted(true);
-    toast.success("RSVP received — thank you!");
+    toast.success(form.attending === "yes" ? "RSVP Confirmed! ✨" : "RSVP Received", {
+      description: form.attending === "yes" ? "We can't wait to celebrate with you!" : "Thank you for letting us know.",
+    });
   };
 
   if (submitted) {
@@ -155,9 +157,9 @@ function RSVPForm({ wedding, isPreview }: { wedding: any; isPreview?: boolean })
         <textarea rows={2} value={form.note} onChange={e => update("note", e.target.value)} placeholder="Optional warm wishes or logistical notes…" className={inputCls + " resize-none"} />
       </div>
       <div className="col-span-1 md:col-span-2 flex flex-col sm:flex-row items-center justify-between gap-4 pt-2">
-        <div className="text-[12px] text-stone-400 font-mono">Verified Security • ForeverVow OS</div>
+        <div className="text-[12px] text-stone-400 font-mono">ForeverVow Celebration Studio</div>
         <button type="submit" disabled={loading} className="fv-btn-primary !py-3.5 !px-8 text-[13px] disabled:opacity-50">
-          <Send size={15} /> {loading ? "Transmitting..." : "Transmit RSVP"}
+          <Send size={15} /> {loading ? "Sending RSVP..." : "Confirm & Send RSVP"}
         </button>
       </div>
     </form>
@@ -191,13 +193,11 @@ function MomentsSectionGuestbook({ wedding, isPreview }: { wedding: any; isPrevi
 
   return (
     <div>
-      {!isPreview && (
-        <form onSubmit={submit} className="grid md:grid-cols-3 gap-4 mb-8">
-          <input required value={name} onChange={e => setName(e.target.value)} placeholder="Your Name" className="md:col-span-2 rounded-[16px] border border-[#E5DEC9] bg-white px-4 py-3.5 outline-none focus:border-[#C5A059] text-[14px]" />
-          <button type="submit" className="fv-btn-primary !py-3.5 text-[13px]">Post Memory Note</button>
-          <textarea required rows={2} value={message} onChange={e => setMessage(e.target.value)} placeholder="Write your heartfelt wishes or memory note here…" className="md:col-span-3 rounded-[16px] border border-[#E5DEC9] bg-white px-4 py-3.5 outline-none focus:border-[#C5A059] resize-none text-[14px]" />
-        </form>
-      )}
+      <form onSubmit={submit} className="grid md:grid-cols-3 gap-4 mb-8">
+        <input required value={name} onChange={e => setName(e.target.value)} placeholder="Your Name" className="md:col-span-2 rounded-[16px] border border-[#E5DEC9] bg-white px-4 py-3.5 outline-none focus:border-[#C5A059] text-[14px]" />
+        <button type="submit" className="fv-btn-primary !py-3.5 text-[13px]">Post Memory Note</button>
+        <textarea required rows={2} value={message} onChange={e => setMessage(e.target.value)} placeholder="Write your heartfelt wishes or memory note here…" className="md:col-span-3 rounded-[16px] border border-[#E5DEC9] bg-white px-4 py-3.5 outline-none focus:border-[#C5A059] resize-none text-[14px]" />
+      </form>
       <div className="grid md:grid-cols-3 gap-5">
         {messages.slice().reverse().map(m => (
           <GlassCard key={m.id} variant="crystal" padding="lg" className="border border-[#E5DEC9]">
@@ -226,7 +226,7 @@ function GuestPhotosSection({ wedding, isPreview }: { wedding: any; isPreview?: 
     reader.onload = () => {
       store.insert("guest_photos", {
         wedding_id: wedding.id,
-        guest_name: "Guest",
+        guest_name: isPreview ? "Preview Guest" : "Guest",
         photo_url: reader.result as string,
         likes: 0,
         created_at: new Date().toISOString(),
@@ -238,19 +238,20 @@ function GuestPhotosSection({ wedding, isPreview }: { wedding: any; isPreview?: 
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <div className="text-[11px] uppercase tracking-[0.24em] font-bold text-[#A37C4D]">Live Guest Vault</div>
-        {!isPreview && (
-          <>
-            <button
-              onClick={() => fileRef.current?.click()}
-              className="fv-btn-ghost !py-2 !px-4 text-[12px] flex items-center gap-2"
-            >
-              <Camera size={14} /> Upload Snapshot
-            </button>
-            <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={e => e.target.files?.[0] && handleFile(e.target.files[0])} />
-          </>
-        )}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
+        <div>
+          <div className="text-[11px] uppercase tracking-[0.24em] font-bold text-[#A37C4D]">Live Guest Vault</div>
+          <p className="text-[14px] text-[#726C65] mt-0.5">Share your candid snapshots directly to the couple&rsquo;s wedding vault.</p>
+        </div>
+        <div className="flex items-center gap-3 shrink-0">
+          <button
+            onClick={() => fileRef.current?.click()}
+            className="px-6 py-3 rounded-full bg-[#2C2926] hover:bg-[#A37C4D] text-[#FAF7F2] font-bold text-[13px] tracking-wide shadow-lg hover:shadow-2xl transition-all duration-300 flex items-center gap-2.5 border border-[#C5A059]/40 cursor-pointer group"
+          >
+            <Camera size={16} className="text-[#C5A059] group-hover:text-white transition-colors" /> Upload Snapshot
+          </button>
+          <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={e => e.target.files?.[0] && handleFile(e.target.files[0])} />
+        </div>
       </div>
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
         {photos.slice().reverse().map((p: any) => (
@@ -326,7 +327,7 @@ function WeddingConcierge({ wedding }: { wedding: any }) {
               ))}
             </div>
             <div className="bg-[#F3EFEA] p-3 text-center border-t border-[#E5DEC9]">
-              <div className="text-[10px] text-[#A37C4D] font-mono uppercase">Powered by ForeverVow OS</div>
+              <div className="text-[10px] text-[#A37C4D] font-mono uppercase">Powered by ForeverVow Studio</div>
             </div>
           </motion.div>
         )}
@@ -344,6 +345,7 @@ export default function WeddingPage() {
   const [lightbox, setLightbox] = useState<string | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const countdown = useCountdown(wedding?.wedding_date ?? siteContent.weddingDateISO.split("T")[0]);
+  const [journeyOptIn, setJourneyOptIn] = useState<"pending" | "shared" | "declined" | "arrived">("pending");
 
   useEffect(() => {
     if (!wedding?.id) return;
@@ -518,6 +520,82 @@ export default function WeddingPage() {
                 )}
               </AnimatePresence>
             </nav>
+
+            {/* Morning-of Journey Opt-In Protocol */}
+            {journeyOptIn === "pending" && (
+              <motion.div
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-[#2C2926] text-[#FAF7F2] border-b border-[#C5A059]/40 py-4 px-6 shadow-2xl relative z-20"
+              >
+                <div className="mx-auto max-w-5xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                  <div className="flex items-start gap-3.5">
+                    <div className="w-10 h-10 rounded-full bg-[#C5A059]/20 text-[#C5A059] flex items-center justify-center shrink-0 mt-0.5">
+                      <Compass size={20} className="animate-spin-slow" />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.2em] text-[#C5A059]">
+                        <ShieldCheck size={14} className="text-[#7A9E7E]" /> Day 0 Privacy-First Protocol • Journey to Forever
+                      </div>
+                      <div className="text-[14px] font-semibold text-white mt-0.5">Good morning! Today&rsquo;s the big day.</div>
+                      <p className="text-[12.5px] text-[#E5DEC9] mt-0.5 leading-relaxed max-w-2xl font-serif">
+                        Would you like to share your live location with <strong className="text-white">{wedding.couple_names}</strong> while you&rsquo;re travelling to the venue? Your location will only be shared until you arrive or until the ceremony begins.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3 shrink-0 w-full md:w-auto justify-end">
+                    <button
+                      onClick={() => {
+                        setJourneyOptIn("declined");
+                        toast("Location sharing declined. Enjoy your journey!");
+                      }}
+                      className="px-4 py-2 rounded-xl text-[12px] font-bold text-[#A37C4D] hover:bg-white/5 transition"
+                    >
+                      Not Now
+                    </button>
+                    <button
+                      onClick={() => {
+                        setJourneyOptIn("shared");
+                        toast.success("Journey shared! Amelia & Daniel can see your live ETA.", {
+                          description: "Tracking will automatically stop upon arrival."
+                        });
+                      }}
+                      className="px-5 py-2.5 rounded-xl bg-[#C5A059] text-[#2C2926] font-bold text-[12.5px] hover:bg-[#D6B26A] transition shadow-lg flex items-center gap-2"
+                    >
+                      <Navigation size={14} /> Share My Journey
+                    </button>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
+            {journeyOptIn === "shared" && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                className="bg-gradient-to-r from-[#1C1814] via-[#2C2926] to-[#1C1814] text-[#FAF7F2] border-b border-[#7A9E7E]/50 py-3 px-6 shadow-md relative z-20"
+              >
+                <div className="mx-auto max-w-5xl flex flex-col sm:flex-row items-center justify-between gap-3 text-[13px]">
+                  <div className="flex items-center gap-3">
+                    <span className="w-2.5 h-2.5 rounded-full bg-[#7A9E7E] animate-pulse shrink-0" />
+                    <span>
+                      <strong className="text-[#7A9E7E]">Travelling</strong> • 18 minutes away — Traffic is light via A10
+                    </span>
+                  </div>
+                  <button
+                    onClick={() => {
+                      setJourneyOptIn("arrived");
+                      toast.success("🎉 Welcome to " + (wedding.ceremony_venue || "Château de Chambord") + "!", {
+                        description: "100m Geofence triggered. Live GPS sharing automatically terminated."
+                      });
+                    }}
+                    className="px-3.5 py-1.5 rounded-lg bg-[#7A9E7E]/20 hover:bg-[#7A9E7E]/30 text-[#7A9E7E] border border-[#7A9E7E]/40 text-[11.5px] font-bold transition flex items-center gap-1.5"
+                  >
+                    <CheckCircle2 size={13} /> Simulate Venue Arrival (100m Geofence)
+                  </button>
+                </div>
+              </motion.div>
+            )}
 
             {/* Hero Section */}
             <section id="home" className="relative overflow-hidden pt-6 pb-2 md:pt-10 md:pb-4">
@@ -752,34 +830,62 @@ export default function WeddingPage() {
                       whileInView={{ opacity: 1, y: 0 }}
                       viewport={{ once: true, margin: "-50px" }}
                       transition={{ type: "spring", stiffness: 50, damping: 20, delay: 0.15 }}
-                      className="lg:col-span-1 rounded-[32px] bg-[#F3EFEA] border border-[#E5DEC9] p-6 sm:p-8 shadow-xl flex flex-col justify-between"
+                      className={`lg:col-span-1 rounded-[32px] p-6 sm:p-8 shadow-xl flex flex-col justify-between transition-all ${
+                        journeyOptIn === "arrived" ? "bg-[#2C2926] text-[#FAF7F2] border border-[#C5A059]" : "bg-[#F3EFEA] border border-[#E5DEC9]"
+                      }`}
                     >
-                      <div>
-                        <div className="flex items-center gap-2.5 mb-2">
-                          <div className="w-8 h-8 rounded-full bg-[#2C2926] text-[#C5A059] flex items-center justify-center">
-                            <Plane size={15} />
+                      {journeyOptIn === "arrived" ? (
+                        <div className="space-y-4">
+                          <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.2em] text-[#C5A059]">
+                            <CheckCircle2 size={16} className="text-[#7A9E7E]" /> Checked In • Live Venue Mode
                           </div>
-                          <span className="wedding-label !mb-0 text-[#A37C4D]">{siteContent.venue.travelLogisticsLabel}</span>
+                          <h4 className="display text-[28px] text-white">Welcome to the wedding!</h4>
+                          <p className="text-[13.5px] text-[#E5DEC9] leading-relaxed font-serif">
+                            We are overjoyed to have you arrive safely at <strong className="text-white">{wedding.ceremony_venue || "Château de Chambord"}</strong>.
+                          </p>
+                          <div className="mt-6 p-4 rounded-2xl bg-white/[0.08] border border-white/10 space-y-3 text-[13px]">
+                            <div className="flex items-center justify-between">
+                              <span className="text-[#C5A059] font-bold">Assigned Parking:</span>
+                              <span className="text-white font-medium">Lot B (North Estate Gate)</span>
+                            </div>
+                            <div className="flex items-center justify-between">
+                              <span className="text-[#C5A059] font-bold">Welcome Refreshments:</span>
+                              <span className="text-white font-medium">East Courtyard Terrace</span>
+                            </div>
+                            <div className="flex items-center justify-between">
+                              <span className="text-[#C5A059] font-bold">Photo Vault Access:</span>
+                              <span className="text-[#7A9E7E] font-bold">Unlocked ✨</span>
+                            </div>
+                          </div>
                         </div>
-                        <h4 className="display text-[26px] text-[#2C2926] mb-6">{siteContent.venue.gettingThereHeading}</h4>
+                      ) : (
+                        <div>
+                          <div className="flex items-center gap-2.5 mb-2">
+                            <div className="w-8 h-8 rounded-full bg-[#2C2926] text-[#C5A059] flex items-center justify-center">
+                              <Plane size={15} />
+                            </div>
+                            <span className="wedding-label !mb-0 text-[#A37C4D]">{siteContent.venue.travelLogisticsLabel}</span>
+                          </div>
+                          <h4 className="display text-[26px] text-[#2C2926] mb-6">{siteContent.venue.gettingThereHeading}</h4>
 
-                        <div className="space-y-5">
-                          {siteContent.venue.travelOptions.map((opt) => {
-                            const Icon = opt.iconType === "plane" ? Plane : opt.iconType === "train" ? Train : Car;
-                            return (
-                              <div key={opt.id} className="p-4 rounded-[20px] bg-white border border-[#E5DEC9]/80 shadow-sm">
-                                <div className="flex items-center gap-2 text-[12px] font-bold uppercase tracking-[0.16em] text-[#A37C4D] mb-1.5">
-                                  <Icon size={14} /> {opt.category}
+                          <div className="space-y-5">
+                            {siteContent.venue.travelOptions.map((opt) => {
+                              const Icon = opt.iconType === "plane" ? Plane : opt.iconType === "train" ? Train : Car;
+                              return (
+                                <div key={opt.id} className="p-4 rounded-[20px] bg-white border border-[#E5DEC9]/80 shadow-sm">
+                                  <div className="flex items-center gap-2 text-[12px] font-bold uppercase tracking-[0.16em] text-[#A37C4D] mb-1.5">
+                                    <Icon size={14} /> {opt.category}
+                                  </div>
+                                  <div className="text-[14px] font-semibold text-[#2C2926]">{opt.title}</div>
+                                  <p className="text-[12.5px] text-[#726C65] mt-1 leading-relaxed font-serif">
+                                    {opt.description}
+                                  </p>
                                 </div>
-                                <div className="text-[14px] font-semibold text-[#2C2926]">{opt.title}</div>
-                                <p className="text-[12.5px] text-[#726C65] mt-1 leading-relaxed font-serif">
-                                  {opt.description}
-                                </p>
-                              </div>
-                            );
-                          })}
+                              );
+                            })}
+                          </div>
                         </div>
-                      </div>
+                      )}
                     </motion.div>
 
                     {/* Bento Item 3: Interactive Venue Blueprint (Span full 3 cols if venue_map_url exists) */}

@@ -6,7 +6,7 @@ import {
   Flower2, Heart, Users, Camera, LogOut, ExternalLink,
   Copy, CheckCircle2, Calendar, MapPin, Edit3, Trash2, Plus,
   MessageCircle, Clock, UserCheck, Gift, Bell, Home, Image as ImageIcon,
-  Settings, Sparkles, Radio, Menu, X, DollarSign, Award, Mail
+  Settings, Sparkles, Radio, Menu, X, DollarSign, Award, Mail, Navigation
 } from "lucide-react";
 import { toast } from "sonner";
 import { store } from "@/store/weddingStore";
@@ -19,7 +19,7 @@ import {
   CommandCenter
 } from "@/features/couple/widgets";
 import {
-  RunSheetModule, FloorPlannerModule, TaskBoardModule, GuestCrmModule, BroadcastHubModule
+  RunSheetModule, FloorPlannerModule, TaskBoardModule, GuestCrmModule, BroadcastHubModule, GuestArrivalsModule
 } from "@/features/couple/executionSuite";
 import {
   BudgetVendorModule, MoodBoardModule, ThankYouTrackerModule
@@ -49,7 +49,7 @@ export default function CoupleDashboard() {
   const [moodItems, setMoodItems] = useState<any[]>([]);
   const [gifts, setGifts] = useState<any[]>([]);
 
-  type TabId = "workspace" | "overview" | "budget" | "mood_board" | "gifts" | "rsvp" | "crm" | "run_sheet" | "tables" | "tasks" | "broadcasts" | "events" | "map" | "accommodations" | "gallery" | "guest_photos" | "moments" | "updates" | "share" | "checkins";
+  type TabId = "workspace" | "overview" | "budget" | "mood_board" | "gifts" | "rsvp" | "crm" | "run_sheet" | "tables" | "tasks" | "broadcasts" | "events" | "map" | "accommodations" | "gallery" | "guest_photos" | "moments" | "updates" | "share" | "checkins" | "arrivals";
   const [tab, setTab] = useState<TabId>("workspace");
   const [editingWedding, setEditingWedding] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -183,7 +183,7 @@ export default function CoupleDashboard() {
       <div className="min-h-screen flex items-center justify-center bg-[#0C0A09] text-[#FAF7F2]">
         <div className="text-center">
           <div className="w-12 h-12 mx-auto mb-4 border-2 border-[#D4A853] border-t-transparent rounded-full animate-spin"></div>
-          <div className="text-[#A8A29E] font-mono text-[13px]">Loading Celebration Cockpit…</div>
+          <div className="text-[#A8A29E] font-mono text-[13px]">Loading Celebration Studio…</div>
         </div>
       </div>
     );
@@ -277,9 +277,9 @@ export default function CoupleDashboard() {
           <GlassCard variant="obsidian" padding="md" className="border border-white/[0.1] space-y-6">
             {[
               {
-                group: "Command Center",
+                group: "Celebration Studio",
                 items: [
-                  { id: "workspace", label: "Mission Cockpit", icon: <Home size={16} /> },
+                  { id: "workspace", label: "Studio Cockpit", icon: <Home size={16} /> },
                 ]
               },
               {
@@ -293,6 +293,7 @@ export default function CoupleDashboard() {
               {
                 group: "Execution Logistics",
                 items: [
+                  { id: "arrivals", label: "Live Guest Arrivals", icon: <Navigation size={16} /> },
                   { id: "run_sheet", label: "Day-of Run Sheet", count: runSheet.length, icon: <Clock size={16} /> },
                   { id: "tables", label: "Seating Floor Plan", count: tablesList.length, icon: <Users size={16} /> },
                   { id: "tasks", label: "Delegation Board", count: tasks.filter(t => t.status !== "done").length, icon: <CheckCircle2 size={16} /> },
@@ -315,13 +316,13 @@ export default function CoupleDashboard() {
                 items: [
                   { id: "overview", label: "Overview & Story", icon: <Heart size={16} /> },
                   { id: "events", label: "Timeline Events", count: events.length, icon: <Calendar size={16} /> },
-                  { id: "updates", label: "Live Broadcasts", count: updates.length, icon: <Radio size={16} /> },
+                  { id: "updates", label: "Wedding Announcements", count: updates.length, icon: <Radio size={16} /> },
                 ]
               },
               {
                 group: "Media Vault",
                 items: [
-                  { id: "gallery", label: "Official Gallery", count: gallery.length, icon: <ImageIcon size={16} /> },
+                  { id: "gallery", label: "Curated Portfolio", count: gallery.length, icon: <ImageIcon size={16} /> },
                   { id: "guest_photos", label: "Guest Photo Vault", count: guestPhotos.length, icon: <Camera size={16} /> },
                 ]
               },
@@ -463,7 +464,7 @@ export default function CoupleDashboard() {
               <div>
                 <div className="wedding-label text-[#D4A853]">Module Workspace</div>
                 <h2 className="display text-[32px] text-[#FAF7F2] capitalize">
-                  {tab === "rsvp" ? "Guest RSVPs" : tab === "guest_photos" ? "Guest Vault" : tab === "map" ? "Interactive Venue Map" : tab === "share" ? "QR & Share Portal" : tab.replace("_", " ")}
+                  {tab === "arrivals" ? "Live Guest & Vendor Arrivals" : tab === "rsvp" ? "Guest RSVPs" : tab === "guest_photos" ? "Guest Vault" : tab === "map" ? "Interactive Venue Map" : tab === "share" ? "QR & Share Portal" : tab.replace("_", " ")}
                 </h2>
               </div>
               <button onClick={() => setTab("workspace")} className="fv-btn-ghost !py-2 !px-4 text-[12px]">
@@ -859,6 +860,7 @@ export default function CoupleDashboard() {
           )}
 
           {/* New Advanced Execution Logistics & Guest Intelligence Modules */}
+          {tab === "arrivals" && <GuestArrivalsModule wedding={wedding} rsvps={rsvps} />}
           {tab === "run_sheet" && <RunSheetModule wedding={wedding} runSheet={runSheet} refresh={refresh} />}
           {tab === "tables" && <FloorPlannerModule wedding={wedding} tablesList={tablesList} rsvps={rsvps} refresh={refresh} />}
           {tab === "tasks" && <TaskBoardModule wedding={wedding} tasks={tasks} refresh={refresh} />}

@@ -97,17 +97,19 @@ export interface WeddingStageInfo {
   recommendation: string;
   actionLabel: string;
   isLegacyMode: boolean;
+  lifecycleMode: "dream" | "planning" | "invitations" | "preparation" | "wedding_week" | "live_wedding" | "memory_book";
 }
 
 export function calculateWeddingStage(wedding: Wedding): WeddingStageInfo {
   if (!wedding) {
     return {
       stageNumber: 1,
-      stageName: "Wedding Created",
+      stageName: "Dream & Vision",
       progressPercent: 15,
-      recommendation: "Welcome to ForeverVow. Begin by personalizing your love story.",
+      recommendation: "Welcome to ForeverVow Studio. Begin by personalizing your love story and design vision.",
       actionLabel: "Complete Profile",
       isLegacyMode: false,
+      lifecycleMode: "dream",
     };
   }
 
@@ -116,9 +118,10 @@ export function calculateWeddingStage(wedding: Wedding): WeddingStageInfo {
       stageNumber: 6,
       stageName: "Married ❤️ — Memory Book",
       progressPercent: 100,
-      recommendation: "Your wedding was magic. Relive every moment in your ForeverVow Memory Book.",
+      recommendation: "Your wedding was unforgettable. Relive every cherished moment in your ForeverVow Memory Book.",
       actionLabel: "Explore Keepsake",
       isLegacyMode: true,
+      lifecycleMode: "memory_book",
     };
   }
 
@@ -137,11 +140,24 @@ export function calculateWeddingStage(wedding: Wedding): WeddingStageInfo {
   if (daysRemaining !== null && daysRemaining < 0) {
     return {
       stageNumber: 6,
-      stageName: "Married ❤️",
+      stageName: "Married ❤️ — Memory Book",
       progressPercent: 100,
-      recommendation: "Congratulations! Switch to your digital Memory Book to preserve your photos and guest notes.",
-      actionLabel: "Generate Memory Book",
+      recommendation: "Congratulations! Explore your digital Memory Book to curate guest snapshots and wishes.",
+      actionLabel: "Explore Memory Book",
       isLegacyMode: false,
+      lifecycleMode: "memory_book",
+    };
+  }
+
+  if (daysRemaining !== null && daysRemaining === 0) {
+    return {
+      stageNumber: 5,
+      stageName: "Live Wedding Day ✨",
+      progressPercent: 95,
+      recommendation: "Your celebration is happening today! Monitor live guest snapshots and timeline events.",
+      actionLabel: "Open Live Mode",
+      isLegacyMode: false,
+      lifecycleMode: "live_wedding",
     };
   }
 
@@ -149,21 +165,35 @@ export function calculateWeddingStage(wedding: Wedding): WeddingStageInfo {
     return {
       stageNumber: 5,
       stageName: "Wedding Week",
-      progressPercent: 85,
-      recommendation: "Your big day is almost here! Prepare Live Wedding Mode and double check venue travel guides.",
-      actionLabel: "Preview Live Mode",
+      progressPercent: 88,
+      recommendation: "Your celebration week has arrived! Review vendor run sheets and double-check guest check-ins.",
+      actionLabel: "Review Run Sheet",
       isLegacyMode: false,
+      lifecycleMode: "wedding_week",
+    };
+  }
+
+  if (daysRemaining !== null && daysRemaining <= 30 && isPublished) {
+    return {
+      stageNumber: 4,
+      stageName: "Final Preparation",
+      progressPercent: 78,
+      recommendation: `Only ${daysRemaining} days away. Lock in table seating arrangements and finalize vendor logistics.`,
+      actionLabel: "Manage Seating & Tasks",
+      isLegacyMode: false,
+      lifecycleMode: "preparation",
     };
   }
 
   if (confirmedCount > 0 || rsvps.length > 0) {
     return {
       stageNumber: 4,
-      stageName: "Guests RSVPing",
+      stageName: "Invitations & RSVPs",
       progressPercent: 65,
-      recommendation: `Guests are responding (${confirmedCount} confirmed). Review dietary notes and seating arrangements.`,
+      recommendation: `Guests are replying (${confirmedCount} confirmed). Review dietary notes and track headcount.`,
       actionLabel: "Manage RSVPs",
       isLegacyMode: false,
+      lifecycleMode: "invitations",
     };
   }
 
@@ -172,29 +202,32 @@ export function calculateWeddingStage(wedding: Wedding): WeddingStageInfo {
       stageNumber: 3,
       stageName: "Invitation Published",
       progressPercent: 45,
-      recommendation: "Your wedding website is live! Share your invitation link or QR code with guests.",
+      recommendation: "Your wedding site is live! Share your digital invitation link or QR code with invited guests.",
       actionLabel: "Share Invitation",
       isLegacyMode: false,
+      lifecycleMode: "planning",
     };
   }
 
   if (hasDetails) {
     return {
       stageNumber: 2,
-      stageName: "Details Added",
+      stageName: "Planning Details",
       progressPercent: 30,
-      recommendation: "Your core details look stunning. Preview your guest experience and publish when ready.",
+      recommendation: "Your core details look stunning. Preview your guest portal and publish when ready.",
       actionLabel: "Preview & Publish",
       isLegacyMode: false,
+      lifecycleMode: "planning",
     };
   }
 
   return {
     stageNumber: 1,
-    stageName: "Wedding Created",
+    stageName: "Dream & Vision",
     progressPercent: 15,
-    recommendation: "Start adding your wedding date, ceremony venue, and love story.",
-    actionLabel: "Edit Wedding Details",
+    recommendation: "Start building your dream celebration by adding your wedding date, venue setting, and story.",
+    actionLabel: "Edit Studio Details",
     isLegacyMode: false,
+    lifecycleMode: "dream",
   };
 }

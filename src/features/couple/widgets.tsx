@@ -25,12 +25,12 @@ export function CommandCenter({ wedding, rsvps, moments, guestPhotos }: any) {
   const stageInfo = calculateWeddingStage(wedding);
 
   const stages = [
-    { num: 1, label: "Created" },
-    { num: 2, label: "Details" },
+    { num: 1, label: "Dream" },
+    { num: 2, label: "Planning" },
     { num: 3, label: "Published" },
     { num: 4, label: "RSVPs" },
-    { num: 5, label: "Wedding Week" },
-    { num: 6, label: "Married ❤️" },
+    { num: 5, label: "Live Week" },
+    { num: 6, label: "Memory Book" },
   ];
 
   return (
@@ -232,7 +232,7 @@ export function SummaryGrid({ rsvps, moments, guestPhotos, wedding, onNavigate }
     { icon: <Users size={18} />, label: "Confirmed", value: confirmed, tab: "rsvp", color: "#7A9E7E", bg: "rgba(122,158,126,0.12)", sub: `Expecting ~${rsvps.length}` },
     { icon: <Heart size={18} />, label: "Pending", value: pending, tab: "rsvp", color: "#D4A853", bg: "rgba(212,168,83,0.12)", sub: `${Math.round((pending/rsvps.length)||0)}% remaining` },
     { icon: <Activity size={18} />, label: "Declined", value: declined, tab: "rsvp", color: "#C97B7B", bg: "rgba(201,123,123,0.12)", sub: "Guest list updated" },
-    { icon: <MessageCircle size={18} />, label: "Messages", value: moments.length, tab: "moments", color: "#A882DD", bg: "rgba(168,130,221,0.12)", sub: "In Guestbook" },
+    { icon: <MessageCircle size={18} />, label: "Guest Memories", value: moments.length, tab: "moments", color: "#A882DD", bg: "rgba(168,130,221,0.12)", sub: "In Guestbook" },
     { icon: <Image size={18} />, label: "Guest Photos", value: guestPhotos.length, tab: "guest_photos", color: "#E8C97A", bg: "rgba(232,201,122,0.12)", sub: "New uploads" },
     { icon: <Eye size={18} />, label: "Page Views", value: views, tab: "overview", color: "#6EA4B8", bg: "rgba(110,164,184,0.12)", sub: "Live traffic" },
     { icon: <QrCode size={18} />, label: "QR Scans", value: qrScans, tab: "share", color: "#FAF7F2", bg: "rgba(250,247,242,0.08)", sub: "Invitations opened" },
@@ -277,15 +277,15 @@ export function QuickActionsWidget({ wedding, onNavigate, onCopyLink }: any) {
     { icon: <ExternalLink size={16} />, label: "Preview Site", onClick: () => window.open(`/wedding/${slug}`, "_blank") },
     { icon: <QrCode size={16} />, label: "Get QR Code", onClick: () => onNavigate("share") },
     { icon: <Calendar size={16} />, label: "Add Event", onClick: () => onNavigate("events") },
-    { icon: <Image size={16} />, label: "Official Gallery", onClick: () => onNavigate("gallery") },
-    { icon: <MessageCircle size={16} />, label: "Post Update", onClick: () => onNavigate("updates") },
+    { icon: <Image size={16} />, label: "Curated Portfolio", onClick: () => onNavigate("gallery") },
+    { icon: <MessageCircle size={16} />, label: "Post Announcement", onClick: () => onNavigate("updates") },
     { icon: <MapPin size={16} />, label: "Venue Map", onClick: () => onNavigate("map") },
     { icon: <Heart size={16} />, label: "Hotels & Stay", onClick: () => onNavigate("accommodations") },
   ];
 
   return (
     <GlassCard variant="obsidian" padding="lg" id="mission-actions" className="border border-white/[0.1]">
-      <div className="wedding-label mb-4">Command Center Shortcuts</div>
+      <div className="wedding-label mb-4">Studio Shortcuts</div>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {actions.map(a => (
           <button
@@ -339,7 +339,7 @@ export function ActivityTimeline({ rsvps, moments, guestPhotos, updates }: any) 
 
   return (
     <GlassCard variant="obsidian" padding="lg" className="border border-white/[0.1]">
-      <div className="wedding-label mb-5">Activity River</div>
+      <div className="wedding-label mb-5">Celebration Stream</div>
       {items.length === 0 ? (
         <div className="text-[13px] text-[#A8A29E] text-center py-8">No events logged yet. Share your guest portal to start collecting activity.</div>
       ) : (
@@ -477,7 +477,7 @@ export function NotificationCenter({ wedding, rsvps, moments, guestPhotos, open,
               <div className="w-16 h-16 bg-white/[0.04] border border-white/[0.08] rounded-full flex items-center justify-center mx-auto mb-4 text-[#D4A853]">
                 <Bell size={24} />
               </div>
-              All quiet in your command center.
+              All quiet in your celebration pulse.
             </div>
           ) : (
             all.slice(0, 30).map(n => {
@@ -539,7 +539,7 @@ export function WorkspaceSearch({ wedding, onNavigate }: any) {
     store.where("guest_moments", (m: any) => m.wedding_id === wedding.id && m.message?.toLowerCase().includes(term))
       .slice(0, 5).forEach((m: any) => hits.push({ type: "Moment", label: `${m.guest_name}: ${m.message.slice(0, 40)}…`, tab: "moments" }));
     store.where("updates", (u: any) => u.wedding_id === wedding.id && (u.title?.toLowerCase().includes(term) || u.message?.toLowerCase().includes(term)))
-      .slice(0, 5).forEach((u: any) => hits.push({ type: "Update", label: u.title, tab: "updates" }));
+      .slice(0, 5).forEach((u: any) => hits.push({ type: "Announcement", label: u.title, tab: "updates" }));
     store.where("accommodations", (a: any) => a.wedding_id === wedding.id && a.name?.toLowerCase().includes(term))
       .slice(0, 5).forEach((a: any) => hits.push({ type: "Hotel", label: a.name, tab: "accommodations" }));
     store.where("venue_markers", (v: any) => v.wedding_id === wedding.id && (v.title?.toLowerCase().includes(term) || v.category?.toLowerCase().includes(term)))
@@ -558,7 +558,7 @@ export function WorkspaceSearch({ wedding, onNavigate }: any) {
         onChange={e => { setQ(e.target.value); setOpen(true); }}
         onFocus={() => setOpen(true)}
         onBlur={() => setTimeout(() => setOpen(false), 200)}
-        placeholder="Search command center…"
+        placeholder="Search studio elements, guests, timeline…"
         className="w-full rounded-full border border-white/[0.1] bg-white/[0.04] pl-11 pr-4 py-2.5 text-[13px] text-[#FAF7F2] outline-none focus:border-[#D4A853] transition-all placeholder:text-[#78716C]"
       />
       {open && q.trim() && (

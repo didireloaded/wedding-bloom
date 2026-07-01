@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import {
   Clock, Plus, Trash2, Share2, Send, Users, CheckCircle2, AlertCircle,
   Sparkles, Award, UserCheck, Calendar, Check, Mail, Bell, FileText, ArrowRight,
-  ChevronRight, Filter
+  ChevronRight, Filter, MapPin, Navigation, Car, ShieldCheck, Radio, Compass, Heart
 } from "lucide-react";
 
 /* -------------------------------------------------------------------------- */
@@ -834,6 +834,213 @@ export function BroadcastHubModule({ wedding, broadcasts, rsvps, refresh }: { we
           </GlassCard>
         ))}
       </div>
+    </div>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/* 6. JOURNEY TO FOREVER / GUEST ARRIVALS MODULE                              */
+/* -------------------------------------------------------------------------- */
+export function GuestArrivalsModule({ wedding, rsvps }: { wedding: any; rsvps: RSVP[] }) {
+  const invitedCount = rsvps.length > 0 ? rsvps.length : 180;
+  const confirmedCount = rsvps.filter(r => r.attending === "confirmed").length || 142;
+  const arrivedCount = 119;
+  const travellingCount = 18;
+  const yetToStartCount = confirmedCount - arrivedCount - travellingCount;
+
+  const [travellers, setTravellers] = useState([
+    { id: "1", name: "Sarah Johnson", status: "15 minutes away", detail: "Traffic is light • Route via A10", state: "travelling" },
+    { id: "2", name: "Michael Smith", status: "28 minutes away", detail: "Moderate traffic near junction 4", state: "travelling" },
+    { id: "3", name: "Emma Brown", status: "Arriving", detail: "Entering 100m Venue Geofence", state: "arriving" },
+    { id: "4", name: "David Jones", status: "Already at the venue", detail: "Checked In • Parked in Lot B", state: "arrived" },
+  ]);
+
+  const [vendors, setVendors] = useState([
+    { role: "Lead Photographer", name: "Lumière Studio", status: "12 minutes away", state: "travelling", icon: "📸" },
+    { role: "Floral Designer", name: "Fleur de Loire", status: "Already Arrived", state: "arrived", icon: "🌸" },
+    { role: "Master of Ceremonies & DJ", name: "Soundwave Collective", status: "25 minutes away", state: "travelling", icon: "🎵" },
+    { role: "Executive Catering", name: "Chambord Gastronomy", status: "Setting Up", state: "arrived", icon: "🥂" },
+  ]);
+
+  const simulateArrival = (id: string) => {
+    setTravellers(prev => prev.map(t => {
+      if (t.id === id) {
+        toast.success(`🎉 ${t.name} has arrived at ${wedding.ceremony_venue || "the venue"}! Geofence triggered.`);
+        return { ...t, status: "Already at the venue", detail: "Checked In • Parked in Lot B", state: "arrived" };
+      }
+      return t;
+    }));
+  };
+
+  return (
+    <div className="space-y-8">
+      {/* Header Banner */}
+      <div className="p-6 rounded-[28px] bg-gradient-to-r from-[#D4A853]/20 via-[#1C1814] to-[#0C0A09] border border-[#D4A853]/40 shadow-2xl relative overflow-hidden">
+        <div className="absolute -right-10 -bottom-10 w-64 h-64 bg-[#D4A853]/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
+          <div>
+            <div className="flex items-center gap-2 text-[11px] uppercase tracking-[0.24em] text-[#D4A853] font-bold mb-1.5">
+              <Compass size={14} className="animate-spin-slow" /> Day 0 Operations • Journey to Forever
+            </div>
+            <h3 className="display text-[28px] sm:text-[34px] text-[#FAF7F2]">Live Guest & Vendor Arrivals</h3>
+            <p className="text-[13px] text-[#A8A29E] max-w-2xl mt-1">
+              Real-time, privacy-first arrival monitoring answering exactly where your guests and key vendors are on the morning of your celebration.
+            </p>
+          </div>
+          <div className="flex items-center gap-3 shrink-0 bg-white/[0.04] border border-white/[0.1] px-4 py-3 rounded-[20px]">
+            <ShieldCheck size={20} className="text-[#7A9E7E] shrink-0" />
+            <div className="text-[11px] text-[#FAF7F2]/90 leading-tight">
+              <strong className="text-[#7A9E7E] block">100% Opt-In & Event-Specific</strong>
+              Tracking self-terminates upon venue geofence arrival.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Live Counter Grid */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <GlassCard variant="obsidian" padding="lg" className="border border-white/[0.1]">
+          <div className="text-[11px] uppercase tracking-wider font-semibold text-[#A8A29E] mb-1">Total Confirmed</div>
+          <div className="display text-[32px] text-[#FAF7F2]">{confirmedCount}</div>
+          <div className="text-[11px] text-[#78716C] mt-1">From {invitedCount} invited guests</div>
+        </GlassCard>
+        <GlassCard variant="obsidian" padding="lg" className="border border-[#7A9E7E]/40 bg-[#7A9E7E]/[0.06]">
+          <div className="text-[11px] uppercase tracking-wider font-semibold text-[#7A9E7E] mb-1 flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full bg-[#7A9E7E] animate-pulse" /> Arrived at Venue
+          </div>
+          <div className="display text-[32px] text-[#7A9E7E]">{arrivedCount}</div>
+          <div className="text-[11px] text-[#A8A29E] mt-1">Checked in & parked</div>
+        </GlassCard>
+        <GlassCard variant="obsidian" padding="lg" className="border border-[#D4A853]/40 bg-[#D4A853]/[0.06]">
+          <div className="text-[11px] uppercase tracking-wider font-semibold text-[#D4A853] mb-1 flex items-center gap-1.5">
+            <Car size={13} /> Currently Travelling
+          </div>
+          <div className="display text-[32px] text-[#D4A853]">{travellingCount}</div>
+          <div className="text-[11px] text-[#A8A29E] mt-1">En route with live GPS opt-in</div>
+        </GlassCard>
+        <GlassCard variant="obsidian" padding="lg" className="border border-white/[0.1]">
+          <div className="text-[11px] uppercase tracking-wider font-semibold text-[#A8A29E] mb-1">Yet to Start</div>
+          <div className="display text-[32px] text-[#A8A29E]">{yetToStartCount > 0 ? yetToStartCount : 0}</div>
+          <div className="text-[11px] text-[#78716C] mt-1">Departing shortly</div>
+        </GlassCard>
+      </div>
+
+      {/* Main Grid: Guests Travelling + Vendor Readiness */}
+      <div className="grid lg:grid-cols-2 gap-8">
+        {/* Left: Guests Travelling Feed */}
+        <GlassCard variant="obsidian" padding="xl" className="border border-white/[0.1] space-y-6">
+          <div className="flex items-center justify-between border-b border-white/[0.08] pb-4">
+            <div>
+              <h4 className="display text-[20px] text-[#FAF7F2] flex items-center gap-2">
+                <Navigation size={18} className="text-[#D4A853]" /> Guests Travelling Feed
+              </h4>
+              <p className="text-[12px] text-[#A8A29E]">Active journey updates from guests who selected &ldquo;Share My Journey&rdquo;</p>
+            </div>
+            <span className="px-2.5 py-1 rounded-full bg-[#D4A853]/20 text-[#D4A853] text-[10px] font-mono uppercase font-bold animate-pulse">
+              Live Radar
+            </span>
+          </div>
+
+          <div className="space-y-3.5">
+            {travellers.map((t) => (
+              <div
+                key={t.id}
+                className="p-4 rounded-[18px] bg-white/[0.03] border border-white/[0.08] hover:border-white/[0.18] transition flex items-center justify-between gap-4"
+              >
+                <div className="flex items-center gap-3.5">
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-between justify-center shrink-0 ${
+                    t.state === "arrived" ? "bg-[#7A9E7E]/20 text-[#7A9E7E] border border-[#7A9E7E]/40" :
+                    t.state === "arriving" ? "bg-[#E8C97A]/20 text-[#E8C97A] border border-[#E8C97A]/40 animate-pulse" :
+                    "bg-[#D4A853]/15 text-[#D4A853] border border-[#D4A853]/30"
+                  }`}>
+                    {t.state === "arrived" ? <CheckCircle2 size={18} /> : t.state === "arriving" ? <Radio size={18} /> : <Car size={18} />}
+                  </div>
+                  <div>
+                    <div className="font-semibold text-[15px] text-[#FAF7F2]">{t.name}</div>
+                    <div className="text-[12px] text-[#A8A29E] mt-0.5">{t.detail}</div>
+                  </div>
+                </div>
+                <div className="text-right shrink-0">
+                  <div className={`text-[13px] font-bold ${
+                    t.state === "arrived" ? "text-[#7A9E7E]" : t.state === "arriving" ? "text-[#E8C97A]" : "text-[#D4A853]"
+                  }`}>
+                    {t.status}
+                  </div>
+                  {t.state !== "arrived" && (
+                    <button
+                      onClick={() => simulateArrival(t.id)}
+                      className="mt-1.5 text-[10px] text-[#A8A29E] hover:text-[#FAF7F2] underline underline-offset-2 transition"
+                    >
+                      Simulate 100m Arrival
+                    </button>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </GlassCard>
+
+        {/* Right: Vendor Readiness Dashboard */}
+        <GlassCard variant="obsidian" padding="xl" className="border border-white/[0.1] space-y-6">
+          <div className="flex items-center justify-between border-b border-white/[0.08] pb-4">
+            <div>
+              <h4 className="display text-[20px] text-[#FAF7F2] flex items-center gap-2">
+                <Sparkles size={18} className="text-[#E8C97A]" /> Vendor Readiness Board
+              </h4>
+              <p className="text-[12px] text-[#A8A29E]">Day 0 arrival status for your creative team and coordinators</p>
+            </div>
+            <span className="px-2.5 py-1 rounded-full bg-[#7A9E7E]/20 text-[#7A9E7E] text-[10px] font-mono uppercase font-bold">
+              All Aligned
+            </span>
+          </div>
+
+          <div className="space-y-3.5">
+            {vendors.map((v, i) => (
+              <div
+                key={i}
+                className="p-4 rounded-[18px] bg-white/[0.03] border border-white/[0.08] flex items-center justify-between gap-4"
+              >
+                <div className="flex items-center gap-3.5 min-w-0">
+                  <div className="w-10 h-10 rounded-xl bg-white/[0.05] border border-white/[0.1] flex items-center justify-center text-[18px] shrink-0">
+                    {v.icon}
+                  </div>
+                  <div className="min-w-0">
+                    <div className="text-[11px] uppercase tracking-wider font-semibold text-[#D4A853]">{v.role}</div>
+                    <div className="font-semibold text-[15px] text-[#FAF7F2] truncate">{v.name}</div>
+                  </div>
+                </div>
+                <div className="text-right shrink-0">
+                  <span className={`px-3 py-1 rounded-full text-[12px] font-bold ${
+                    v.state === "arrived" ? "bg-[#7A9E7E]/20 text-[#7A9E7E]" : "bg-[#D4A853]/20 text-[#D4A853]"
+                  }`}>
+                    {v.status}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </GlassCard>
+      </div>
+
+      {/* Interactive Geofence Radar Preview */}
+      <GlassCard variant="obsidian" padding="xl" className="border border-white/[0.1] bg-gradient-to-br from-[#1C1814]/80 to-[#0C0A09]">
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+          <div className="space-y-2">
+            <div className="flex items-center gap-2 text-[#D4A853] text-[12px] font-bold uppercase tracking-wider">
+              <MapPin size={16} /> 100-Meter Geofence Protocol
+            </div>
+            <h4 className="display text-[22px] text-[#FAF7F2]">Automatic Venue Check-In & Parking Welcome</h4>
+            <p className="text-[13px] text-[#A8A29E] max-w-2xl">
+              When a travelling guest crosses into the 100-meter radius around <strong className="text-[#FAF7F2]">{wedding.ceremony_venue || "Château de Chambord"}</strong>, ForeverVow automatically checks them in and changes their mobile screen to display assigned parking directions and immediate welcome guidance.
+            </p>
+          </div>
+          <div className="p-4 rounded-[20px] bg-white/[0.04] border border-white/[0.1] text-center shrink-0 w-full md:w-auto">
+            <div className="text-[11px] uppercase tracking-widest text-[#78716C] font-mono">Geofence Center</div>
+            <div className="text-[15px] font-semibold text-[#FAF7F2] mt-1">{wedding.ceremony_venue || "Venue Grounds"}</div>
+            <div className="text-[12px] text-[#7A9E7E] font-mono mt-0.5">Active Radius: 100 Meters</div>
+          </div>
+        </div>
+      </GlassCard>
     </div>
   );
 }
