@@ -1,13 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { motion } from "framer-motion";
-import { ArrowLeft, ArrowRight, Eye, Flower2, LockKeyhole, UserPlus } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { ArrowLeft, ArrowRight, Eye, Flower2, LockKeyhole, UserPlus, Sparkles, KeyRound } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { store } from "@/store/weddingStore";
-
-const cormorant = `"Cormorant Garamond", Georgia, serif`;
-const manrope = `"Manrope", system-ui, sans-serif`;
+import { GlassCard } from "@/components/ui/GlassCard";
 
 type Mode = "cards" | "explore" | "signin" | "signup";
 
@@ -85,14 +83,19 @@ export default function CoupleEntry() {
 
   if (!wedding) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#faf8f5] px-6" style={{ fontFamily: manrope }}>
-        <style>{`.display { font-family: ${cormorant}; } .wedding-label { letter-spacing:.26em;text-transform:uppercase;font-size:11px;color:#b7834c; }`}</style>
-        <div className="text-center max-w-md">
-          <div className="wedding-label mb-3">Couple Link</div>
-          <h1 className="display text-[44px] text-[#2a231d]">Wedding not found</h1>
-          <p className="text-[14.5px] text-[#6b5d4f] mt-3">This couple dashboard link does not match an existing wedding.</p>
-          <Link to="/admin/login" className="mt-6 inline-block px-5 py-3 rounded-full bg-[#2b2723] text-[#f9f2e8] text-[13px]">Admin login</Link>
-        </div>
+      <div className="min-h-screen flex items-center justify-center bg-[#0C0A09] px-6 text-[#FAF7F2] relative overflow-hidden">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 rounded-full bg-[#C97B7B]/10 blur-[120px] pointer-events-none" />
+        <GlassCard variant="obsidian" padding="xl" className="text-center max-w-md relative z-10 border border-white/[0.1]">
+          <div className="w-16 h-16 rounded-[20px] bg-[#C97B7B]/15 text-[#E4A5A5] mx-auto mb-6 flex items-center justify-center">
+            <LockKeyhole size={28} />
+          </div>
+          <div className="wedding-label mb-2">Invalid Access Link</div>
+          <h1 className="display text-[36px] text-[#FAF7F2] mb-3">Celebration Not Found</h1>
+          <p className="text-[14px] text-[#A8A29E] leading-relaxed mb-8">
+            This couple portal link does not match an active celebration in ForeverVow.
+          </p>
+          <Link to="/admin/login" className="fv-btn-primary w-full">Staff Portal Login</Link>
+        </GlassCard>
       </div>
     );
   }
@@ -100,136 +103,262 @@ export default function CoupleEntry() {
   const hero = wedding.cover_image || wedding.hero_image;
 
   return (
-    <div className="min-h-screen bg-[#faf8f5] text-[#2e2b28]" style={{ fontFamily: manrope }}>
-      <style>{`
-        .display { font-family: ${cormorant}; }
-        .wedding-label { letter-spacing:.26em;text-transform:uppercase;font-size:11px;color:#b7834c; }
-      `}</style>
-
-      <div className="relative min-h-[46vh] overflow-hidden flex items-end">
-        {hero && <img src={hero} alt="" className="absolute inset-0 w-full h-full object-cover" />}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/25 to-black/20" />
-        <div className="relative z-10 px-6 pb-10 max-w-3xl">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/15 border border-white/20 backdrop-blur-md text-white/80 text-[11px] tracking-[0.2em] uppercase mb-5">
-            <Flower2 size={13} /> ForeverVow Couple Portal
-          </div>
-          <h1 className="display text-[52px] md:text-[72px] text-white leading-[0.9]">{wedding.couple_names}</h1>
-          <div className="mt-4 flex flex-wrap gap-3 text-[13px] text-white/80">
-            {wedding.wedding_date && <span>{format(new Date(wedding.wedding_date), "d MMMM yyyy")}</span>}
-            {wedding.ceremony_venue && <span>{wedding.ceremony_venue}</span>}
-          </div>
-        </div>
+    <div className="min-h-screen bg-[#0C0A09] text-[#FAF7F2] relative overflow-hidden flex flex-col justify-between">
+      {/* Cinematic Hero Backdrop */}
+      <div className="absolute inset-0 z-0">
+        {hero && <img src={hero} alt="" className="w-full h-full object-cover opacity-30 scale-105" />}
+        <div className="absolute inset-0 bg-gradient-to-t from-[#0C0A09] via-[#0C0A09]/80 to-[#0C0A09]/30" />
       </div>
 
-      <div className="mx-auto max-w-5xl px-6 py-8">
+      {/* Ambient Orbs */}
+      <div className="absolute top-1/4 left-1/3 w-[500px] h-[500px] rounded-full bg-[#D4A853]/[0.06] blur-[140px] pointer-events-none z-0" />
+      <div className="absolute bottom-1/4 right-1/3 w-[500px] h-[500px] rounded-full bg-[#C97B7B]/[0.05] blur-[140px] pointer-events-none z-0" />
+
+      {/* Top Bar */}
+      <header className="relative z-20 px-6 md:px-12 pt-8 flex items-center justify-between">
+        <Link to="/" className="inline-flex items-center gap-2.5 text-[13px] text-[#A8A29E] hover:text-[#FAF7F2] transition">
+          <ArrowLeft size={16} className="text-[#D4A853]" /> Return to ForeverVow Home
+        </Link>
+        <span className="fv-badge fv-badge-gold">
+          <Sparkles size={12} /> Couple OS
+        </span>
+      </header>
+
+      {/* Main Container */}
+      <main className="relative z-20 mx-auto max-w-6xl px-6 md:px-12 py-12 flex-1 flex flex-col justify-center">
+        {/* Celebration Title Banner */}
+        <div className="max-w-3xl mb-12">
+          <div className="wedding-label mb-3 flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-[#D4A853] animate-pulse" /> Welcome to your celebration cockpit
+          </div>
+          <h1 className="display text-[52px] sm:text-[72px] md:text-[84px] leading-[0.9] text-[#FAF7F2]">
+            {wedding.couple_names}
+          </h1>
+          <div className="mt-5 flex flex-wrap items-center gap-4 text-[14px] text-[#A8A29E]">
+            {wedding.wedding_date && (
+              <span className="font-mono bg-white/[0.06] px-3.5 py-1.5 rounded-full border border-white/[0.08] text-[#FAF7F2]">
+                {format(new Date(wedding.wedding_date), "MMMM d, yyyy")}
+              </span>
+            )}
+            {wedding.ceremony_venue && (
+              <span className="flex items-center gap-1.5 text-[#E8C97A]">
+                <Flower2 size={15} /> {wedding.ceremony_venue}
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* Mode switcher back link */}
         {mode !== "cards" && (
-          <button onClick={() => setMode("cards")} className="mb-5 inline-flex items-center gap-2 text-[13px] text-[#6b5d4f] hover:text-[#b0743c]">
-            <ArrowLeft size={14} /> Back
+          <button
+            onClick={() => setMode("cards")}
+            className="mb-8 inline-flex items-center gap-2 text-[13px] font-semibold text-[#D4A853] hover:text-[#E8C97A] transition"
+          >
+            <ArrowLeft size={16} /> Back to Gateway Options
           </button>
         )}
 
-        {mode === "cards" && (
-          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}>
-            <div className="wedding-label mb-3">Your wedding workspace is ready</div>
-            <h2 className="display text-[36px] md:text-[46px] text-[#221e1b] leading-[1] mb-3">Before you begin.</h2>
-            <p className="text-[15px] text-[#6b5d4f] max-w-2xl leading-7 mb-8">
-              ForeverVow has prepared your private wedding workspace. Explore past weddings for inspiration, sign in, or create your couple account using the access code sent by your administrator.
-            </p>
-
-            <div className="grid md:grid-cols-3 gap-5">
+        <AnimatePresence mode="wait">
+          {mode === "cards" && (
+            <motion.div
+              key="cards"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+              className="grid md:grid-cols-3 gap-6"
+            >
               {[
-                { id: "explore", title: "Explore Weddings", text: "Browse beautiful wedding websites for inspiration.", icon: <Eye size={19} />, action: () => setMode("explore") },
-                { id: "signin", title: "Sign In", text: "Access your existing couple account.", icon: <LockKeyhole size={19} />, action: () => setMode("signin") },
-                { id: "signup", title: "Create Account", text: "Create your account and connect it to this wedding.", icon: <UserPlus size={19} />, action: () => setMode("signup") },
-              ].map(card => (
-                <button key={card.id} onClick={card.action} className="text-left bg-white rounded-[24px] border border-[#e6d4be] p-6 hover:border-[#d3a76b] hover:-translate-y-1 hover:shadow-xl transition-all">
-                  <div className="w-11 h-11 rounded-[14px] bg-[#f8eee0] border border-[#e8d2b6] flex items-center justify-center text-[#b0743c] mb-5">{card.icon}</div>
-                  <h3 className="display text-[26px] text-[#2a231d]">{card.title}</h3>
-                  <p className="text-[14px] text-[#6b5d4f] leading-6 mt-2 min-h-[48px]">{card.text}</p>
-                  <div className="mt-5 text-[13px] text-[#b0743c] flex items-center gap-2">Continue <ArrowRight size={14} /></div>
-                </button>
+                {
+                  id: "explore",
+                  title: "Explore Inspiration",
+                  text: "Preview live ForeverVow celebrations to gather design ideas for your own site.",
+                  icon: <Eye size={22} />,
+                  variant: "obsidian" as const,
+                  action: () => setMode("explore"),
+                },
+                {
+                  id: "signin",
+                  title: "Access Cockpit",
+                  text: "Sign in with your email and private access code to manage RSVPs and events.",
+                  icon: <LockKeyhole size={22} />,
+                  variant: "aurora" as const,
+                  action: () => setMode("signin"),
+                },
+                {
+                  id: "signup",
+                  title: "Register Couple Profile",
+                  text: "First time here? Set up your account profile and link your celebration.",
+                  icon: <UserPlus size={22} />,
+                  variant: "obsidian" as const,
+                  action: () => setMode("signup"),
+                },
+              ].map((card, i) => (
+                <GlassCard
+                  key={card.id}
+                  variant={card.variant}
+                  padding="xl"
+                  hoverEffect
+                  glowOnHover={card.variant === "aurora"}
+                  onClick={card.action}
+                  className="cursor-pointer flex flex-col justify-between min-h-[280px] border border-white/[0.1]"
+                >
+                  <div>
+                    <div className="w-12 h-12 rounded-[16px] bg-white/[0.06] border border-white/[0.1] flex items-center justify-center text-[#D4A853] mb-6">
+                      {card.icon}
+                    </div>
+                    <h3 className="display text-[26px] text-[#FAF7F2] mb-3">{card.title}</h3>
+                    <p className="text-[14px] text-[#A8A29E] leading-relaxed">{card.text}</p>
+                  </div>
+
+                  <div className="mt-8 pt-4 border-t border-white/[0.08] flex items-center justify-between text-[13px] font-semibold text-[#D4A853]">
+                    <span>Proceed</span>
+                    <ArrowRight size={16} />
+                  </div>
+                </GlassCard>
               ))}
-            </div>
-          </motion.div>
-        )}
+            </motion.div>
+          )}
 
-        {mode === "explore" && (
-          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}>
-            <div className="wedding-label mb-3">Explore Weddings</div>
-            <h2 className="display text-[34px] text-[#221e1b] mb-2">Inspiration from real designs.</h2>
-            <p className="text-[14px] text-[#6b5d4f] mb-6 max-w-xl">Browse published ForeverVow weddings to imagine how your own invitation could look. Preview mode is read-only.</p>
-            {inspiration.length === 0 ? (
-              <div className="rounded-[24px] border border-dashed border-[#e6d4be] bg-white p-12 text-center">
-                <Eye size={28} className="mx-auto text-[#b0743c] mb-4" />
-                <div className="display text-[24px] text-[#2a231d]">No weddings to preview yet</div>
-                <p className="text-[13.5px] text-[#8d7962] mt-2 max-w-md mx-auto leading-relaxed">
-                  Published weddings will appear here for inspiration. Once an admin creates and publishes a wedding, it becomes viewable.
-                </p>
+          {mode === "explore" && (
+            <motion.div
+              key="explore"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="space-y-6"
+            >
+              <div>
+                <div className="wedding-label mb-2">Live Inspiration</div>
+                <h2 className="display text-[36px] text-[#FAF7F2]">Real ForeverVow Celebrations</h2>
               </div>
-            ) : (
-              <div className="grid md:grid-cols-2 gap-5">
-                {inspiration.map((w: any) => (
-                  <button key={w.id} onClick={() => navigate(`/wedding/${w.slug}?preview=1`)} className="text-left bg-white rounded-[24px] border border-[#e6d4be] overflow-hidden hover:shadow-xl transition-all">
-                    <div className="relative aspect-[16/9]">
-                      <img src={w.cover_image || w.hero_image} alt="" className="w-full h-full object-cover" />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/55 to-transparent" />
-                      <div className="absolute bottom-4 left-4 right-4">
-                        <div className="display text-[30px] text-white leading-none">{w.couple_names}</div>
-                        <div className="text-white/80 text-[11px] uppercase tracking-[0.18em] mt-1">{w.theme?.template || "ForeverVow Wedding"}</div>
+
+              {inspiration.length === 0 ? (
+                <GlassCard variant="obsidian" padding="xl" className="text-center py-16 border border-white/[0.1]">
+                  <Eye size={32} className="mx-auto text-[#D4A853] mb-4" />
+                  <div className="display text-[28px] text-[#FAF7F2]">No active previews available</div>
+                  <p className="text-[14px] text-[#A8A29E] max-w-md mx-auto mt-2">
+                    Published celebrations will appear here once administrators launch public wedding experiences.
+                  </p>
+                </GlassCard>
+              ) : (
+                <div className="grid md:grid-cols-2 gap-6">
+                  {inspiration.map((w: any) => (
+                    <GlassCard
+                      key={w.id}
+                      variant="obsidian"
+                      padding="none"
+                      hoverEffect
+                      onClick={() => navigate(`/wedding/${w.slug}?preview=1`)}
+                      className="cursor-pointer overflow-hidden border border-white/[0.1]"
+                    >
+                      <div className="relative h-64">
+                        <img src={w.cover_image || w.hero_image} alt="" className="w-full h-full object-cover" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-[#0C0A09] via-black/30 to-transparent" />
+                        <div className="absolute bottom-6 left-6 right-6">
+                          <span className="fv-badge fv-badge-gold mb-2">Preview Website</span>
+                          <div className="display text-[34px] text-[#FAF7F2] leading-tight">{w.couple_names}</div>
+                        </div>
                       </div>
-                    </div>
-                    <div className="p-4 text-[13px] text-[#6b5d4f] flex items-center justify-between">
-                      <span>{w.venue_address?.split(",").slice(-2).join(",").trim() || w.ceremony_venue || "Location private"}</span>
-                      <span className="text-[#b0743c]">Preview</span>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            )}
-          </motion.div>
-        )}
+                      <div className="p-5 flex items-center justify-between text-[13px] text-[#A8A29E] border-t border-white/[0.06]">
+                        <span>{w.venue_address || w.ceremony_venue || "Private Venue"}</span>
+                        <span className="text-[#D4A853] font-semibold flex items-center gap-1">Open Preview <ArrowRight size={14}/></span>
+                      </div>
+                    </GlassCard>
+                  ))}
+                </div>
+              )}
+            </motion.div>
+          )}
 
-        {(mode === "signin" || mode === "signup") && (
-          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="max-w-md mx-auto bg-white rounded-[28px] border border-[#e6d4be] p-6 md:p-8">
-            <div className="text-center mb-7">
-              <div className="wedding-label mb-2">{mode === "signin" ? "Sign In" : "Create Account"}</div>
-              <h2 className="display text-[34px] text-[#221e1b]">{wedding.couple_names}</h2>
-            </div>
-            <form onSubmit={(e) => validateAccess(e, mode === "signup")} className="space-y-4">
-              {mode === "signup" && (
-                <div>
-                  <label className="wedding-label block mb-2">Full Name</label>
-                  <input required value={name} onChange={e => setName(e.target.value)} className="w-full rounded-[14px] border border-[#e0ccb2] px-4 py-3 outline-none focus:border-[#d3a76b]" />
+          {(mode === "signin" || mode === "signup") && (
+            <motion.div
+              key="auth"
+              initial={{ opacity: 0, scale: 0.96 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.96 }}
+              transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+              className="max-w-md mx-auto w-full"
+            >
+              <GlassCard variant="obsidian" padding="xl" className="border border-white/[0.12] relative overflow-hidden shadow-2xl rounded-[32px]">
+                <div className="absolute -top-20 -right-20 w-40 h-40 rounded-full bg-[#EAB308]/15 blur-3xl pointer-events-none" />
+
+                <div className="text-center mb-8 relative z-10">
+                  <div className="w-12 h-12 rounded-[18px] bg-gradient-to-br from-[#EAB308]/20 to-transparent border border-[#EAB308]/30 text-[#EAB308] mx-auto mb-4 flex items-center justify-center">
+                    <KeyRound size={22} />
+                  </div>
+                  <div className="wedding-label mb-1">{mode === "signin" ? "Secure Sign In" : "Couple Registration"}</div>
+                  <h2 className="display text-[32px] text-[#FAFAFA]">{wedding.couple_names}</h2>
                 </div>
-              )}
-              <div>
-                <label className="wedding-label block mb-2">Email Address</label>
-                <input required type="email" value={email} onChange={e => setEmail(e.target.value)} className="w-full rounded-[14px] border border-[#e0ccb2] px-4 py-3 outline-none focus:border-[#d3a76b]" />
-              </div>
-              <div>
-                <label className="wedding-label block mb-2">Password</label>
-                <input required type="password" value={password} onChange={e => setPassword(e.target.value)} className="w-full rounded-[14px] border border-[#e0ccb2] px-4 py-3 outline-none focus:border-[#d3a76b]" />
-              </div>
-              {mode === "signup" && (
-                <div>
-                  <label className="wedding-label block mb-2">Confirm Password</label>
-                  <input required type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} className="w-full rounded-[14px] border border-[#e0ccb2] px-4 py-3 outline-none focus:border-[#d3a76b]" />
-                </div>
-              )}
-              <div>
-                <label className="wedding-label block mb-2">Couple Access Code</label>
-                <input required value={code} onChange={e => setCode(e.target.value.toUpperCase())} placeholder="Enter your access code" className="w-full rounded-[14px] border border-[#e0ccb2] px-4 py-3 text-center tracking-[0.18em] uppercase outline-none focus:border-[#d3a76b]" />
-              </div>
-              <button className="w-full py-4 rounded-full bg-[#2b2723] text-[#f9f2e8] text-[13px] font-medium tracking-[0.08em] uppercase hover:bg-[#392f29] transition">
-                {mode === "signin" ? "Sign In" : "Create Account"}
-              </button>
-            </form>
-            <p className="mt-5 text-center text-[12.5px] text-[#8d7962] leading-relaxed">
-              Your ForeverVow administrator will share your unique access code via your dashboard link.
-            </p>
-          </motion.div>
-        )}
-      </div>
+
+                <form onSubmit={(e) => validateAccess(e, mode === "signup")} className="space-y-4 relative z-10">
+                  {mode === "signup" && (
+                    <div>
+                      <label className="block wedding-label mb-2">Full Name</label>
+                      <input required value={name} onChange={e => setName(e.target.value)} placeholder="Enter your full name" className="fv-input" />
+                    </div>
+                  )}
+                  <div>
+                    <label className="block wedding-label mb-2">Email Address</label>
+                    <input required type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="elara@forevervow.app" className="fv-input" />
+                  </div>
+                  <div>
+                    <label className="block wedding-label mb-2">Password</label>
+                    <input required type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" className="fv-input" />
+                  </div>
+                  {mode === "signup" && (
+                    <div>
+                      <label className="block wedding-label mb-2">Confirm Password</label>
+                      <input required type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} placeholder="••••••••" className="fv-input" />
+                    </div>
+                  )}
+                  <div>
+                    <label className="block wedding-label mb-2">Private Access Code</label>
+                    <input
+                      required
+                      value={code}
+                      onChange={e => setCode(e.target.value.toUpperCase())}
+                      placeholder="ENTER 8-DIGIT CODE"
+                      className="fv-input text-center tracking-[0.22em] font-mono text-[16px] uppercase font-bold text-[#EAB308]"
+                    />
+                  </div>
+
+                  <button type="submit" className="w-full fv-btn-primary !py-4 mt-4 text-[14px] shadow-lg">
+                    {mode === "signin" ? "Open Couple Dashboard" : "Register & Open Dashboard"}
+                  </button>
+                </form>
+
+                {mode === "signin" && (
+                  <div className="mt-5 pt-5 border-t border-white/[0.08] text-center relative z-10">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEmail("elara@forevervow.app");
+                        setPassword("demo2026");
+                        setCode(wedding.access_code || "ELARA2026");
+                        toast.info("Auto-filled demo couple credentials");
+                      }}
+                      className="w-full py-2.5 px-4 rounded-full bg-white/[0.05] hover:bg-[#EAB308]/15 border border-white/[0.1] hover:border-[#EAB308]/40 text-[12px] font-semibold text-[#FAFAFA] transition flex items-center justify-center gap-2"
+                    >
+                      <Sparkles size={14} className="text-[#EAB308]" /> Auto-Fill Demo Credentials ({wedding.access_code})
+                    </button>
+                  </div>
+                )}
+
+                <p className="mt-5 text-center text-[12px] text-[#71717A] relative z-10">
+                  Your wedding coordinator provided your access code upon setup.
+                </p>
+              </GlassCard>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </main>
+
+      {/* Footer */}
+      <footer className="relative z-20 py-6 px-6 md:px-12 border-t border-white/[0.06] flex items-center justify-between text-[12px] text-[#78716C]">
+        <span>ForeverVow Luxury Portal</span>
+        <span className="font-mono">ENCRYPTED SESSION</span>
+      </footer>
     </div>
   );
 }

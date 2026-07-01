@@ -1,54 +1,43 @@
-import { Component, type ReactNode } from "react";
+import React, { Component, ErrorInfo } from "react";
+import { Heart } from "lucide-react";
 
-interface ErrorBoundaryProps {
-  children: ReactNode;
-  fallback?: ReactNode;
-}
+interface Props { children: React.ReactNode; }
+interface State { hasError: boolean; error: Error | null; }
 
-interface ErrorBoundaryState {
-  hasError: boolean;
-  error: Error | null;
-}
+export class ErrorBoundary extends Component<Props, State> {
+  state: State = { hasError: false, error: null };
 
-export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
-  constructor(props: ErrorBoundaryProps) {
-    super(props);
-    this.state = { hasError: false, error: null };
-  }
-
-  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
+  static getDerivedStateFromError(error: Error): State {
     return { hasError: true, error };
   }
 
-  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error("[ErrorBoundary]", error, errorInfo);
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    console.error("ErrorBoundary caught:", error, errorInfo);
   }
 
   render() {
     if (this.state.hasError) {
-      if (this.props.fallback) return this.props.fallback;
-
       return (
-        <div className="min-h-screen flex items-center justify-center bg-[#faf8f5] px-6">
+        <div className="min-h-screen flex items-center justify-center px-6" style={{ background: "linear-gradient(180deg, #0C0A09 0%, #1C1917 100%)" }}>
           <div className="text-center max-w-md">
-            <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-[#fde9e6] flex items-center justify-center">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#a64838" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="10" />
-                <line x1="12" y1="8" x2="12" y2="12" />
-                <line x1="12" y1="16" x2="12.01" y2="16" />
-              </svg>
+            <div className="w-20 h-20 rounded-[22px] glass-obsidian mx-auto mb-6 flex items-center justify-center">
+              <Heart size={28} className="text-[#C97B7B]" />
             </div>
             <div className="wedding-label mb-3">Something went wrong</div>
-            <h1 className="display text-[36px] text-[#2a231d]">Oops</h1>
-            <p className="mt-4 text-[15px] text-[#5a5047] leading-7">
-              We encountered an unexpected issue. Please try refreshing the page.
+            <h1 className="display text-[40px] text-[#FAF7F2] mb-4">Unexpected Error</h1>
+            <p className="text-[14px] text-[#78716C] leading-relaxed mb-8">
+              We hit a snag. Please refresh the page to continue your wedding journey.
             </p>
+            {this.state.error && (
+              <div className="glass-obsidian rounded-[16px] p-4 mb-6 text-left">
+                <code className="text-[12px] text-[#C97B7B] font-mono break-all">
+                  {this.state.error.message}
+                </code>
+              </div>
+            )}
             <button
-              onClick={() => {
-                this.setState({ hasError: false, error: null });
-                window.location.reload();
-              }}
-              className="mt-6 px-6 py-3 rounded-full bg-[#2b2723] text-[#f9f2e8] text-[13.5px] hover:bg-[#392f29] transition"
+              onClick={() => window.location.reload()}
+              className="fv-btn-primary"
             >
               Refresh Page
             </button>
@@ -56,7 +45,6 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
         </div>
       );
     }
-
     return this.props.children;
   }
 }

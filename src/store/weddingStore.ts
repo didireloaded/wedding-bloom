@@ -130,18 +130,73 @@ type DB = {
 
 const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
 
-const defaultDB = (): DB => ({
-  weddings: [],
-  events: [],
-  accommodations: [],
-  venue_markers: [],
-  gallery: [],
-  guest_photos: [],
-  rsvps: [],
-  guest_moments: [],
-  checkins: [],
-  updates: [],
-});
+const defaultDB = (): DB => {
+  const w1Id = "w-demo-1";
+  const w2Id = "w-demo-2";
+  return {
+    weddings: [
+      {
+        id: w1Id,
+        slug: "elara-julian",
+        couple_names: "Elara Vance & Julian Thorne",
+        access_code: "ELARA2026",
+        wedding_date: "2026-09-18",
+        ceremony_venue: "Villa Balbiano, Lake Como",
+        venue_address: "Via Regina 43, Ossuccio CO, Italy",
+        reception_venue: "Grand Garden Pavilion",
+        story: "We met under the autumn leaves in Kyoto and knew our journey would last forever. Join us as we celebrate our love on the shores of Lake Como.",
+        schedule: [],
+        travel_info: null,
+        registry_url: "https://zola.com",
+        cover_image: "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1200&q=80",
+        hero_image: "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=1200&q=80",
+        created_at: new Date().toISOString(),
+        published: true,
+        archived: false,
+      },
+      {
+        id: w2Id,
+        slug: "sophia-marcus",
+        couple_names: "Sophia Laurent & Marcus Sterling",
+        access_code: "SOPHIA2026",
+        wedding_date: "2026-11-14",
+        ceremony_venue: "Château de Chambord, France",
+        venue_address: "Chambord, 41250 France",
+        reception_venue: "The Glass Ballroom",
+        story: "A celebration of modern elegance, wine, and lifelong friendships in the heart of the Loire Valley.",
+        schedule: [],
+        travel_info: null,
+        registry_url: "https://zola.com",
+        cover_image: "https://images.unsplash.com/photo-1465495976277-4387d4b0b4c6?auto=format&fit=crop&w=1200&q=80",
+        hero_image: "https://images.unsplash.com/photo-1520854221256-17451cc331bf?auto=format&fit=crop&w=1200&q=80",
+        created_at: new Date().toISOString(),
+        published: true,
+        archived: false,
+      }
+    ],
+    events: [
+      { id: "e-1", wedding_id: w1Id, title: "Welcome Cocktail & Sunset Aperitivo", description: "Sip fine Italian prosecco as we watch the sun dip below the mountains.", location: "Lakeside Terrace", event_date: "2026-09-17", event_time: "18:00", sort_order: 1 },
+      { id: "e-2", wedding_id: w1Id, title: "The Wedding Ceremony", description: "Vows exchanged amidst the historic gardens.", location: "Main Lawn", event_date: "2026-09-18", event_time: "16:30", sort_order: 2 },
+    ],
+    accommodations: [],
+    venue_markers: [],
+    gallery: [
+      { id: "g-1", wedding_id: w1Id, title: "Engagement in Kyoto", image_url: "https://images.unsplash.com/photo-1522673607200-164d1b6ce486?auto=format&fit=crop&w=800&q=80", caption: "The moment we said yes.", sort_order: 1 }
+    ],
+    guest_photos: [
+      { id: "gp-1", wedding_id: w1Id, guest_name: "Elena Rostova", photo_url: "https://images.unsplash.com/photo-1532712938310-34cb3982ef74?auto=format&fit=crop&w=800&q=80", caption: "So excited for you both!!", created_at: new Date().toISOString() }
+    ],
+    rsvps: [
+      { id: "r-1", wedding_id: w1Id, guest_name: "Alexander Wright", email: "alex@wright.co", attending: "confirmed", guest_count: 2, dietary_requirements: "Vegetarian", message: "Can't wait to celebrate with you in Como!", submitted_at: new Date().toISOString() },
+      { id: "r-2", wedding_id: w1Id, guest_name: "Chloe Bennett", email: "chloe@bennett.design", attending: "confirmed", guest_count: 1, dietary_requirements: "None", message: "Counting down the days!", submitted_at: new Date().toISOString() },
+    ],
+    guest_moments: [],
+    checkins: [],
+    updates: [
+      { id: "u-1", wedding_id: w1Id, title: "Dress Code & Shuttle Schedule", message: "Shuttles will depart from Hotel Tremezzo at 3:45 PM sharp. Black tie optional.", created_at: new Date().toISOString() }
+    ],
+  };
+};
 
 function load(): DB {
   try {
@@ -151,7 +206,13 @@ function load(): DB {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(fresh));
       return fresh;
     }
-    return JSON.parse(raw);
+    const parsed = JSON.parse(raw);
+    if (!parsed.weddings || parsed.weddings.length === 0) {
+      const fresh = defaultDB();
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(fresh));
+      return fresh;
+    }
+    return parsed;
   } catch {
     return defaultDB();
   }

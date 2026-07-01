@@ -1,16 +1,16 @@
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Flower2, ArrowLeft, KeyRound, Info } from "lucide-react";
+import { Flower2, ArrowLeft, KeyRound, Info, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { store } from "@/store/weddingStore";
+import { GlassCard } from "@/components/ui/GlassCard";
 
 export default function CoupleLogin() {
   const [code, setCode] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const navigate = useNavigate();
 
-  // Redirect if already logged in
   useEffect(() => {
     const sessionId = localStorage.getItem("couple_wedding_id") || sessionStorage.getItem("couple_wedding_id");
     if (sessionId) {
@@ -35,7 +35,7 @@ export default function CoupleLogin() {
     sessionStorage.setItem("couple_wedding_id", wedding.id);
     sessionStorage.setItem("couple_wedding_slug", wedding.slug);
     sessionStorage.setItem("couple_access_code", c.trim().toUpperCase());
-    toast.success(`Welcome, ${wedding.couple_names}`);
+    toast.success(`Welcome back, ${wedding.couple_names}`);
     navigate(`/couple/${wedding.slug}/dashboard`);
     setSubmitting(false);
   };
@@ -47,46 +47,47 @@ export default function CoupleLogin() {
   };
 
   return (
-    <div className="min-h-screen bg-[#faf8f5] flex flex-col" style={{ fontFamily: '"Manrope", system-ui, sans-serif' }}>
-      <style>{`
-        .display { font-family: "Cormorant Garamond", Georgia, serif; }
-        .wedding-label { letter-spacing: .26em; text-transform: uppercase; font-size: 11px; color: #b7834c; }
-      `}</style>
+    <div className="min-h-screen bg-[#FAFAF7] flex flex-col justify-center items-center px-4 relative overflow-hidden">
+      {/* Editorial Luxury Lighting */}
+      <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] bg-gradient-to-tr from-[#EADCC9]/50 via-[#F3EFEA]/30 to-transparent rounded-full blur-3xl pointer-events-none" />
 
       <Link
         to="/"
-        className="absolute top-6 left-6 flex items-center gap-1.5 text-[13px] text-[#6b5d4f] hover:text-[#b0743c] transition"
+        className="absolute top-8 left-8 inline-flex items-center gap-2 text-[13px] font-semibold text-[#928D86] hover:text-[#2C2926] transition-colors z-20"
       >
-        <ArrowLeft size={16} /> Home
+        <ArrowLeft size={16} /> Return to ForeverVow Home
       </Link>
 
-      <div className="flex-1 flex flex-col items-center justify-center px-6 pt-20 pb-8">
-        <motion.div
-          initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
-          className="w-full max-w-md"
-        >
-          <div className="text-center">
-            <div className="mx-auto w-16 h-16 rounded-[20px] bg-[#f2e8da] border border-[#e4cfb7] flex items-center justify-center mb-6 shadow-sm">
-              <Flower2 size={24} className="text-[#b7794a]" />
-            </div>
-
-            <p className="wedding-label mb-3">Couple Access</p>
-            <h1 className="display text-[44px] text-[#221e1b] leading-[1] mb-2">Welcome</h1>
-            <p className="text-[14.5px] text-[#6b5d4f] mb-10 leading-relaxed">
-              Enter your unique access code to open your wedding workspace.
-            </p>
+      <motion.div
+        initial={{ opacity: 0, y: 24 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, ease: [0.2, 0.8, 0.2, 1] }}
+        className="w-full max-w-md relative z-10"
+      >
+        <GlassCard variant="heavy" padding="xl" className="shadow-2xl border border-white/80 text-center">
+          <div className="mx-auto w-16 h-16 rounded-2xl bg-[#2C2926] text-[#FAFAF7] flex items-center justify-center mb-6 shadow-xl">
+            <Flower2 size={26} className="text-[#C5A059]" />
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div className="text-left">
-              <label className="wedding-label block mb-2.5">Couple Access Code</label>
+          <p className="wedding-label mb-2 flex items-center justify-center gap-1.5">
+            <Sparkles size={12} /> Mission Control Portal
+          </p>
+          <h1 className="display text-[42px] text-[#2C2926] leading-tight mb-2">Couple Access</h1>
+          <p className="text-[14px] text-[#928D86] mb-8 max-w-xs mx-auto">
+            Enter your private access code to enter your ForeverVow wedding operating system.
+          </p>
+
+          <form onSubmit={handleSubmit} className="space-y-5 text-left">
+            <div>
+              <label className="wedding-label block mb-2 text-center">Your Access Code</label>
               <input
-                type="text" required
+                type="text"
+                required
                 value={code}
                 onChange={e => setCode(e.target.value.toUpperCase())}
-                placeholder="Enter your access code"
+                placeholder="ENTER CODE"
                 autoFocus
-                className="w-full bg-white border-2 border-[#e0ccb2] rounded-[16px] py-4 px-4 text-[18px] text-center tracking-[0.18em] uppercase text-[#2a231d] focus:outline-none focus:border-[#d3a76b] transition-colors placeholder:text-[#c4b7a7] font-medium"
+                className="w-full bg-white/80 border-2 border-[#E5DEC9] rounded-2xl py-4 px-4 text-[20px] font-mono font-bold text-center tracking-[0.24em] uppercase text-[#2C2926] focus:outline-none focus:border-[#C5A059] focus:ring-4 focus:ring-[#C5A059]/10 transition-all placeholder:text-[#D1C9BE]"
                 maxLength={12}
               />
             </div>
@@ -94,35 +95,34 @@ export default function CoupleLogin() {
             <button
               type="submit"
               disabled={submitting}
-              className="w-full py-[15px] bg-[#2b2723] text-[#f9f2e8] text-[13.5px] font-medium tracking-[0.04em] rounded-full hover:bg-[#392f29] transition disabled:opacity-50"
+              className="w-full py-4 bg-[#2C2926] text-[#FAFAF7] text-[13px] font-bold tracking-[0.2em] uppercase rounded-full hover:bg-[#1B1917] transition-all shadow-lg hover:scale-[1.01] disabled:opacity-50"
             >
-              {submitting ? "Verifying…" : "Continue"}
+              {submitting ? "Opening Mission Control…" : "Enter Mission Control"}
             </button>
           </form>
 
-          {/* Help section */}
-          <div className="mt-8 pt-6 border-t border-[#e6d4be]">
-            <div className="flex gap-3 p-4 rounded-[16px] bg-[#fdf9f4] border border-[#eadfd1]">
-              <Info size={16} className="text-[#b0743c] flex-shrink-0 mt-0.5" />
-              <div className="text-[12.5px] text-[#5a4735] leading-relaxed">
-                <p className="font-semibold text-[#2a231d] mb-1">Where do I find my code?</p>
-                <p>Your ForeverVow administrator will send you a unique couple access code along with your dashboard link after your wedding is created.</p>
+          <div className="mt-8 pt-6 border-t border-[#E5DEC9]/60 text-left">
+            <div className="flex gap-3.5 p-4 rounded-2xl bg-[#F3EFEA]/70 border border-[#E5DEC9]">
+              <Info size={18} className="text-[#A37C4D] shrink-0 mt-0.5" />
+              <div className="text-[12px] text-[#726C65] leading-relaxed">
+                <strong className="text-[#2C2926] block mb-0.5">Where do I find my code?</strong>
+                Your wedding planner or ForeverVow administrator sent your 6-10 digit code when your wedding package was generated.
               </div>
             </div>
           </div>
 
-          <div className="mt-6 flex items-center justify-center gap-2 text-[12.5px] text-[#8d7962]">
+          <div className="mt-6 flex items-center justify-center gap-2 text-[12px] text-[#928D86]">
             <KeyRound size={13} />
-            <span>Secure access, one wedding per code</span>
+            <span>Encrypted access · One wedding per code</span>
           </div>
 
           <div className="mt-6 text-center">
-            <Link to="/admin/login" className="text-[12.5px] text-[#8d7962] hover:text-[#b0743c] underline underline-offset-4">
-              Admin login →
+            <Link to="/admin/login" className="text-[12px] text-[#928D86] hover:text-[#2C2926] underline underline-offset-4 transition-colors font-medium">
+              Staff & Admin Login →
             </Link>
           </div>
-        </motion.div>
-      </div>
+        </GlassCard>
+      </motion.div>
     </div>
   );
 }

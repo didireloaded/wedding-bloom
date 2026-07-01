@@ -4,13 +4,8 @@ import { motion } from "framer-motion";
 import { Flower2, CheckCircle2, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { store } from "@/store/weddingStore";
+import { GlassCard } from "@/components/ui/GlassCard";
 
-/**
- * Guest self-check-in. Mirrors the repo's WeddingCheckin:
- * - Find wedding by slug
- * - Match guest name against RSVP list (exact, then partial)
- * - Insert checkin row (realtime visible on couple dashboard)
- */
 export default function WeddingCheckin() {
   const { slug } = useParams();
   const [wedding, setWedding] = useState<any>(null);
@@ -57,92 +52,93 @@ export default function WeddingCheckin() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#faf8f5]">
-        <div className="w-12 h-12 mx-auto border-2 border-[#c9a87a] border-t-transparent rounded-full animate-spin"></div>
+      <div className="min-h-screen flex items-center justify-center bg-[#FAF7F2]">
+        <div className="w-12 h-12 mx-auto border-2 border-[#C5A059] border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
   }
 
   if (!wedding) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#faf8f5] px-6" style={{ fontFamily: '"Manrope", system-ui, sans-serif' }}>
-        <style>{`.display { font-family: "Cormorant Garamond", Georgia, serif; } .wedding-label { letter-spacing: .26em; text-transform: uppercase; font-size: 11px; color: #b7834c; }`}</style>
+      <div className="min-h-screen flex items-center justify-center bg-[#FAF7F2] px-6 text-[#2C2926]">
         <div className="text-center">
-          <div className="wedding-label mb-3">Not found</div>
-          <h1 className="display text-[44px] text-[#2a231d]">This wedding doesn't exist</h1>
-          <Link to="/" className="mt-6 inline-block text-[13px] text-[#b0743c] underline">Back home</Link>
+          <div className="wedding-label mb-3">404 Verification</div>
+          <h1 className="display text-[44px] text-[#2C2926]">Celebration Not Found</h1>
+          <Link to="/" className="mt-6 inline-block fv-btn-primary !py-3 !px-6 text-[13px]">Return Home</Link>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#faf8f5] px-6 py-10" style={{ fontFamily: '"Manrope", system-ui, sans-serif' }}>
-      <style>{`.display { font-family: "Cormorant Garamond", Georgia, serif; } .wedding-label { letter-spacing: .26em; text-transform: uppercase; font-size: 11px; color: #b7834c; }`}</style>
-
-      <Link to={`/wedding/${slug}`} className="absolute top-6 left-6 flex items-center gap-2 text-[13px] text-[#6b5d4f] hover:text-[#b0743c]">
-        <ArrowLeft size={14}/> Back to invitation
+    <div className="min-h-screen flex items-center justify-center bg-[#FAF7F2] px-6 py-12 text-[#2C2926]">
+      <Link to={`/wedding/${slug}`} className="absolute top-8 left-8 flex items-center gap-2 text-[13px] font-semibold text-[#726C65] hover:text-[#A37C4D] transition">
+        <ArrowLeft size={16}/> Return to Celebration
       </Link>
 
       <motion.div
         initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-md text-center"
+        className="w-full max-w-lg"
       >
-        <div className="mx-auto w-14 h-14 rounded-full bg-[#f2e8da] border border-[#e4cfb7] flex items-center justify-center mb-5">
-          <Flower2 size={20} className="text-[#b7794a]"/>
-        </div>
+        <GlassCard variant="crystal" padding="xl" className="border border-[#E5DEC9] shadow-2xl text-center">
+          <div className="mx-auto w-16 h-16 rounded-full bg-[#2C2926] text-[#C5A059] flex items-center justify-center mb-6 shadow-md">
+            <Flower2 size={24} />
+          </div>
 
-        {!checkedIn ? (
-          <>
-            <p className="wedding-label mb-3">Welcome</p>
-            <h1 className="display text-[44px] text-[#2a231d] mb-2">{wedding.couple_names}'s Wedding</h1>
-            {wedding.ceremony_venue && <p className="text-[14px] text-[#6b5d4f] mb-8">{wedding.ceremony_venue}</p>}
-            <form onSubmit={handleCheckin} className="space-y-6">
-              <div>
-                <label className="wedding-label block mb-2">Your name</label>
-                <input
-                  type="text" required value={name} onChange={e => setName(e.target.value)}
-                  placeholder="Enter your full name" autoFocus
-                  className="w-full bg-transparent border-b border-[#d9c6ae] py-3 text-[14px] text-center focus:outline-none focus:border-[#b0743c] transition-colors placeholder:text-[#c4b7a7]"
-                />
-              </div>
-              <button type="submit" disabled={submitting}
-                className="w-full py-4 bg-[#2b2723] text-[#f9f2e8] text-[12px] tracking-[0.3em] uppercase hover:bg-[#392f29] transition-colors disabled:opacity-50 rounded-full">
-                {submitting ? "Checking in…" : "Mark your arrival"}
-              </button>
-            </form>
-          </>
-        ) : (
-          <motion.div initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }}>
-            <div className="mx-auto w-16 h-16 rounded-full bg-[#eff6ee] border border-[#d2e2d0] flex items-center justify-center mb-4">
-              <CheckCircle2 size={26} className="text-[#4f7a56]"/>
-            </div>
-            <p className="wedding-label mb-2">You're in</p>
-            <h2 className="display text-[36px] text-[#2a231d] mb-4">You're checked in!</h2>
-            {rsvpMatch ? (
-              <div className="bg-white rounded-[18px] border border-[#e6d4be] p-5 text-left">
-                <div className="text-[16px] text-[#2a231d]">Welcome, <strong>{rsvpMatch.guest_name}</strong>!</div>
-                <div className="mt-3 space-y-1.5 text-[13.5px] text-[#5a4f45]">
-                  <div>• RSVP: <span className="font-medium">{rsvpMatch.guest_count} guest{rsvpMatch.guest_count !== 1 ? "s" : ""}</span> registered</div>
-                  {rsvpMatch.dietary_preference && <div>• Dietary: {rsvpMatch.dietary_preference}</div>}
+          {!checkedIn ? (
+            <>
+              <p className="wedding-label mb-2">Self Check-in Portal</p>
+              <h1 className="display text-[44px] text-[#2C2926] mb-2">{wedding.couple_names}</h1>
+              {wedding.ceremony_venue && <p className="text-[14px] text-[#726C65] font-serif mb-8">{wedding.ceremony_venue}</p>}
+              
+              <form onSubmit={handleCheckin} className="space-y-6">
+                <div>
+                  <label className="wedding-label block mb-3">Please State Your Name</label>
+                  <input
+                    type="text" required value={name} onChange={e => setName(e.target.value)}
+                    placeholder="Enter full guest name..." autoFocus
+                    className="w-full bg-white border border-[#E5DEC9] rounded-[16px] py-4 px-6 text-[15px] text-center focus:outline-none focus:border-[#C5A059] focus:ring-4 focus:ring-[#C5A059]/10 transition placeholder:text-[#A8A29E]"
+                  />
                 </div>
-                {rsvpMatch.attending === false && (
-                  <div className="mt-3 text-[12.5px] text-[#a64838] bg-[#fde9e6] rounded-lg p-2.5">
-                    Note: Your RSVP was marked as declined — please speak with the couple if this is incorrect.
+                <button type="submit" disabled={submitting} className="fv-btn-primary w-full !py-4 text-[13px]">
+                  {submitting ? "Verifying Attendance…" : "Confirm Arrival"}
+                </button>
+              </form>
+            </>
+          ) : (
+            <motion.div initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }}>
+              <div className="mx-auto w-16 h-16 rounded-full bg-[#7A9E7E]/20 border border-[#7A9E7E]/40 flex items-center justify-center text-[#7A9E7E] mb-5">
+                <CheckCircle2 size={28} />
+              </div>
+              <p className="wedding-label mb-1">Checked In</p>
+              <h2 className="display text-[38px] text-[#2C2926] mb-6">Welcome to the Celebration!</h2>
+              
+              {rsvpMatch ? (
+                <div className="bg-white rounded-[20px] border border-[#E5DEC9] p-6 text-left shadow-sm">
+                  <div className="text-[17px] text-[#2C2926] font-semibold">Verified Guest: <strong>{rsvpMatch.guest_name}</strong></div>
+                  <div className="mt-3 space-y-1.5 text-[14px] font-mono text-[#726C65]">
+                    <div>• Party Size: <span className="font-bold text-[#2C2926]">{rsvpMatch.guest_count} guest{rsvpMatch.guest_count !== 1 ? "s" : ""}</span> registered</div>
+                    {rsvpMatch.dietary_preference && <div>• Dietary: {rsvpMatch.dietary_preference}</div>}
                   </div>
-                )}
-              </div>
-            ) : (
-              <div className="bg-[#fdf3e4] border border-[#e8d2b6] rounded-[14px] p-4 text-[13.5px] text-[#5a4735]">
-                Welcome, <strong>{name}</strong>. Enjoy the celebration!<br/>
-                <span className="text-[12.5px] text-[#b0743c]">No matching RSVP found — check with the couple if needed.</span>
-              </div>
-            )}
-            <Link to={`/wedding/${slug}`} className="mt-6 inline-block text-[13px] text-[#b0743c] underline underline-offset-4">
-              Back to invitation
-            </Link>
-          </motion.div>
-        )}
+                  {rsvpMatch.attending === false && (
+                    <div className="mt-4 text-[13px] text-[#C97B7B] bg-[#C97B7B]/10 rounded-xl p-3 border border-[#C97B7B]/20">
+                      Notice: Your RSVP was previously logged as declined — please verify with our reception staff if needed.
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="bg-[#FAF7F2] border border-[#E5DEC9] rounded-[20px] p-5 text-[14px] text-[#726C65]">
+                  Welcome, <strong className="text-[#2C2926]">{name}</strong>. Enjoy the celebration!<br/>
+                  <span className="text-[12px] text-[#A37C4D] font-mono mt-1 block">Unregistered name — check with reception desk if seating is assigned.</span>
+                </div>
+              )}
+              
+              <Link to={`/wedding/${slug}`} className="mt-8 inline-block fv-btn-ghost !py-2.5 !px-6 text-[12px]">
+                Open Digital Invitation
+              </Link>
+            </motion.div>
+          )}
+        </GlassCard>
       </motion.div>
     </div>
   );

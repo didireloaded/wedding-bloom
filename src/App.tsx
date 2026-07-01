@@ -14,6 +14,8 @@ const WeddingCheckin = lazy(() => import("@/pages/WeddingCheckin"));
 const QRRedirect = lazy(() => import("@/pages/QRRedirect"));
 const NotFound = lazy(() => import("@/pages/NotFound"));
 
+import { CommandPalette } from "@/components/ui/CommandPalette";
+
 function LegacyCoupleDashboardRedirect() {
   const slug = localStorage.getItem("couple_wedding_slug") || sessionStorage.getItem("couple_wedding_slug");
   if (!slug) return <Navigate to="/admin/login" replace />;
@@ -21,10 +23,17 @@ function LegacyCoupleDashboardRedirect() {
 }
 
 const Loader = () => (
-  <div className="min-h-screen flex items-center justify-center bg-[#faf8f5]">
-    <div className="text-center">
-      <div className="w-12 h-12 mx-auto mb-4 border-2 border-[#c9a87a] border-t-transparent rounded-full animate-spin"></div>
-      <div className="text-[#8d7962] text-sm tracking-[0.18em] uppercase">Loading</div>
+  <div className="min-h-screen flex items-center justify-center bg-[#0C0A09]">
+    <div className="text-center relative">
+      {/* Ambient glow */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-40 h-40 rounded-full bg-[#D4A853]/10 blur-2xl pointer-events-none" />
+      
+      <div className="relative z-10 flex flex-col items-center">
+        <div className="w-12 h-12 mb-5 border-2 border-[#D4A853]/20 border-t-[#D4A853] rounded-full animate-spin" />
+        <div className="text-[#D4A853] text-[11px] tracking-[0.3em] uppercase font-semibold font-mono">
+          Loading ForeverVow
+        </div>
+      </div>
     </div>
   </div>
 );
@@ -32,7 +41,21 @@ const Loader = () => (
 export default function App() {
   return (
     <BrowserRouter>
-      <Toaster position="top-right" theme="light" richColors />
+      <Toaster 
+        position="top-right" 
+        theme="dark" 
+        richColors 
+        toastOptions={{
+          style: {
+            background: "rgba(12, 10, 9, 0.88)",
+            backdropFilter: "blur(20px)",
+            border: "1px solid rgba(212, 168, 83, 0.2)",
+            color: "#FAF7F2",
+            fontFamily: '"DM Sans", sans-serif',
+          }
+        }}
+      />
+      <CommandPalette />
       <ErrorBoundary>
         <Suspense fallback={<Loader />}>
           <Routes>

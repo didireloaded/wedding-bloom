@@ -1,25 +1,26 @@
 import { Link } from "react-router-dom";
-import { Flower2 } from "lucide-react";
+import { Flower2, Home } from "lucide-react";
+import { GlassCard } from "@/components/ui/GlassCard";
 
 export default function NotFound() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#faf8f5] px-6" style={{ fontFamily: '"Manrope", system-ui, sans-serif' }}>
-      <style>{`
-        .display { font-family: "Cormorant Garamond", Georgia, serif; }
-        .wedding-label { letter-spacing: .26em; text-transform: uppercase; font-size: 11px; color: #b7834c; }
-      `}</style>
-      <div className="text-center max-w-md">
-        <div className="mx-auto w-14 h-14 rounded-full bg-[#f2e8da] border border-[#e4cfb7] flex items-center justify-center mb-5">
-          <Flower2 size={20} className="text-[#b7794a]" />
-        </div>
-        <p className="wedding-label mb-3">404</p>
-        <h1 className="display text-[48px] text-[#2a231d] mb-3">Page not found</h1>
-        <p className="text-[15px] text-[#6b5d4f] mb-8">
-          The page you're looking for doesn't exist or hasn't been published yet.
-        </p>
-        <Link to="/" className="inline-block px-6 py-[13px] rounded-full bg-[#2b2723] text-[#f9f2e8] text-[14px]">
-          Back home
-        </Link>
+    <div className="min-h-screen flex items-center justify-center bg-[#0C0A09] text-[#FAF7F2] px-6 py-12">
+      <div className="w-full max-w-md">
+        <GlassCard variant="obsidian" padding="xl" className="border border-white/[0.12] text-center shadow-2xl relative overflow-hidden">
+          <div className="absolute -top-24 -right-24 w-48 h-48 bg-[#D4A853]/15 rounded-full blur-3xl pointer-events-none" />
+          
+          <div className="mx-auto w-16 h-16 rounded-full bg-white/[0.04] border border-white/[0.1] flex items-center justify-center mb-6 text-[#D4A853] shadow-md">
+            <Flower2 size={26} />
+          </div>
+          <p className="wedding-label mb-2 text-[#D4A853]">Error 404</p>
+          <h1 className="display text-[44px] text-[#FAF7F2] mb-3 leading-tight">Page Not Found</h1>
+          <p className="text-[14.5px] text-[#A8A29E] mb-8 leading-relaxed">
+            The page or invitation you are attempting to view does not exist or has been removed.
+          </p>
+          <Link to="/" className="fv-btn-primary w-full !py-3.5 flex items-center justify-center gap-2 text-[13px]">
+            <Home size={16} /> Return to ForeverVow
+          </Link>
+        </GlassCard>
       </div>
     </div>
   );

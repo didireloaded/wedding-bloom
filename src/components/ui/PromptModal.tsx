@@ -39,55 +39,63 @@ export function PromptModal({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50"
+            transition={{ duration: 0.3 }}
+            className="fixed inset-0 bg-black/60 backdrop-blur-xl z-50"
             onClick={onCancel}
           />
           <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 10 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 10 }}
+            initial={{ opacity: 0, scale: 0.92, y: 16, filter: "blur(8px)" }}
+            animate={{ opacity: 1, scale: 1, y: 0, filter: "blur(0px)" }}
+            exit={{ opacity: 0, scale: 0.92, y: 16, filter: "blur(8px)" }}
+            transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
             className="fixed inset-0 z-50 flex items-center justify-center p-6"
           >
             <form
               onSubmit={handleSubmit}
-              className="bg-white rounded-[28px] border border-[#e6d4be] shadow-2xl w-full max-w-sm p-7"
+              className="glass-obsidian rounded-[28px] w-full max-w-sm p-7 relative overflow-hidden"
             >
-              <div className="flex items-start justify-between mb-4">
-                <h3 className="display text-[24px] text-[#2a231d]">{title}</h3>
-                <button
-                  type="button"
-                  onClick={onCancel}
-                  className="w-8 h-8 rounded-full hover:bg-[#f5efe7] flex items-center justify-center text-[#8d7962]"
-                >
-                  <X size={16} />
-                </button>
-              </div>
-              {label && (
-                <label className="block text-[11px] uppercase tracking-[0.18em] text-[#a67c54] mb-2">
-                  {label}
-                </label>
-              )}
-              <input
-                autoFocus
-                value={value}
-                onChange={(e) => setValue(e.target.value)}
-                placeholder={placeholder}
-                className="w-full rounded-[14px] border border-[#e0ccb2] bg-white px-4 py-3 text-[14px] outline-none focus:border-[#d3a76b] mb-6"
-              />
-              <div className="flex gap-3 justify-end">
-                <button
-                  type="button"
-                  onClick={onCancel}
-                  className="px-5 py-[11px] rounded-full border border-[#d9c6ae] text-[#5a4735] text-[13.5px] hover:bg-[#fbf3e8] transition"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-5 py-[11px] rounded-full bg-[#2b2723] text-[#f9f2e8] text-[13.5px] hover:bg-[#392f29] transition"
-                >
-                  {submitLabel}
-                </button>
+              {/* Glow accent */}
+              <div className="absolute -top-20 -right-20 w-40 h-40 rounded-full bg-[#D4A853]/10 blur-3xl pointer-events-none" />
+
+              <div className="relative z-10">
+                <div className="flex items-start justify-between mb-5">
+                  <div>
+                    <div className="wedding-label mb-2">Input Required</div>
+                    <h3 className="display text-[26px] text-[#FAF7F2]">{title}</h3>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={onCancel}
+                    className="w-9 h-9 rounded-full bg-white/[0.06] hover:bg-white/[0.1] flex items-center justify-center text-[#A8A29E] hover:text-[#FAF7F2] transition-all"
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
+                {label && (
+                  <label className="block wedding-label mb-2.5">{label}</label>
+                )}
+                <input
+                  autoFocus
+                  value={value}
+                  onChange={(e) => setValue(e.target.value)}
+                  placeholder={placeholder}
+                  className="fv-input mb-7"
+                />
+                <div className="flex gap-3 justify-end">
+                  <button
+                    type="button"
+                    onClick={onCancel}
+                    className="fv-btn-ghost text-[13px] py-3 px-5"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="fv-btn-primary text-[13px] py-3 px-6"
+                  >
+                    {submitLabel}
+                  </button>
+                </div>
               </div>
             </form>
           </motion.div>

@@ -1,0 +1,200 @@
+// ForeverVow Workflow & Progress Engine
+import { store, Wedding, RSVP } from "./weddingStore";
+import { toast } from "sonner";
+
+export type WorkflowEventType =
+  | "WeddingCreated"
+  | "WeddingPublished"
+  | "GuestInvited"
+  | "GuestRSVPSubmitted"
+  | "PhotoUploaded"
+  | "WeddingCompleted";
+
+export interface WorkflowEvent {
+  type: WorkflowEventType;
+  weddingId: string;
+  payload?: any;
+  timestamp: string;
+}
+
+type EventCallback = (event: WorkflowEvent) => void;
+
+class WorkflowBus {
+  private subscribers: Map<WorkflowEventType | "*", Set<EventCallback>> = new Map();
+
+  subscribe(type: WorkflowEventType | "*", callback: EventCallback) {
+    if (!this.subscribers.has(type)) {
+      this.subscribers.set(type, new Set());
+    }
+    this.subscribers.get(type)!.add(callback);
+    return () => {
+      this.subscribers.get(type)?.delete(callback);
+    };
+  }
+
+  publish(type: WorkflowEventType, weddingId: string, payload?: any) {
+    const event: WorkflowEvent = {
+      type,
+      weddingId,
+      payload,
+      timestamp: new Date().toISOString(),
+    };
+
+    // Notify exact type subscribers
+    this.subscribers.get(type)?.forEach((cb) => {
+      try { cb(event); } catch (e) { console.error("Workflow callback error:", e); }
+    });
+    // Notify wildcard subscribers
+    this.subscribers.get("*")?.forEach((cb) => {
+      try { cb(event); } catch (e) { console.error("Workflow callback error:", e); }
+    });
+
+    // Automated reactive behavior (Emotional & Helpful feedback)
+    this.handleAutomatedReactions(event);
+  }
+
+  private handleAutomatedReactions(event: WorkflowEvent) {
+    switch (event.type) {
+      case "WeddingPublished":
+        toast.success("Your wedding website is now live.", {
+          description: "Your guests can begin celebrating with you.",
+        });
+        break;
+      case "GuestRSVPSubmitted": {
+        const guestName = event.payload?.guest_name || "A guest";
+        const attending = event.payload?.attending;
+        if (attending === "confirmed") {
+          toast.success(`${guestName} can't wait to celebrate with you!`, {
+            description: "RSVP confirmed.",
+          });
+        } else if (attending === "declined") {
+          toast.info(`${guestName} sent their warmest wishes.`, {
+            description: "RSVP declined.",
+          });
+        }
+        break;
+      }
+      case "PhotoUploaded":
+        toast.success("New memory added to your gallery.", {
+          description: "Your collection is growing beautifully.",
+        });
+        break;
+      case "WeddingCompleted":
+        toast.success("Your wedding day has become part of your ForeverVow Memory Book.", {
+          description: "Explore your timeless keepsake.",
+        });
+        break;
+    }
+  }
+}
+
+export const workflowBus = new WorkflowBus();
+
+export interface WeddingStageInfo {
+  stageNumber: number; // 1 to 6
+  stageName: string;
+  progressPercent: number;
+  recommendation: string;
+  actionLabel: string;
+  isLegacyMode: boolean;
+}
+
+export function calculateWeddingStage(wedding: Wedding): WeddingStageInfo {
+  if (!wedding) {
+    return {
+      stageNumber: 1,
+      stageName: "Wedding Created",
+      progressPercent: 15,
+      recommendation: "Welcome to ForeverVow. Begin by personalizing your love story.",
+      actionLabel: "Complete Profile",
+      isLegacyMode: false,
+    };
+  }
+
+  if (wedding.legacy_mode) {
+    return {
+      stageNumber: 6,
+      stageName: "Married ❤️ — Memory Book",
+      progressPercent: 100,
+      recommendation: "Your wedding was magic. Relive every moment in your ForeverVow Memory Book.",
+      actionLabel: "Explore Keepsake",
+      isLegacyMode: true,
+    };
+  }
+
+  const hasDetails = !!wedding.couple_names && !!wedding.wedding_date && !!wedding.story;
+  const isPublished = wedding.published;
+  
+  const rsvps = store.where<RSVP>("rsvps", (r) => r.wedding_id === wedding.id);
+  const confirmedCount = rsvps.filter((r) => r.attending === "confirmed").length;
+
+  let daysRemaining: number | null = null;
+  if (wedding.wedding_date) {
+    const target = new Date(wedding.wedding_date + "T16:00:00").getTime();
+    daysRemaining = Math.floor((target - Date.now()) / (1000 * 60 * 60 * 24));
+  }
+
+  if (daysRemaining !== null && daysRemaining < 0) {
+    return {
+      stageNumber: 6,
+      stageName: "Married ❤️",
+      progressPercent: 100,
+      recommendation: "Congratulations! Switch to your digital Memory Book to preserve your photos and guest notes.",
+      actionLabel: "Generate Memory Book",
+      isLegacyMode: false,
+    };
+  }
+
+  if (daysRemaining !== null && daysRemaining <= 7 && isPublished) {
+    return {
+      stageNumber: 5,
+      stageName: "Wedding Week",
+      progressPercent: 85,
+      recommendation: "Your big day is almost here! Prepare Live Wedding Mode and double check venue travel guides.",
+      actionLabel: "Preview Live Mode",
+      isLegacyMode: false,
+    };
+  }
+
+  if (confirmedCount > 0 || rsvps.length > 0) {
+    return {
+      stageNumber: 4,
+      stageName: "Guests RSVPing",
+      progressPercent: 65,
+      recommendation: `Guests are responding (${confirmedCount} confirmed). Review dietary notes and seating arrangements.`,
+      actionLabel: "Manage RSVPs",
+      isLegacyMode: false,
+    };
+  }
+
+  if (isPublished) {
+    return {
+      stageNumber: 3,
+      stageName: "Invitation Published",
+      progressPercent: 45,
+      recommendation: "Your wedding website is live! Share your invitation link or QR code with guests.",
+      actionLabel: "Share Invitation",
+      isLegacyMode: false,
+    };
+  }
+
+  if (hasDetails) {
+    return {
+      stageNumber: 2,
+      stageName: "Details Added",
+      progressPercent: 30,
+      recommendation: "Your core details look stunning. Preview your guest experience and publish when ready.",
+      actionLabel: "Preview & Publish",
+      isLegacyMode: false,
+    };
+  }
+
+  return {
+    stageNumber: 1,
+    stageName: "Wedding Created",
+    progressPercent: 15,
+    recommendation: "Start adding your wedding date, ceremony venue, and love story.",
+    actionLabel: "Edit Wedding Details",
+    isLegacyMode: false,
+  };
+}

@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowLeft, Shield } from "lucide-react";
+import { ArrowLeft, Shield, Sparkles, KeyRound, ArrowRight, Lock } from "lucide-react";
 import { toast } from "sonner";
 import { store } from "@/store/weddingStore";
+import { GlassCard } from "@/components/ui/GlassCard";
 
 const DEMO_ADMIN = { email: "admin@forevervow.app", password: "vows2026" };
 
@@ -25,6 +26,7 @@ export default function AdminLogin() {
     if (store.isAdmin(email, password)) {
       localStorage.setItem("wb_admin", "1");
       sessionStorage.setItem("wb_admin", "1");
+      toast.success("Welcome to ForeverVow Studio Headquarters");
       navigate("/admin/dashboard");
     } else {
       toast.error("Invalid admin credentials.");
@@ -35,75 +37,156 @@ export default function AdminLogin() {
   const loginAsDemoAdmin = () => {
     localStorage.setItem("wb_admin", "1");
     sessionStorage.setItem("wb_admin", "1");
-    toast.success("Signed in as admin");
+    toast.success("Welcome to ForeverVow Command Center");
     navigate("/admin/dashboard");
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#faf8f5] px-6">
+    <div className="min-h-screen grid lg:grid-cols-12 bg-[#0C0A09] text-[#FAF7F2] relative overflow-hidden">
+      {/* Ambient background glow */}
+      <div className="absolute top-1/4 left-1/4 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] rounded-full bg-[#D4A853]/[0.05] blur-[140px] pointer-events-none" />
+      <div className="absolute bottom-1/4 right-1/4 translate-x-1/2 translate-y-1/2 w-[600px] h-[600px] rounded-full bg-[#C97B7B]/[0.04] blur-[120px] pointer-events-none" />
 
-
-
-      <Link to="/" className="absolute top-6 left-6 flex items-center gap-2 text-[13px] text-[#6b5d4f] hover:text-[#b0743c]">
-        <ArrowLeft size={14}/> Home
-      </Link>
-
-      <motion.div
-        initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-sm text-center"
-      >
-        <div className="mx-auto w-14 h-14 rounded-[20px] bg-[#2b2723] border border-[#3d332d] flex items-center justify-center mb-6 shadow-sm">
-          <Shield size={22} className="text-[#e8c89a]" />
+      {/* Left Column — Editorial Hero (Hidden on smaller screens) */}
+      <div className="hidden lg:flex lg:col-span-7 relative flex-col justify-between p-12 border-r border-white/[0.06] overflow-hidden">
+        {/* Background Image with Gradient Overlay */}
+        <div className="absolute inset-0 z-0">
+          <img
+            src="https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1600&q=80"
+            alt="Luxury wedding editorial"
+            className="w-full h-full object-cover opacity-25 scale-105"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#0C0A09] via-[#0C0A09]/80 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent to-[#0C0A09]" />
         </div>
 
-        <p className="wedding-label mb-3">ForeverVow Admin</p>
-        <h1 className="display text-[44px] font-light mb-2 text-[#2a231d]">Admin Portal</h1>
-        <p className="text-[14.5px] text-[#6b5d4f] mb-10">Staff login to manage all weddings and platform settings.</p>
+        {/* Top brand header */}
+        <div className="relative z-10 flex items-center justify-between">
+          <Link to="/" className="inline-flex items-center gap-2.5 text-[13px] text-[#A8A29E] hover:text-[#FAF7F2] transition">
+            <ArrowLeft size={16} className="text-[#D4A853]" /> Return to ForeverVow
+          </Link>
+          <span className="fv-badge fv-badge-gold">
+            <Sparkles size={12} /> Studio Headquarters
+          </span>
+        </div>
 
-        <form onSubmit={handleSubmit} className="space-y-5 text-left">
+        {/* Center quote */}
+        <div className="relative z-10 max-w-xl my-auto">
+          <div className="wedding-label mb-4">ForeverVow Studio</div>
+          <h2 className="display text-[52px] leading-[0.92] mb-6">
+            Orchestrating unforgettable <span className="script fv-gradient-text">celebrations</span>.
+          </h2>
+          <p className="text-[16px] text-[#A8A29E] leading-relaxed">
+            The premier platform for planning, designing, and managing beautiful weddings with effortless elegance and calm precision.
+          </p>
+        </div>
+
+        {/* Bottom stats footer */}
+        <div className="relative z-10 grid grid-cols-3 gap-6 pt-8 border-t border-white/[0.08]">
           <div>
-            <label className="wedding-label block mb-2">Email</label>
-            <input
-              type="email" required value={email} onChange={(e) => setEmail(e.target.value)}
-              placeholder="admin@forevervow.app"
-              className="w-full bg-white border-2 border-[#e0ccb2] rounded-[14px] py-3 px-4 text-[14px] focus:outline-none focus:border-[#d3a76b] transition"
-            />
+            <div className="display text-[28px] text-[#D4A853]">500+</div>
+            <div className="text-[11px] uppercase tracking-[0.16em] text-[#78716C] mt-1">Weddings Crafted</div>
           </div>
           <div>
-            <label className="wedding-label block mb-2">Password</label>
-            <input
-              type="password" required value={password} onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
-              className="w-full bg-white border-2 border-[#e0ccb2] rounded-[14px] py-3 px-4 text-[14px] focus:outline-none focus:border-[#d3a76b] transition"
-            />
+            <div className="display text-[28px] text-[#FAF7F2]">100%</div>
+            <div className="text-[11px] uppercase tracking-[0.16em] text-[#78716C] mt-1">Calm Orchestration</div>
           </div>
-          <button
-            type="submit" disabled={submitting}
-            className="w-full py-[15px] bg-[#2b2723] text-[#f9f2e8] text-[13px] font-medium tracking-[0.04em] rounded-full hover:bg-[#392f29] transition disabled:opacity-50 uppercase tracking-[0.2em]"
-          >
-            {submitting ? "Signing in…" : "Sign In"}
-          </button>
-        </form>
+          <div>
+            <div className="display text-[28px] text-[#FAF7F2]">5-Star</div>
+            <div className="text-[11px] uppercase tracking-[0.16em] text-[#78716C] mt-1">Guest Experience</div>
+          </div>
+        </div>
+      </div>
 
-        {/* One-click demo admin */}
-        <div className="mt-8 pt-6 border-t border-[#e6d4be]">
-          <div className="wedding-label mb-3">Demo access</div>
-          <button
-            onClick={loginAsDemoAdmin}
-            className="w-full flex items-center justify-between p-3.5 rounded-[14px] border border-[#e6d4be] bg-[#f8eee0] hover:bg-[#f2e4cd] hover:border-[#d3a76b] transition text-left"
-          >
-            <div>
-              <div className="text-[14px] text-[#2a231d] font-medium">Sign in as Administrator</div>
-              <div className="text-[12px] text-[#8d7962] mt-0.5">{DEMO_ADMIN.email}</div>
+      {/* Right Column — Login Panel */}
+      <div className="lg:col-span-5 flex items-center justify-center p-6 sm:p-12 relative z-10">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+          className="w-full max-w-md"
+        >
+          {/* Mobile back link */}
+          <Link to="/" className="lg:hidden inline-flex items-center gap-2 text-[13px] text-[#A8A29E] hover:text-[#FAF7F2] mb-8 transition">
+            <ArrowLeft size={16} className="text-[#D4A853]" /> Back to Home
+          </Link>
+
+          <GlassCard variant="obsidian" padding="xl" className="border border-white/[0.1] relative">
+            <div className="flex items-center justify-between mb-8">
+              <div className="w-12 h-12 rounded-[16px] bg-gradient-to-br from-[#D4A853]/20 to-[#B8872E]/10 border border-[#D4A853]/20 flex items-center justify-center text-[#D4A853]">
+                <Shield size={22} />
+              </div>
+              <span className="text-[11px] font-mono text-[#78716C] bg-white/[0.04] px-3 py-1 rounded-full border border-white/[0.06]">
+                STUDIO ACCESS
+              </span>
             </div>
-            <div className="text-[11px] uppercase tracking-[0.18em] text-[#b0743c] font-medium">Tap to enter</div>
-          </button>
-        </div>
 
-        <div className="mt-8 text-center">
-          <span className="text-[12.5px] text-[#8d7962]">Admin access only</span>
-        </div>
-      </motion.div>
+            <div className="mb-8">
+              <div className="wedding-label mb-2">Staff Portal</div>
+              <h1 className="display text-[36px] text-[#FAF7F2]">Admin Headquarters</h1>
+              <p className="text-[14px] text-[#78716C] mt-1.5">
+                Sign in to manage weddings, couples, and hospitality experiences.
+              </p>
+            </div>
+
+            <form onSubmit={handleSubmit} className="space-y-5">
+              <div>
+                <label className="block wedding-label mb-2.5">Administrator Email</label>
+                <input
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="admin@forevervow.app"
+                  className="fv-input"
+                />
+              </div>
+              <div>
+                <label className="block wedding-label mb-2.5">Password</label>
+                <input
+                  type="password"
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="fv-input"
+                />
+              </div>
+              <button
+                type="submit"
+                disabled={submitting}
+                className="w-full fv-btn-primary py-4 mt-2 shadow-lg"
+              >
+                {submitting ? "Entering Headquarters…" : "Enter Wedding Headquarters"}
+              </button>
+            </form>
+
+            {/* One-click demo admin */}
+            <div className="mt-8 pt-6 border-t border-white/[0.08]">
+              <div className="flex items-center justify-between mb-3">
+                <span className="wedding-label text-[10px]">Demo Studio</span>
+                <span className="text-[11px] text-[#78716C]">Instant Access</span>
+              </div>
+              <button
+                onClick={loginAsDemoAdmin}
+                type="button"
+                className="w-full flex items-center justify-between p-4 rounded-[18px] border border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.06] hover:border-[#D4A853]/40 transition-all text-left group"
+              >
+                <div className="flex items-center gap-3.5">
+                  <div className="w-10 h-10 rounded-[14px] bg-[#D4A853]/15 text-[#D4A853] flex items-center justify-center group-hover:scale-105 transition-transform">
+                    <KeyRound size={18} />
+                  </div>
+                  <div>
+                    <div className="text-[13.5px] text-[#FAF7F2] font-semibold">One-Click Staff Sign In</div>
+                    <div className="text-[11.5px] text-[#78716C] font-mono mt-0.5">{DEMO_ADMIN.email}</div>
+                  </div>
+                </div>
+                <ArrowRight size={16} className="text-[#D4A853] group-hover:translate-x-1 transition-transform" />
+              </button>
+            </div>
+          </GlassCard>
+        </motion.div>
+      </div>
     </div>
   );
 }

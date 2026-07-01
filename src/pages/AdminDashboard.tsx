@@ -6,14 +6,23 @@ import {
   Archive, BarChart3, Bell, Calendar, CheckCircle2, ChevronRight, Copy,
   Download, Edit3, ExternalLink, Eye, EyeOff, FileSpreadsheet,
   Flower2, Gauge, HardDrive, Image, Layers, LayoutTemplate, LogOut,
-  MoreHorizontal, Plus, QrCode, Search, Settings, Shield,
-  Trash2, Upload, Users, Wand2, X, Zap
+  MoreHorizontal, Plus, QrCode, Search, Settings, Shield, Sparkles,
+  Trash2, Upload, Users, Wand2, X, Zap, Check, AlertCircle, TrendingUp,
+  KeyRound, Share2, Send
 } from "lucide-react";
 import { toast } from "sonner";
 import { store } from "@/store/weddingStore";
 import { ConfirmModal } from "@/components/ui/ConfirmModal";
+import { GlassCard } from "@/components/ui/GlassCard";
+import { getStatusStyle } from "@/utils/designSystem";
 
 type StatusFilter = "all" | "draft" | "published" | "upcoming" | "completed" | "archived";
+
+function generateCoupleCode(names: string): string {
+  const cleanName = (names.split(/[\s&+,]+/)[0] || "COUPLE").replace(/[^a-zA-Z]/g, "").toUpperCase().slice(0, 8);
+  const digits = Math.floor(1000 + Math.random() * 9000);
+  return `${cleanName || "COUPLE"}${digits}`;
+}
 
 const templateLibrary = [
   { name: "Classic Wedding", color: "#c9a87a", image: "https://images.pexels.com/photos/37828118/pexels-photo-37828118.jpeg?auto=compress&cs=tinysrgb&w=800" },
@@ -21,15 +30,6 @@ const templateLibrary = [
   { name: "Garden Wedding", color: "#7b8a62", image: "https://images.pexels.com/photos/35629338/pexels-photo-35629338.jpeg?auto=compress&cs=tinysrgb&w=800" },
   { name: "Beach Wedding", color: "#5f8ca3", image: "https://images.pexels.com/photos/28584778/pexels-photo-28584778.jpeg?auto=compress&cs=tinysrgb&w=800" },
 ];
-
-const statusStyles: Record<string, string> = {
-  Draft: "bg-[#f8eee0] text-[#b0743c] border-[#e8d2b6]",
-  Published: "bg-[#eff6ee] text-[#4f7a56] border-[#d2e2d0]",
-  "Wedding Week": "bg-[#eef4ff] text-[#3f67a8] border-[#d7e4ff]",
-  Live: "bg-[#fde9e6] text-[#a64838] border-[#f3c9c2]",
-  Completed: "bg-[#f3edf6] text-[#7a5a8f] border-[#e5d7eb]",
-  Archived: "bg-[#f0e9e0] text-[#6b5d4f] border-[#e0ccb2]",
-};
 
 function getWeddingStage(wedding: any) {
   if (wedding.archived) return "Archived";
@@ -63,7 +63,7 @@ export default function AdminDashboard() {
   const [showCreate, setShowCreate] = useState(false);
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<StatusFilter>("all");
-  const [viewMode, setViewMode] = useState<"table" | "cards">("table");
+  const [viewMode, setViewMode] = useState<"table" | "cards">("cards");
   const [spotlightOpen, setSpotlightOpen] = useState(false);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [detailWedding, setDetailWedding] = useState<any | null>(null);
@@ -147,18 +147,18 @@ export default function AdminDashboard() {
 
   const activity = useMemo(() => {
     const items: { text: string; sub: string; ts: number; wedding?: any; icon: ReactNode }[] = [];
-    weddings.forEach(w => items.push({ text: "Wedding Created", sub: w.couple_names, ts: new Date(w.created_at || Date.now()).getTime(), wedding: w, icon: <Flower2 size={14} /> }));
+    weddings.forEach(w => items.push({ text: `${w.couple_names} started planning their wedding`, sub: "New wedding created", ts: new Date(w.created_at || Date.now()).getTime(), wedding: w, icon: <Flower2 size={14} /> }));
     store.all("rsvps").forEach((r: any) => {
       const wedding = weddings.find(w => w.id === r.wedding_id);
-      items.push({ text: "Guest RSVP Received", sub: `${r.guest_name}${wedding ? ` · ${wedding.couple_names}` : ""}`, ts: new Date(r.submitted_at || r.created_at || Date.now()).getTime(), wedding, icon: <Users size={14} /> });
+      items.push({ text: `${r.guest_name} confirmed attendance`, sub: wedding ? wedding.couple_names : "Guest RSVP", ts: new Date(r.submitted_at || r.created_at || Date.now()).getTime(), wedding, icon: <Users size={14} /> });
     });
     store.all("guest_photos").forEach((p: any) => {
       const wedding = weddings.find(w => w.id === p.wedding_id);
-      items.push({ text: "Guest Uploaded Photo", sub: `${p.guest_name}${wedding ? ` · ${wedding.couple_names}` : ""}`, ts: new Date(p.created_at || Date.now()).getTime(), wedding, icon: <Image size={14} /> });
+      items.push({ text: `${p.guest_name || "A guest"} uploaded gallery photos`, sub: wedding ? wedding.couple_names : "Wedding Media", ts: new Date(p.created_at || Date.now()).getTime(), wedding, icon: <Image size={14} /> });
     });
     store.all("updates").forEach((u: any) => {
       const wedding = weddings.find(w => w.id === u.wedding_id);
-      items.push({ text: "Wedding Update Published", sub: `${u.title}${wedding ? ` · ${wedding.couple_names}` : ""}`, ts: new Date(u.created_at || Date.now()).getTime(), wedding, icon: <Bell size={14} /> });
+      items.push({ text: `Published announcement: "${u.title}"`, sub: wedding ? wedding.couple_names : "Live update", ts: new Date(u.created_at || Date.now()).getTime(), wedding, icon: <Bell size={14} /> });
     });
     return items.sort((a, b) => b.ts - a.ts).slice(0, 12);
   }, [weddings]);
@@ -167,7 +167,7 @@ export default function AdminDashboard() {
     event.preventDefault();
     if (!newCouple.trim()) return;
     const slug = (newSlug.trim() || newCouple.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")).slice(0, 60);
-    const code = Math.random().toString(16).slice(2, 10).toUpperCase();
+    const code = generateCoupleCode(newCouple.trim());
     const selectedTemplate = templateLibrary.find(t => t.name === template) || templateLibrary[0];
     const wedding = store.insert("weddings", {
       slug,
@@ -188,23 +188,24 @@ export default function AdminDashboard() {
       soundtrack_url: null,
       theme: { background: "38 35% 97%", foreground: "30 20% 15%", primary: "30 55% 42%", accent: "30 55% 52%", template },
     });
-    toast.success(`Wedding created. Couple code: ${code}`);
+    toast.success(`Celebration created! Access Code: ${code}`);
     setDetailWedding(wedding);
     setNewCouple(""); setNewSlug(""); setNewDate(""); setNewVenue(""); setShowCreate(false);
   };
 
   const duplicateWedding = (w: any) => {
     const copySlug = `${w.slug}-copy-${Date.now().toString().slice(-4)}`;
+    const copyNames = `${w.couple_names} Copy`;
     const newWedding = store.insert("weddings", {
       ...w,
       id: undefined,
       slug: copySlug,
-      access_code: Math.random().toString(16).slice(2, 10).toUpperCase(),
-      couple_names: `${w.couple_names} Copy`,
+      access_code: generateCoupleCode(copyNames),
+      couple_names: copyNames,
       published: false,
       created_at: new Date().toISOString(),
     });
-    toast.success(`Duplicated ${w.couple_names}`);
+    toast.success(`Duplicated celebration: ${copyNames}`);
     setDetailWedding(newWedding);
   };
 
@@ -233,6 +234,14 @@ export default function AdminDashboard() {
     refresh();
   };
 
+  const shareCoupleAccess = (w: any) => {
+    const loginUrl = `${window.location.origin}/couple-login`;
+    const directUrl = `${window.location.origin}/couple/${w.slug}/dashboard`;
+    const message = `Welcome to ForeverVow! Here are your Couple Dashboard access details for ${w.couple_names}:\n\nDirect Dashboard Link: ${directUrl}\nLogin Portal: ${loginUrl}\nAccess Code: ${w.access_code}`;
+    navigator.clipboard.writeText(message);
+    toast.success(`Copied Couple Link & Code (${w.access_code}) for ${w.couple_names}!`);
+  };
+
   const importCSV = (file: File) => {
     const targetWeddingId = filteredWeddings[0]?.id || weddings[0]?.id;
     if (!targetWeddingId) { toast.error("Create a wedding before importing guests"); return; }
@@ -245,20 +254,12 @@ export default function AdminDashboard() {
           const rows = (results.data as any[]).filter(Boolean);
           if (!rows.length) { toast.error("CSV is empty."); return; }
 
-          // 1. AI SCHEMA DETECTION
           const headers = Object.keys(rows[0]);
           const detected = detectSchema(headers, rows);
-
-          // 2. AI FIELD MAPPING
           const mapping = buildMapping(headers, detected);
-
-          // 3. AI NORMALIZATION
           const normalized = rows.map(row => normalizeRow(row, mapping));
-
-          // 4. AI VALIDATION
           const validation = validateRows(normalized, mapping);
 
-          // 5. PERSIST
           let count = 0;
           normalized.forEach((guest: any) => {
             if (!guest.guest_name) return;
@@ -275,7 +276,6 @@ export default function AdminDashboard() {
             count++;
           });
 
-          // 6. HISTORY
           const history = JSON.parse(localStorage.getItem("fv_csv_import_history") || "[]");
           localStorage.setItem("fv_csv_import_history", JSON.stringify([
             {
@@ -311,7 +311,6 @@ export default function AdminDashboard() {
     toast.success("RSVP report exported");
   };
 
-  // ───────────────────── AI CSV IMPORTER ─────────────────────
   const FIELD_ALIASES: Record<string, string[]> = {
     guest_name: ["name", "full name", "guest", "attendee", "first name", "last name", "first name(s)"],
     email: ["email", "e-mail", "email address", "mail"],
@@ -425,16 +424,14 @@ export default function AdminDashboard() {
   const platformCards = [
     { label: "Total Weddings", value: stats.total, icon: <Flower2 size={16} />, filter: "all" as StatusFilter },
     { label: "Active Weddings", value: stats.active, icon: <Zap size={16} />, filter: "published" as StatusFilter },
-    { label: "Upcoming", value: stats.upcoming, icon: <Calendar size={16} />, filter: "upcoming" as StatusFilter },
+    { label: "Upcoming Weddings", value: stats.upcoming, icon: <Calendar size={16} />, filter: "upcoming" as StatusFilter },
+    { label: "Ready to Publish", value: stats.draft, icon: <Edit3 size={16} />, filter: "draft" as StatusFilter },
     { label: "Completed", value: stats.completed, icon: <CheckCircle2 size={16} />, filter: "completed" as StatusFilter },
-    { label: "Draft", value: stats.draft, icon: <Edit3 size={16} />, filter: "draft" as StatusFilter },
-    { label: "Published", value: stats.published, icon: <Eye size={16} />, filter: "published" as StatusFilter },
     { label: "Total Guests", value: stats.guests, icon: <Users size={16} />, filter: "all" as StatusFilter },
-    { label: "Total RSVPs", value: stats.rsvps, icon: <FileSpreadsheet size={16} />, filter: "all" as StatusFilter },
-    { label: "Guest Photos", value: stats.photos, icon: <Image size={16} />, filter: "all" as StatusFilter },
-    { label: "Messages", value: stats.messages, icon: <Bell size={16} />, filter: "all" as StatusFilter },
-    { label: "Wedding Views", value: stats.views, icon: <BarChart3 size={16} />, filter: "all" as StatusFilter },
-    { label: "QR Scans", value: stats.qr, icon: <QrCode size={16} />, filter: "all" as StatusFilter },
+    { label: "Confirmed RSVPs", value: stats.rsvps, icon: <FileSpreadsheet size={16} />, filter: "all" as StatusFilter },
+    { label: "Wedding Media", value: stats.photos, icon: <Image size={16} />, filter: "all" as StatusFilter },
+    { label: "Guest Messages", value: stats.messages, icon: <Bell size={16} />, filter: "all" as StatusFilter },
+    { label: "Website Views", value: stats.views, icon: <BarChart3 size={16} />, filter: "all" as StatusFilter },
   ];
 
   const mostViewed = weddings.slice().sort((a, b) => Number(localStorage.getItem(`wb_viewed_${b.id}`) || 0) - Number(localStorage.getItem(`wb_viewed_${a.id}`) || 0))[0];
@@ -450,174 +447,324 @@ export default function AdminDashboard() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#f7f3ed]">
-
-
-
-      <header className="sticky top-0 z-30 bg-white/90 backdrop-blur-xl border-b border-[#e6d4be]">
-        <div className="mx-auto max-w-[1500px] px-5 md:px-8 h-[72px] flex items-center gap-4">
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="w-10 h-10 rounded-[14px] bg-[#2b2723] text-[#f9f2e8] flex items-center justify-center"><Shield size={17} /></div>
+    <div className="min-h-screen bg-[#0C0A09] text-[#FAF7F2] pb-20">
+      {/* Floating Top Navigation */}
+      <header className="sticky top-4 z-40 mx-auto max-w-[1520px] px-4 md:px-8">
+        <div className="glass-obsidian rounded-full h-[70px] px-6 flex items-center justify-between border border-white/[0.1] shadow-2xl">
+          <div className="flex items-center gap-3.5 min-w-0">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#D4A853]/30 to-[#B8872E]/10 border border-[#D4A853]/30 flex items-center justify-center text-[#D4A853]">
+              <Shield size={18} />
+            </div>
             <div className="hidden sm:block">
-              <div className="wedding-label">ForeverVow Admin</div>
-              <div className="display text-[17px] text-[#2a231d] -mt-0.5">Platform Command Center</div>
+              <div className="text-[10px] uppercase tracking-[0.25em] text-[#D4A853] font-semibold">ForeverVow Studio</div>
+              <div className="display text-[18px] text-[#FAF7F2] -mt-0.5 font-medium">Wedding Home</div>
             </div>
           </div>
 
-          <button onClick={() => setSpotlightOpen(true)} className="mx-auto hidden md:flex flex-1 max-w-xl items-center gap-3 px-4 py-2.5 rounded-[16px] bg-[#f7f3ed] border border-[#e6d4be] text-[#8d7962] text-[13.5px] hover:bg-white transition">
-            <Search size={15} /> Search weddings, guests, venues, codes...
-            <span className="ml-auto text-[11px] px-2 py-0.5 rounded-md bg-white border border-[#e6d4be]">⌘K</span>
+          <button
+            onClick={() => setSpotlightOpen(true)}
+            className="mx-4 hidden md:flex flex-1 max-w-lg items-center gap-3 px-4.5 py-2.5 rounded-full bg-white/[0.04] border border-white/[0.08] text-[#A8A29E] text-[13px] hover:bg-white/[0.08] hover:border-[#D4A853]/40 transition-all group"
+          >
+            <Search size={15} className="text-[#D4A853]" />
+            <span className="font-medium text-[#FAF7F2]/80 group-hover:text-[#FAF7F2]">Search weddings, couples, guests, emails, or codes...</span>
+            <span className="ml-auto text-[10px] font-mono px-2 py-0.5 rounded-md bg-white/[0.06] border border-white/[0.1] text-[#A8A29E]">
+              ⌘K
+            </span>
           </button>
 
-          <div className="ml-auto flex items-center gap-2">
-            <button className="relative w-10 h-10 rounded-[14px] border border-[#e6d4be] bg-white flex items-center justify-center text-[#5a4735]">
-              <Bell size={16} />
-              <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-[#b0743c] text-white text-[10px] flex items-center justify-center">3</span>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setShowCreate(true)}
+              className="fv-btn-primary !py-2.5 !px-5 text-[12px] hidden sm:inline-flex"
+            >
+              <Plus size={15} /> Create Wedding
             </button>
-            <button onClick={logout} className="inline-flex items-center gap-2 px-4 py-2.5 rounded-[14px] border border-[#d9c6ae] bg-white text-[#5a4735] text-[13px] hover:bg-[#fbf3e8]">
-              <LogOut size={14}/> Logout
+            <button
+              onClick={logout}
+              className="w-10 h-10 rounded-full bg-white/[0.04] border border-white/[0.08] hover:bg-white/[0.1] flex items-center justify-center text-[#A8A29E] hover:text-[#FAF7F2] transition"
+              title="Sign Out"
+            >
+              <LogOut size={16} />
             </button>
           </div>
         </div>
       </header>
 
-      <main className="mx-auto max-w-[1500px] px-5 md:px-8 py-8 space-y-8">
-        <section className="grid lg:grid-cols-[1.35fr_.9fr] gap-6">
-          <div className="bg-[#2b2723] rounded-[30px] p-8 text-[#f9f2e8] relative overflow-hidden">
-            <div className="absolute -right-20 -top-20 w-72 h-72 rounded-full bg-[#b0743c]/25 blur-3xl" />
+      <main className="mx-auto max-w-[1520px] px-4 md:px-8 pt-8 space-y-10">
+        {/* Hero Command Banner */}
+        <section className="grid lg:grid-cols-12 gap-6 items-stretch">
+          <div className="lg:col-span-8 glass-obsidian rounded-[36px] p-8 md:p-12 relative overflow-hidden flex flex-col justify-between border border-white/[0.1]">
+            {/* Ambient luxury lighting */}
+            <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-gradient-to-br from-[#D4A853]/20 to-transparent blur-3xl pointer-events-none" />
+            <div className="absolute -bottom-24 -left-24 w-96 h-96 rounded-full bg-[#C97B7B]/10 blur-3xl pointer-events-none" />
+
             <div className="relative z-10">
-              <div className="wedding-label !text-[#c9a87a] mb-3">{adminGreeting}, Pedro</div>
-              <h1 className="display text-[44px] md:text-[58px] leading-[0.95] text-white max-w-2xl">ForeverVow Platform</h1>
-              <div className="mt-7 grid grid-cols-2 md:grid-cols-5 gap-3 max-w-4xl">
-                {[
-                  [stats.total, "Weddings"],
-                  [stats.active, "Active Today"],
-                  [weddings.filter(w => getWeddingStage(w) === "Wedding Week").length, "Wedding Week"],
-                  [weddings.filter(w => getWeddingStage(w) === "Live").length, "Live Weddings"],
-                  [stats.draft, "Drafts"],
-                ].map(([value, label]) => (
-                  <div key={label as string} className="rounded-[18px] border border-white/10 bg-white/5 px-4 py-4">
-                    <div className="display text-[30px] text-[#c9a87a] leading-none">{value}</div>
-                    <div className="mt-1 text-[10px] uppercase tracking-[0.16em] text-white/55">{label}</div>
-                  </div>
-                ))}
+              <div className="flex items-center gap-2 text-[11px] uppercase tracking-[0.22em] text-[#D4A853] font-semibold mb-3">
+                <span className="w-2 h-2 rounded-full bg-[#7A9E7E] animate-pulse" /> {adminGreeting}, Wedding Director
               </div>
-              <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-3 max-w-3xl text-[13px] text-white/75">
-                <div><strong className="text-white">{store.all("rsvps").length}</strong> RSVPs</div>
-                <div><strong className="text-white">{stats.photos}</strong> photo uploads</div>
-                <div><strong className="text-white">{Math.max(0, weddings.length - 1)}</strong> new couples</div>
-                <div><strong className="text-white">{csvHistory.length}</strong> CSV imports</div>
+              <h1 className="display text-[44px] md:text-[62px] leading-[0.92] text-[#FAF7F2] max-w-2xl">
+                Wedding Studio <span className="script fv-gradient-text">Headquarters</span>
+              </h1>
+              <p className="text-[15px] text-[#A8A29E] max-w-xl mt-3 leading-relaxed">
+                Manage beautiful wedding celebrations, assist couples, and orchestrate luxury guest experiences with effortless elegance and calm precision.
+              </p>
+            </div>
+
+            <div className="relative z-10 mt-10 grid grid-cols-2 sm:grid-cols-4 gap-4 pt-8 border-t border-white/[0.08]">
+              <div>
+                <div className="display text-[36px] text-[#D4A853]">{stats.total}</div>
+                <div className="text-[11px] uppercase tracking-[0.18em] text-[#78716C] mt-1 font-medium">Total Weddings</div>
               </div>
-              <div className="mt-8 flex flex-wrap gap-3">
-                <button onClick={() => setShowCreate(true)} className="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-white text-[#2b2723] text-[13px] font-semibold"><Plus size={15}/> Create Wedding</button>
-                <button onClick={() => fileRef.current?.click()} className="inline-flex items-center gap-2 px-5 py-3 rounded-full border border-white/20 text-white text-[13px]"><Upload size={15}/> Import CSV</button>
-                <input ref={fileRef} type="file" accept=".csv" className="hidden" onChange={e => e.target.files?.[0] && importCSV(e.target.files[0])} />
+              <div>
+                <div className="display text-[36px] text-[#FAF7F2]">{stats.active}</div>
+                <div className="text-[11px] uppercase tracking-[0.18em] text-[#78716C] mt-1 font-medium">Active Weddings</div>
+              </div>
+              <div>
+                <div className="display text-[36px] text-[#FAF7F2]">{stats.guests}</div>
+                <div className="text-[11px] uppercase tracking-[0.18em] text-[#78716C] mt-1 font-medium">Total Guests</div>
+              </div>
+              <div>
+                <div className="display text-[36px] text-[#7A9E7E]">{stats.rsvps}</div>
+                <div className="text-[11px] uppercase tracking-[0.18em] text-[#78716C] mt-1 font-medium">Confirmed Guests</div>
               </div>
             </div>
           </div>
 
-          <div className="grid sm:grid-cols-2 lg:grid-cols-1 gap-4">
-            <div className="bg-white rounded-[24px] border border-[#e6d4be] p-6">
-              <div className="wedding-label mb-4">Platform Notifications</div>
-              {platformNotifications.map(item => (
-                <div key={item.title} className="flex items-center gap-3 py-3 border-b border-[#f0e4d4] last:border-0">
-                  <div className={`w-2.5 h-2.5 rounded-full ${item.tone === "green" ? "bg-[#4f7a56]" : item.tone === "blue" ? "bg-[#3f67a8]" : "bg-[#b0743c]"}`} />
-                  <div className="min-w-0">
-                    <div className="text-[13px] font-semibold text-[#2a231d]">{item.title}</div>
-                    <div className="text-[12px] text-[#8d7962] truncate">{item.sub}</div>
-                  </div>
+          {/* Quick Actions & Today's Priorities */}
+          <div className="lg:col-span-4 flex flex-col gap-6">
+            <GlassCard variant="obsidian" padding="lg" className="flex-1 flex flex-col justify-between border border-white/[0.1]">
+              <div>
+                <div className="wedding-label mb-3">Quick Actions</div>
+                <div className="grid grid-cols-2 gap-2.5">
+                  <button
+                    onClick={() => setShowCreate(true)}
+                    className="p-3.5 rounded-[18px] bg-white/[0.04] border border-white/[0.08] hover:bg-[#D4A853]/10 hover:border-[#D4A853]/30 text-left transition group"
+                  >
+                    <Plus className="w-5 h-5 text-[#D4A853] mb-2 group-hover:scale-110 transition" />
+                    <div className="text-[13px] font-semibold text-[#FAF7F2]">Create Wedding</div>
+                  </button>
+                  <button
+                    onClick={() => fileRef.current?.click()}
+                    className="p-3.5 rounded-[18px] bg-white/[0.04] border border-white/[0.08] hover:bg-[#D4A853]/10 hover:border-[#D4A853]/30 text-left transition group"
+                  >
+                    <Upload className="w-5 h-5 text-[#D4A853] mb-2 group-hover:scale-110 transition" />
+                    <div className="text-[13px] font-semibold text-[#FAF7F2]">Import Wedding</div>
+                  </button>
+                  <button
+                    onClick={() => setToolPanel("templates")}
+                    className="p-3.5 rounded-[18px] bg-white/[0.04] border border-white/[0.08] hover:bg-white/[0.08] text-left transition"
+                  >
+                    <LayoutTemplate className="w-5 h-5 text-[#A8A29E] mb-2" />
+                    <div className="text-[13px] font-semibold text-[#FAF7F2]">Wedding Templates</div>
+                  </button>
+                  <button
+                    onClick={exportCsv}
+                    className="p-3.5 rounded-[18px] bg-white/[0.04] border border-white/[0.08] hover:bg-white/[0.08] text-left transition"
+                  >
+                    <Download className="w-5 h-5 text-[#A8A29E] mb-2" />
+                    <div className="text-[13px] font-semibold text-[#FAF7F2]">View Reports</div>
+                  </button>
                 </div>
-              ))}
-            </div>
-            <div className="bg-white rounded-[24px] border border-[#e6d4be] p-6">
-              <div className="wedding-label mb-4">System Status</div>
-              {["Database", "Storage", "Background Jobs", "Email Service", "QR Generation", "CSV Imports"].map((s, i) => (
-                <div key={s} className="flex items-center justify-between py-2.5 border-b border-[#f0e4d4] last:border-0">
-                  <span className="text-[13.5px] text-[#4b4037]">{s}</span>
-                  <span className={`text-[11px] px-2 py-1 rounded-full ${i === 2 ? "bg-[#fdf3e4] text-[#b0743c]" : "bg-[#eff6ee] text-[#4f7a56]"}`}>{i === 2 ? "Queued" : "Healthy"}</span>
+              </div>
+              <input ref={fileRef} type="file" accept=".csv" className="hidden" onChange={e => e.target.files?.[0] && importCSV(e.target.files[0])} />
+            </GlassCard>
+
+            <GlassCard variant="frost" padding="md" className="border border-white/[0.08]">
+              <div className="flex items-center justify-between mb-3">
+                <span className="wedding-label">Today's Priorities</span>
+                <span className="text-[11px] text-[#D4A853] font-mono flex items-center gap-1.5">
+                  <Sparkles size={12} /> HELPFUL ACTIONS
+                </span>
+              </div>
+              <div className="space-y-2 pt-1">
+                <div className="p-2.5 rounded-[14px] bg-white/[0.02] border border-white/[0.05] flex items-center justify-between text-[12px]">
+                  <span className="text-[#FAF7F2]">Weddings waiting for review</span>
+                  <span className="font-mono font-semibold text-[#D4A853]">{stats.draft}</span>
                 </div>
-              ))}
-            </div>
-            <div className="bg-white rounded-[24px] border border-[#e6d4be] p-6">
-              <div className="wedding-label mb-3">Fast Reports</div>
-              <button onClick={exportCsv} className="w-full flex items-center justify-between px-4 py-3 rounded-[16px] bg-[#f8eee0] border border-[#e8d2b6] text-[#5a4735] text-[13px]"><span className="flex items-center gap-2"><Download size={15}/> Export RSVP Report</span><ChevronRight size={14}/></button>
-            </div>
+                <div className="p-2.5 rounded-[14px] bg-white/[0.02] border border-white/[0.05] flex items-center justify-between text-[12px]">
+                  <span className="text-[#FAF7F2]">Weddings happening soon</span>
+                  <span className="font-mono font-semibold text-[#7A9E7E]">{stats.upcoming}</span>
+                </div>
+              </div>
+            </GlassCard>
           </div>
         </section>
 
+        {/* Filter & Metric Arc */}
         <section>
-          <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-6 gap-4">
-            {platformCards.map(card => (
-              <button key={card.label} onClick={() => setFilter(card.filter)} className="text-left bg-white rounded-[22px] border border-[#e6d4be] p-5 hover:border-[#d3a76b] hover:-translate-y-0.5 hover:shadow-md transition">
-                <div className="w-10 h-10 rounded-[13px] bg-[#f8eee0] text-[#b0743c] flex items-center justify-center mb-3">{card.icon}</div>
-                <div className="display text-[30px] text-[#2a231d] leading-none">{card.value}</div>
-                <div className="text-[10.5px] uppercase tracking-[0.18em] text-[#8d7962] mt-2 font-semibold">{card.label}</div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5">
+            {platformCards.slice(0, 6).map(card => (
+              <button
+                key={card.label}
+                onClick={() => setFilter(card.filter)}
+                className={`text-left p-5 rounded-[24px] transition-all duration-300 border ${
+                  filter === card.filter
+                    ? "glass-aurora border-[#D4A853]/40 shadow-[0_0_24px_-4px_rgba(212,168,83,0.25)]"
+                    : "glass-obsidian border-white/[0.06] hover:border-white/[0.15]"
+                }`}
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <div className="w-9 h-9 rounded-[12px] bg-white/[0.06] text-[#D4A853] flex items-center justify-center">
+                    {card.icon}
+                  </div>
+                  {filter === card.filter && <span className="w-2 h-2 rounded-full bg-[#D4A853]" />}
+                </div>
+                <div className="display text-[28px] text-[#FAF7F2] leading-none">{card.value}</div>
+                <div className="text-[11px] uppercase tracking-[0.16em] text-[#78716C] mt-2 font-medium">{card.label}</div>
               </button>
             ))}
           </div>
         </section>
 
-        <section className="grid xl:grid-cols-[1fr_380px] gap-6">
+        {/* Main Wedding Workspace & Activity Feed */}
+        <section className="grid xl:grid-cols-[1fr_400px] gap-8 items-start">
           <div className="space-y-6">
-            <div className="bg-white rounded-[28px] border border-[#e6d4be] overflow-hidden">
-              <div className="p-5 border-b border-[#e6d4be] flex flex-wrap items-center gap-3">
-                <div className="mr-auto">
-                  <div className="wedding-label">Wedding Management</div>
-                  <div className="text-[13px] text-[#8d7962] mt-1">{filteredWeddings.length} weddings shown</div>
+            <GlassCard variant="obsidian" padding="none" className="border border-white/[0.1] overflow-hidden">
+              {/* Header Bar */}
+              <div className="p-6 border-b border-white/[0.06] flex flex-wrap items-center justify-between gap-4">
+                <div>
+                  <div className="wedding-label">Wedding Portfolio</div>
+                  <h3 className="display text-[24px] text-[#FAF7F2] mt-0.5">All Weddings ({filteredWeddings.length})</h3>
                 </div>
-                <div className="relative min-w-[220px]">
-                  <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#a98a6b]" />
-                  <input value={query} onChange={e => setQuery(e.target.value)} placeholder="Search..." className="w-full rounded-[14px] border border-[#e6d4be] pl-9 pr-3 py-2.5 text-[13px] outline-none focus:border-[#d3a76b]" />
-                </div>
-                <select value={filter} onChange={e => setFilter(e.target.value as StatusFilter)} className="rounded-[14px] border border-[#e6d4be] px-3 py-2.5 text-[13px] bg-white outline-none">
-                  <option value="all">All statuses</option>
-                  <option value="draft">Draft</option>
-                  <option value="published">Published</option>
-                  <option value="upcoming">Upcoming</option>
-                  <option value="completed">Completed</option>
-                  <option value="archived">Archived</option>
-                </select>
-                <div className="inline-flex rounded-[14px] border border-[#e6d4be] overflow-hidden bg-[#fdf9f4]">
-                  <button onClick={() => setViewMode("table")} className={`px-3 py-2.5 text-[12px] ${viewMode === "table" ? "bg-[#2b2723] text-white" : "text-[#6b5d4f]"}`}>Table</button>
-                  <button onClick={() => setViewMode("cards")} className={`px-3 py-2.5 text-[12px] ${viewMode === "cards" ? "bg-[#2b2723] text-white" : "text-[#6b5d4f]"}`}>Cards</button>
+
+                <div className="flex items-center gap-3 flex-wrap">
+                  <div className="relative min-w-[240px]">
+                    <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#78716C]" />
+                    <input
+                      value={query}
+                      onChange={e => setQuery(e.target.value)}
+                      placeholder="Filter celebrations..."
+                      className="w-full bg-white/[0.04] border border-white/[0.08] rounded-full pl-10 pr-4 py-2 text-[13px] text-[#FAF7F2] placeholder-[#78716C] outline-none focus:border-[#D4A853]"
+                    />
+                  </div>
+
+                  <div className="inline-flex rounded-full bg-white/[0.04] border border-white/[0.08] p-1">
+                    <button
+                      onClick={() => setViewMode("cards")}
+                      className={`px-4 py-1.5 rounded-full text-[12px] font-medium transition ${viewMode === "cards" ? "bg-[#D4A853] text-[#0C0A09]" : "text-[#A8A29E]"}`}
+                    >
+                      Cards
+                    </button>
+                    <button
+                      onClick={() => setViewMode("table")}
+                      className={`px-4 py-1.5 rounded-full text-[12px] font-medium transition ${viewMode === "table" ? "bg-[#D4A853] text-[#0C0A09]" : "text-[#A8A29E]"}`}
+                    >
+                      Table
+                    </button>
+                  </div>
                 </div>
               </div>
 
+              {/* Bulk Actions Bar */}
               {selectedIds.length > 0 && (
-                <div className="px-5 py-3 bg-[#f8eee0] border-b border-[#e8d2b6] flex flex-wrap items-center gap-2 text-[13px] text-[#5a4735]">
-                  <strong>{selectedIds.length}</strong> selected
-                  <button onClick={() => bulkAction("publish")} className="ml-auto px-3 py-1.5 rounded-full bg-[#2b2723] text-white">Publish</button>
-                  <button onClick={() => bulkAction("unpublish")} className="px-3 py-1.5 rounded-full border border-[#d6bc9c]">Unpublish</button>
-                  <button onClick={() => bulkAction("archive")} className="px-3 py-1.5 rounded-full border border-[#d6bc9c]">Archive</button>
-                  <button onClick={() => bulkAction("delete")} className="px-3 py-1.5 rounded-full border border-[#e0a09a] text-[#a64838]">Delete</button>
+                <div className="px-6 py-3.5 bg-[#D4A853]/10 border-b border-[#D4A853]/20 flex items-center justify-between flex-wrap gap-3">
+                  <span className="text-[13px] font-medium text-[#E8C97A]">
+                    <strong>{selectedIds.length}</strong> celebrations selected
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <button onClick={() => bulkAction("publish")} className="px-3.5 py-1.5 rounded-full bg-[#D4A853] text-[#0C0A09] text-[12px] font-semibold">Publish</button>
+                    <button onClick={() => bulkAction("unpublish")} className="px-3.5 py-1.5 rounded-full bg-white/[0.06] border border-white/[0.1] text-[12px] hover:bg-white/[0.1]">Unpublish</button>
+                    <button onClick={() => bulkAction("archive")} className="px-3.5 py-1.5 rounded-full bg-white/[0.06] border border-white/[0.1] text-[12px] hover:bg-white/[0.1]">Archive</button>
+                    <button onClick={() => bulkAction("delete")} className="px-3.5 py-1.5 rounded-full bg-[#C97B7B]/20 border border-[#C97B7B]/30 text-[#E4A5A5] text-[12px]">Delete</button>
+                  </div>
                 </div>
               )}
 
+              {/* Cards Grid View */}
               {viewMode === "cards" && (
-                <div className="p-5 grid md:grid-cols-2 xl:grid-cols-3 gap-5">
+                <div className="p-6 grid md:grid-cols-2 gap-6">
                   {filteredWeddings.map(w => {
                     const stage = getWeddingStage(w);
+                    const statusStyle = getStatusStyle(stage);
+                    const guestCount = weddingGuestCount(w.id);
+                    const progress = rsvpProgress(w.id);
+
                     return (
-                      <div key={w.id} className="rounded-[24px] border border-[#e6d4be] overflow-hidden bg-white hover:shadow-lg transition">
-                        <div className="relative h-44">
-                          <img src={w.cover_image || w.hero_image} alt="" className="w-full h-full object-cover" />
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                          <div className="absolute bottom-4 left-4 right-4">
-                            <div className="display text-[28px] text-white leading-none">{w.couple_names}</div>
-                            <div className="text-white/75 text-[11px] uppercase tracking-[0.16em] mt-1">{w.theme?.template || "ForeverVow Wedding"}</div>
+                      <div
+                        key={w.id}
+                        className="glass-frost rounded-[24px] border border-white/[0.08] overflow-hidden hover:border-[#D4A853]/40 transition-all duration-300 group flex flex-col justify-between"
+                      >
+                        <div>
+                          {/* Image Cover */}
+                          <div className="relative h-48 overflow-hidden">
+                            <img
+                              src={w.cover_image || w.hero_image}
+                              alt=""
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 opacity-80"
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t from-[#0C0A09] via-[#0C0A09]/40 to-transparent" />
+                            
+                            <div className="absolute top-4 left-4 right-4 flex items-center justify-between">
+                              <span className={`px-3 py-1 rounded-full text-[10px] font-semibold tracking-wider uppercase flex items-center gap-1.5 ${statusStyle.bg}`}>
+                                <span className={`w-1.5 h-1.5 rounded-full ${statusStyle.dot}`} />
+                                {statusStyle.label}
+                              </span>
+
+                              <input
+                                type="checkbox"
+                                checked={selectedIds.includes(w.id)}
+                                onChange={() => setSelectedIds(ids => ids.includes(w.id) ? ids.filter(x => x !== w.id) : [...ids, w.id])}
+                                className="w-4 h-4 rounded border-white/[0.2] bg-black/40 accent-[#D4A853]"
+                              />
+                            </div>
+
+                            <div className="absolute bottom-4 left-4 right-4">
+                              <div className="display text-[26px] text-[#FAF7F2] leading-none">{w.couple_names}</div>
+                              <div className="flex items-center justify-between gap-2 mt-1.5">
+                                <span className="text-[12px] text-[#A8A29E] font-mono">/{w.slug}</span>
+                                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#EAB308]/20 border border-[#EAB308]/40 text-[#FDE047] text-[10px] font-mono font-bold">
+                                  <KeyRound size={11} /> Code: {w.access_code}
+                                </span>
+                              </div>
+                            </div>
                           </div>
-                          <span className={`absolute top-3 right-3 inline-flex px-2.5 py-1 rounded-full border text-[10.5px] font-semibold ${statusStyles[stage]}`}>{stage}</span>
+
+                          {/* Stats details */}
+                          <div className="p-5 grid grid-cols-3 gap-2 border-b border-white/[0.06] text-center">
+                            <div>
+                              <div className="text-[18px] font-mono font-semibold text-[#FAF7F2]">{guestCount}</div>
+                              <div className="text-[10px] uppercase tracking-wider text-[#78716C]">Guests</div>
+                            </div>
+                            <div>
+                              <div className="text-[18px] font-mono font-semibold text-[#D4A853]">{progress}%</div>
+                              <div className="text-[10px] uppercase tracking-wider text-[#78716C]">RSVP Rate</div>
+                            </div>
+                            <div>
+                              <div className="text-[14px] font-medium text-[#FAF7F2] pt-0.5">{w.wedding_date ? format(new Date(w.wedding_date), "MMM d") : "TBD"}</div>
+                              <div className="text-[10px] uppercase tracking-wider text-[#78716C]">Ceremony</div>
+                            </div>
+                          </div>
                         </div>
-                        <div className="p-4">
-                          <div className="flex items-center justify-between text-[13px] text-[#6b5d4f]">
-                            <span>{w.wedding_date ? format(new Date(w.wedding_date), "d MMM yyyy") : "No date"}</span>
-                            <span>{weddingGuestCount(w.id)} guests</span>
-                          </div>
-                          <div className="mt-4 flex gap-2">
-                            <Link to={`/wedding/${w.slug}?preview=1`} target="_blank" className="flex-1 text-center py-2 rounded-full bg-[#2b2723] text-white text-[12px]">Preview</Link>
-                            <button onClick={() => { localStorage.setItem("couple_wedding_id", w.id); localStorage.setItem("couple_wedding_slug", w.slug); window.open(`/couple/${w.slug}/dashboard`, "_blank"); }} className="flex-1 py-2 rounded-full border border-[#d9c6ae] text-[#5a4735] text-[12px]">Dashboard</button>
-                            <button onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/wedding/${w.slug}`); toast.success("Guest link copied"); }} className="w-9 h-9 rounded-full border border-[#d9c6ae] flex items-center justify-center text-[#b0743c]"><QrCode size={14}/></button>
-                          </div>
+
+                        {/* Actions footer */}
+                        <div className="p-4 bg-white/[0.02] flex items-center justify-between gap-2">
+                          <button
+                            onClick={() => setDetailWedding(w)}
+                            className="flex-1 py-2 px-3 rounded-full bg-white/[0.06] hover:bg-white/[0.1] text-[#FAF7F2] text-[12px] font-medium transition text-center"
+                          >
+                            Manage
+                          </button>
+                          <button
+                            onClick={() => { localStorage.setItem("couple_wedding_id", w.id); localStorage.setItem("couple_wedding_slug", w.slug); window.open(`/couple/${w.slug}/dashboard`, "_blank"); }}
+                            className="flex-1 py-2 px-3 rounded-full bg-[#EAB308] hover:bg-[#FDE047] text-[#09090B] text-[12px] font-semibold transition text-center"
+                          >
+                            Dashboard
+                          </button>
+                          <button
+                            onClick={() => shareCoupleAccess(w)}
+                            className="w-9 h-9 rounded-full bg-[#EAB308]/15 hover:bg-[#EAB308]/30 border border-[#EAB308]/40 flex items-center justify-center text-[#EAB308] transition shadow-md"
+                            title={`Copy & Send Couple Access Link (Code: ${w.access_code})`}
+                          >
+                            <Send size={14} />
+                          </button>
+                          <Link
+                            to={`/wedding/${w.slug}?preview=1`}
+                            target="_blank"
+                            className="w-9 h-9 rounded-full bg-white/[0.06] hover:bg-white/[0.1] flex items-center justify-center text-[#A8A29E]"
+                            title="Preview Guest Site"
+                          >
+                            <ExternalLink size={14} />
+                          </Link>
                         </div>
                       </div>
                     );
@@ -625,395 +772,292 @@ export default function AdminDashboard() {
                 </div>
               )}
 
-              {viewMode === "table" && <div className="overflow-x-auto">
-                <table className="w-full min-w-[980px] text-[13px]">
-                  <thead className="bg-[#fdf9f4] text-left">
-                    <tr className="text-[10.5px] uppercase tracking-[0.16em] text-[#8d7962]">
-                      <th className="p-4"><input type="checkbox" onChange={e => setSelectedIds(e.target.checked ? filteredWeddings.map(w => w.id) : [])} /></th>
-                      <th className="p-4">Wedding</th>
-                      <th className="p-4">Date</th>
-                      <th className="p-4">Lifecycle</th>
-                      <th className="p-4">Guests</th>
-                      <th className="p-4">RSVP</th>
-                      <th className="p-4">Website</th>
-                      <th className="p-4">Quick Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredWeddings.map(w => {
-                      const stage = getWeddingStage(w);
-                      const guestCount = weddingGuestCount(w.id);
-                      const progress = rsvpProgress(w.id);
-                      return (
-                        <tr key={w.id} className="border-t border-[#f0e4d4] hover:bg-[#fdf9f4] transition">
-                          <td className="p-4"><input type="checkbox" checked={selectedIds.includes(w.id)} onChange={() => setSelectedIds(ids => ids.includes(w.id) ? ids.filter(x => x !== w.id) : [...ids, w.id])} /></td>
-                          <td className="p-4">
-                            <div className="flex items-center gap-3 min-w-[240px]">
-                              <img src={w.cover_image || w.hero_image} alt="" className="w-14 h-14 rounded-[14px] object-cover border border-[#e6d4be]" />
-                              <div className="min-w-0">
-                                <button onClick={() => setDetailWedding(w)} className="display text-[20px] text-[#2a231d] hover:text-[#b0743c] truncate block text-left">{w.couple_names}</button>
-                                <div className="text-[11.5px] text-[#8d7962] truncate">/{w.slug} · {w.access_code}</div>
+              {/* Table View */}
+              {viewMode === "table" && (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-[13px] text-left">
+                    <thead className="bg-white/[0.03] border-b border-white/[0.08] text-[11px] uppercase tracking-[0.16em] text-[#78716C]">
+                      <tr>
+                        <th className="p-4 w-10"><input type="checkbox" onChange={e => setSelectedIds(e.target.checked ? filteredWeddings.map(w => w.id) : [])} className="accent-[#D4A853]" /></th>
+                        <th className="p-4">Celebration</th>
+                        <th className="p-4">Date</th>
+                        <th className="p-4">Stage</th>
+                        <th className="p-4">Guests</th>
+                        <th className="p-4">RSVP Rate</th>
+                        <th className="p-4">Visibility</th>
+                        <th className="p-4 text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-white/[0.04]">
+                      {filteredWeddings.map(w => {
+                        const stage = getWeddingStage(w);
+                        const statusStyle = getStatusStyle(stage);
+                        const guestCount = weddingGuestCount(w.id);
+                        const progress = rsvpProgress(w.id);
+
+                        return (
+                          <tr key={w.id} className="hover:bg-white/[0.03] transition">
+                            <td className="p-4"><input type="checkbox" checked={selectedIds.includes(w.id)} onChange={() => setSelectedIds(ids => ids.includes(w.id) ? ids.filter(x => x !== w.id) : [...ids, w.id])} className="accent-[#D4A853]" /></td>
+                            <td className="p-4">
+                              <div className="flex items-center gap-3">
+                                <img src={w.cover_image || w.hero_image} alt="" className="w-11 h-11 rounded-[12px] object-cover border border-white/[0.1]" />
+                                <div>
+                                  <button onClick={() => setDetailWedding(w)} className="font-semibold text-[#FAF7F2] hover:text-[#D4A853] block">{w.couple_names}</button>
+                                  <div className="text-[11px] text-[#78716C] font-mono">/{w.slug}</div>
+                                </div>
                               </div>
-                            </div>
-                          </td>
-                          <td className="p-4 text-[#5a4f45]">{w.wedding_date ? format(new Date(w.wedding_date), "d MMM yyyy") : "Not set"}</td>
-                          <td className="p-4"><span className={`inline-flex px-2.5 py-1 rounded-full border text-[11px] font-semibold ${statusStyles[stage]}`}>{stage}</span></td>
-                          <td className="p-4 text-[#5a4f45]">{guestCount}</td>
-                          <td className="p-4">
-                            <div className="w-[110px]">
-                              <div className="h-1.5 bg-[#f5efe7] rounded-full overflow-hidden"><div className="h-full bg-[#b0743c]" style={{ width: `${progress}%` }} /></div>
-                              <div className="text-[11px] text-[#8d7962] mt-1">{progress}% complete</div>
-                            </div>
-                          </td>
-                          <td className="p-4"><span className={`text-[11px] font-semibold ${w.published ? "text-[#4f7a56]" : "text-[#b0743c]"}`}>{w.published ? "Public" : "Private"}</span></td>
-                          <td className="p-4">
-                            <div className="flex items-center gap-1.5">
-                              <button title="Open Dashboard" onClick={() => { localStorage.setItem("couple_wedding_id", w.id); localStorage.setItem("couple_wedding_slug", w.slug); window.open(`/couple/${w.slug}/dashboard`, "_blank"); }} className="p-2 rounded-lg hover:bg-[#f5efe7]"><Gauge size={14}/></button>
-                              <Link title="Preview Website" to={`/wedding/${w.slug}?preview=1`} target="_blank" className="p-2 rounded-lg hover:bg-[#f5efe7]"><ExternalLink size={14}/></Link>
-                              <button title="Copy guest link" onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/wedding/${w.slug}`); toast.success("Guest link copied"); }} className="p-2 rounded-lg hover:bg-[#f5efe7]"><Copy size={14}/></button>
-                              <button title="Copy couple link" onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/couple/${w.slug}`); toast.success("Couple link copied"); }} className="p-2 rounded-lg hover:bg-[#f5efe7]"><QrCode size={14}/></button>
-                              <button title="Publish/unpublish" onClick={() => togglePublish(w)} className="p-2 rounded-lg hover:bg-[#f5efe7]">{w.published ? <EyeOff size={14}/> : <Eye size={14}/>}</button>
-                              <button title="Duplicate" onClick={() => duplicateWedding(w)} className="p-2 rounded-lg hover:bg-[#f5efe7]"><Layers size={14}/></button>
-                              <button title="Archive" onClick={() => archiveWedding(w)} className="p-2 rounded-lg hover:bg-[#f5efe7]"><Archive size={14}/></button>
-                              <button title="Delete" onClick={() => deleteWedding(w)} className="p-2 rounded-lg hover:bg-[#fde9e6] text-[#a64838]"><Trash2 size={14}/></button>
-                            </div>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>}
-            </div>
+                            </td>
+                            <td className="p-4 text-[#A8A29E]">{w.wedding_date ? format(new Date(w.wedding_date), "MMM d, yyyy") : "TBD"}</td>
+                            <td className="p-4"><span className={`px-2.5 py-1 rounded-full text-[10px] font-semibold uppercase ${statusStyle.bg}`}>{stage}</span></td>
+                            <td className="p-4 font-mono text-[#FAF7F2]">{guestCount}</td>
+                            <td className="p-4">
+                              <div className="w-24">
+                                <div className="h-1.5 rounded-full bg-white/[0.06] overflow-hidden"><div className="h-full bg-[#D4A853]" style={{ width: `${progress}%` }} /></div>
+                                <div className="text-[11px] text-[#78716C] mt-1 font-mono">{progress}%</div>
+                              </div>
+                            </td>
+                            <td className="p-4"><span className={`text-[11px] font-semibold ${w.published ? "text-[#7A9E7E]" : "text-[#78716C]"}`}>{w.published ? "Public" : "Private"}</span></td>
+                            <td className="p-4 text-right">
+                              <div className="inline-flex items-center gap-1">
+                                <button onClick={() => { localStorage.setItem("couple_wedding_id", w.id); localStorage.setItem("couple_wedding_slug", w.slug); window.open(`/couple/${w.slug}/dashboard`, "_blank"); }} className="p-2 rounded-lg hover:bg-white/[0.08] text-[#D4A853]" title="Open Dashboard">
+                                  <Gauge size={14} />
+                                </button>
+                                <button onClick={() => shareCoupleAccess(w)} className="p-2 rounded-lg hover:bg-[#EAB308]/20 text-[#EAB308]" title={`Send Couple Link & Code (${w.access_code})`}>
+                                  <Send size={14} />
+                                </button>
+                                <Link to={`/wedding/${w.slug}?preview=1`} target="_blank" className="p-2 rounded-lg hover:bg-white/[0.08] text-[#A8A29E]" title="Preview Site">
+                                  <ExternalLink size={14} />
+                                </Link>
+                                <button onClick={() => togglePublish(w)} className="p-2 rounded-lg hover:bg-white/[0.08] text-[#A8A29E]" title="Toggle Publish">
+                                  {w.published ? (<EyeOff size={14} />) : (<Eye size={14} />)}
+                                </button>
+                                <button onClick={() => duplicateWedding(w)} className="p-2 rounded-lg hover:bg-white/[0.08] text-[#A8A29E]" title="Duplicate">
+                                  <Layers size={14} />
+                                </button>
+                                <button onClick={() => deleteWedding(w)} className="p-2 rounded-lg hover:bg-[#C97B7B]/20 text-[#E4A5A5]" title="Delete">
+                                  <Trash2 size={14} />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </GlassCard>
           </div>
 
+          {/* Right Activity Feed & Tools */}
           <aside className="space-y-6">
-            <div className="bg-white rounded-[24px] border border-[#e6d4be] p-6">
-              <div className="wedding-label mb-4">Quick Actions</div>
-              <div className="grid grid-cols-2 gap-3">
-                {[
-                  { label: "Create", icon: <Plus size={16}/>, action: () => setShowCreate(true) },
-                  { label: "Import", icon: <Upload size={16}/>, action: () => fileRef.current?.click() },
-                  { label: "Templates", icon: <LayoutTemplate size={16}/>, action: () => setToolPanel("templates") },
-                  { label: "Themes", icon: <Wand2 size={16}/>, action: () => setToolPanel("themes") },
-                  { label: "Assets", icon: <HardDrive size={16}/>, action: () => setToolPanel("assets") },
-                  { label: "Reports", icon: <Download size={16}/>, action: exportCsv },
-                  { label: "Users", icon: <Users size={16}/>, action: () => setToolPanel("users") },
-                  { label: "Settings", icon: <Settings size={16}/>, action: () => setToolPanel("settings") },
-                ].map(a => (
-                  <button key={a.label} onClick={a.action} className="p-4 rounded-[18px] bg-[#fcf7f1] border border-[#eadfd1] hover:bg-[#f8eee0] text-left transition">
-                    <div className="text-[#b0743c] mb-2">{a.icon}</div>
-                    <div className="text-[12.5px] font-semibold text-[#4b4037]">{a.label}</div>
-                  </button>
-                ))}
+            <GlassCard variant="obsidian" padding="lg" className="border border-white/[0.1]">
+              <div className="flex items-center justify-between mb-5">
+                <span className="wedding-label">Recent Wedding Activity</span>
+                <span className="text-[11px] font-mono text-[#78716C]">Live Updates</span>
               </div>
-            </div>
 
-            <div className="bg-white rounded-[24px] border border-[#e6d4be] p-6">
-              <div className="wedding-label mb-4">Recent Activity</div>
               <div className="space-y-4">
                 {activity.map((item, index) => (
-                  <button key={index} onClick={() => item.wedding && setDetailWedding(item.wedding)} className="w-full text-left flex gap-3 group">
-                    <div className="w-8 h-8 rounded-full bg-[#f8eee0] text-[#b0743c] flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition">{item.icon}</div>
-                    <div className="min-w-0">
-                      <div className="text-[13px] font-semibold text-[#2a231d] truncate">{item.text}</div>
-                      <div className="text-[12px] text-[#8d7962] truncate">{item.sub}</div>
-                      <div className="text-[11px] text-[#b0743c] mt-0.5">{formatDistanceToNow(new Date(item.ts), { addSuffix: true })}</div>
+                  <button
+                    key={index}
+                    onClick={() => item.wedding && setDetailWedding(item.wedding)}
+                    className="w-full text-left flex items-start gap-3.5 p-3 rounded-[16px] hover:bg-white/[0.04] transition group"
+                  >
+                    <div className="w-8 h-8 rounded-[10px] bg-white/[0.06] text-[#D4A853] flex items-center justify-center shrink-0 mt-0.5 group-hover:scale-110 transition">
+                      {item.icon}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="text-[13px] font-semibold text-[#FAF7F2] truncate">{item.text}</div>
+                      <div className="text-[12px] text-[#A8A29E] truncate">{item.sub}</div>
+                      <div className="text-[10px] font-mono text-[#78716C] mt-1">{formatDistanceToNow(new Date(item.ts), { addSuffix: true })}</div>
                     </div>
                   </button>
                 ))}
               </div>
-            </div>
-          </aside>
-        </section>
+            </GlassCard>
 
-        <section className="grid lg:grid-cols-3 gap-6">
-          <div className="bg-white rounded-[24px] border border-[#e6d4be] p-6">
-            <div className="wedding-label mb-4">Platform Insights</div>
-            {[
-              ["Most Viewed Wedding", mostViewed?.couple_names || "—"],
-              ["Most Popular Theme", "Garden Wedding"],
-              ["Average Guest Count", avgGuests],
-              ["Average RSVP Rate", `${avgRsvp}%`],
-              ["Average Photos/Wedding", weddings.length ? Math.round(stats.photos / weddings.length) : 0],
-              ["Wedding Views This Week", stats.views],
-            ].map(([label, value]) => (
-              <div key={label as string} className="flex items-center justify-between py-2.5 border-b border-[#f0e4d4] last:border-0">
-                <span className="text-[13px] text-[#6b5d4f]">{label}</span>
-                <span className="text-[13px] font-semibold text-[#2a231d] text-right">{value}</span>
+            <GlassCard variant="frost" padding="lg" className="border border-white/[0.08]">
+              <div className="wedding-label mb-4">Import History</div>
+              <div className="space-y-3">
+                {csvHistory.length === 0 ? (
+                  <div className="py-6 text-center text-[12px] text-[#78716C]">No guest imports recorded yet.</div>
+                ) : csvHistory.slice(0, 4).map(row => (
+                  <div key={row.id} className="p-3 rounded-[14px] bg-white/[0.02] border border-white/[0.06] flex items-center justify-between text-[12px]">
+                    <div className="truncate pr-2">
+                      <div className="font-medium text-[#FAF7F2] truncate">{row.file}</div>
+                      <div className="text-[10px] text-[#78716C]">{formatDistanceToNow(new Date(row.created_at), { addSuffix: true })}</div>
+                    </div>
+                    <span className="font-mono text-[#7A9E7E] shrink-0">{row.count} rows</span>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-
-          <div className="bg-white rounded-[24px] border border-[#e6d4be] p-6">
-            <div className="wedding-label mb-4">Template Library</div>
-            <div className="grid grid-cols-2 gap-3">
-              {templateLibrary.map(t => (
-                <div key={t.name} className="rounded-[16px] overflow-hidden border border-[#e6d4be]">
-                  <img src={t.image} alt="" className="h-20 w-full object-cover" />
-                  <div className="p-3 text-[12px] font-semibold text-[#2a231d]">{t.name}</div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="bg-white rounded-[24px] border border-[#e6d4be] p-6">
-            <div className="wedding-label mb-4">Asset Library</div>
-            <div className="grid grid-cols-3 gap-3">
-              {["Backgrounds", "Icons", "Logos", "Fonts", "Themes", "Decor"].map(asset => (
-                <button key={asset} className="aspect-square rounded-[16px] bg-[#fcf7f1] border border-[#eadfd1] flex flex-col items-center justify-center gap-2 text-[#5a4735] text-[11px] hover:bg-[#f8eee0]">
-                  <HardDrive size={16} className="text-[#b0743c]" /> {asset}
-                </button>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        <section className="grid lg:grid-cols-2 gap-6">
-          <div className="bg-white rounded-[24px] border border-[#e6d4be] p-6">
-            <div className="wedding-label mb-4">CSV Import History</div>
-            <div className="space-y-3">
-              {csvHistory.length === 0 ? (
-                <div className="rounded-[18px] border border-dashed border-[#e6d4be] p-8 text-center text-[13px] text-[#8d7962]">No CSV imports yet. Imported files will appear here with success or failure details.</div>
-              ) : csvHistory.slice(0, 6).map(row => (
-                <div key={row.id} className="flex items-center justify-between gap-4 rounded-[16px] border border-[#e6d4be] p-4">
-                  <div><div className="font-semibold text-[#2a231d]">{row.file}</div><div className="text-[12px] text-[#8d7962]">{formatDistanceToNow(new Date(row.created_at), { addSuffix: true })}</div></div>
-                  <div className="text-right"><div className="text-[13px] text-[#4f7a56] font-semibold">{row.status}</div><div className="text-[12px] text-[#8d7962]">{row.count} records</div></div>
-                </div>
-              ))}
-            </div>
-          </div>
-          <div className="bg-white rounded-[24px] border border-[#e6d4be] p-6">
-            <div className="wedding-label mb-4">Media Manager</div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-              {["Hero Images", "Theme Covers", "Flower Details", "Venue Maps", "Icons", "Logos"].map(item => (
-                <button key={item} onClick={() => setToolPanel("assets")} className="rounded-[18px] bg-[#fcf7f1] border border-[#eadfd1] p-4 text-left hover:bg-[#f8eee0] transition">
-                  <Image size={17} className="text-[#b0743c] mb-2" />
-                  <div className="text-[12.5px] font-semibold text-[#4b4037]">{item}</div>
-                </button>
-              ))}
-            </div>
-          </div>
+            </GlassCard>
+          </aside>
         </section>
       </main>
 
+      {/* ────────────────── MODALS & OVERLAYS ────────────────── */}
+
+      {/* Create Wedding Modal */}
       {showCreate && (
-        <div className="fixed inset-0 z-50 bg-black/35 backdrop-blur-sm flex items-center justify-center p-4">
-          <form onSubmit={createWedding} className="bg-white rounded-[28px] border border-[#e6d4be] p-6 w-full max-w-2xl shadow-2xl grid md:grid-cols-2 gap-4">
-            <div className="md:col-span-2 flex items-start justify-between gap-4">
-              <div><div className="wedding-label mb-2">Create Wedding</div><h2 className="display text-[34px] text-[#2a231d]">Start from a template.</h2></div>
-              <button type="button" onClick={() => setShowCreate(false)} className="w-9 h-9 rounded-full border border-[#e6d4be] flex items-center justify-center"><X size={15}/></button>
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-xl flex items-center justify-center p-4">
+          <form onSubmit={createWedding} className="glass-obsidian rounded-[32px] border border-white/[0.15] p-8 w-full max-w-2xl shadow-2xl grid md:grid-cols-2 gap-5 relative">
+            <div className="md:col-span-2 flex items-start justify-between">
+              <div>
+                <div className="wedding-label mb-1">New Wedding Celebration</div>
+                <h2 className="display text-[32px] text-[#FAF7F2]">Create Wedding</h2>
+              </div>
+              <button type="button" onClick={() => setShowCreate(false)} className="w-9 h-9 rounded-full bg-white/[0.06] flex items-center justify-center text-[#A8A29E] hover:text-[#FAF7F2]"><X size={16}/></button>
+            </div>
+
+            <div>
+              <label className="block wedding-label mb-2">Couple Names</label>
+              <input required value={newCouple} onChange={e => setNewCouple(e.target.value)} placeholder="Elara & Julian" className="fv-input" />
             </div>
             <div>
-              <label className="wedding-label block mb-2">Couple names</label>
-              <input required value={newCouple} onChange={e => setNewCouple(e.target.value)} placeholder="John & Anna" className="w-full rounded-[14px] border border-[#e0ccb2] px-4 py-3 outline-none focus:border-[#d3a76b]" />
+              <label className="block wedding-label mb-2">Custom Slug</label>
+              <input value={newSlug} onChange={e => setNewSlug(e.target.value)} placeholder="elara-julian" className="fv-input" />
             </div>
             <div>
-              <label className="wedding-label block mb-2">URL slug</label>
-              <input value={newSlug} onChange={e => setNewSlug(e.target.value)} placeholder="john-anna" className="w-full rounded-[14px] border border-[#e0ccb2] px-4 py-3 outline-none focus:border-[#d3a76b]" />
+              <label className="block wedding-label mb-2">Wedding Date</label>
+              <input type="date" value={newDate} onChange={e => setNewDate(e.target.value)} className="fv-input" />
             </div>
             <div>
-              <label className="wedding-label block mb-2">Wedding date</label>
-              <input type="date" value={newDate} onChange={e => setNewDate(e.target.value)} className="w-full rounded-[14px] border border-[#e0ccb2] px-4 py-3 outline-none focus:border-[#d3a76b]" />
+              <label className="block wedding-label mb-2">Primary Venue</label>
+              <input value={newVenue} onChange={e => setNewVenue(e.target.value)} placeholder="Villa Rose, Como" className="fv-input" />
             </div>
-            <div>
-              <label className="wedding-label block mb-2">Venue</label>
-              <input value={newVenue} onChange={e => setNewVenue(e.target.value)} placeholder="Villa Rosa Alba" className="w-full rounded-[14px] border border-[#e0ccb2] px-4 py-3 outline-none focus:border-[#d3a76b]" />
-            </div>
+
             <div className="md:col-span-2">
-              <label className="wedding-label block mb-2">Template</label>
+              <label className="block wedding-label mb-3">Design Template</label>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                 {templateLibrary.map(t => (
-                  <button key={t.name} type="button" onClick={() => setTemplate(t.name)} className={`rounded-[16px] border overflow-hidden text-left ${template === t.name ? "border-[#b0743c] ring-4 ring-[#b0743c]/10" : "border-[#e6d4be]"}`}>
+                  <button key={t.name} type="button" onClick={() => setTemplate(t.name)} className={`rounded-[16px] border overflow-hidden text-left transition ${template === t.name ? "border-[#D4A853] ring-2 ring-[#D4A853]/40" : "border-white/[0.08] opacity-60 hover:opacity-100"}`}>
                     <img src={t.image} alt="" className="h-20 w-full object-cover" />
-                    <div className="p-2 text-[11.5px] font-semibold text-[#2a231d]">{t.name}</div>
+                    <div className="p-2.5 text-[11px] font-semibold text-[#FAF7F2]">{t.name}</div>
                   </button>
                 ))}
               </div>
             </div>
-            <div className="md:col-span-2 flex justify-end gap-3 pt-2">
-              <button type="button" onClick={() => setShowCreate(false)} className="px-5 py-3 rounded-full border border-[#d9c6ae] text-[#5a4735]">Cancel</button>
-              <button className="px-6 py-3 rounded-full bg-[#2b2723] text-[#f9f2e8]">Create Wedding</button>
+
+            <div className="md:col-span-2 flex justify-end gap-3 pt-4 border-t border-white/[0.08]">
+              <button type="button" onClick={() => setShowCreate(false)} className="fv-btn-ghost !py-3 !px-6 text-[13px]">Cancel</button>
+              <button type="submit" className="fv-btn-primary !py-3 !px-7 text-[13px]">Create & Launch Wedding</button>
             </div>
           </form>
         </div>
       )}
 
+      {/* Guest List CSV Import Panel */}
       {importPanel && (
-        <div className="fixed inset-0 z-50 bg-black/35 backdrop-blur-sm flex items-center justify-center p-4" onClick={() => setImportPanel(null)}>
-          <div className="w-full max-w-3xl bg-white rounded-[28px] border border-[#e6d4be] shadow-2xl overflow-hidden" onClick={e => e.stopPropagation()}>
-            <div className="p-5 border-b border-[#e6d4be] flex items-center justify-between bg-[#fdf9f4]">
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-xl flex items-center justify-center p-4" onClick={() => setImportPanel(null)}>
+          <div className="w-full max-w-3xl glass-obsidian rounded-[32px] border border-white/[0.15] shadow-2xl overflow-hidden" onClick={e => e.stopPropagation()}>
+            <div className="p-6 border-b border-white/[0.08] flex items-center justify-between">
               <div>
-                <div className="wedding-label">AI CSV Importer</div>
-                <div className="display text-[28px] text-[#2a231d]">{importPanel.file}</div>
+                <div className="wedding-label text-[#D4A853]">Guest List Import</div>
+                <div className="display text-[26px] text-[#FAF7F2] mt-0.5">{importPanel.file}</div>
               </div>
-              <button onClick={() => setImportPanel(null)} className="w-9 h-9 rounded-full border border-[#e6d4be] flex items-center justify-center"><X size={14}/></button>
+              <button onClick={() => setImportPanel(null)} className="w-9 h-9 rounded-full bg-white/[0.06] flex items-center justify-center"><X size={15}/></button>
             </div>
-            <div className="p-6 space-y-5">
-              <div className="rounded-[18px] bg-[#fcf7f1] border border-[#eadfd1] p-4 grid grid-cols-3 gap-3 text-center">
-                <div><div className="display text-[24px] text-[#2a231d]">{importPanel.count}</div><div className="text-[11px] uppercase tracking-[0.16em] text-[#8d7962]">Records Imported</div></div>
-                <div><div className="display text-[24px] text-[#b0743c]">{importPanel.mapping.confidence}%</div><div className="text-[11px] uppercase tracking-[0.16em] text-[#8d7962]">AI Confidence</div></div>
-                <div><div className="display text-[24px] text-[#2a231d]">{importPanel.mapping.matches.length}</div><div className="text-[11px] uppercase tracking-[0.16em] text-[#8d7962]">Mapped Fields</div></div>
+
+            <div className="p-6 space-y-6">
+              <div className="grid grid-cols-3 gap-4 text-center p-4 rounded-[20px] bg-white/[0.03] border border-white/[0.08]">
+                <div><div className="display text-[28px] text-[#FAF7F2]">{importPanel.count}</div><div className="text-[10px] uppercase tracking-wider text-[#78716C]">Imported Guests</div></div>
+                <div><div className="display text-[28px] text-[#D4A853]">{importPanel.mapping.confidence}%</div><div className="text-[10px] uppercase tracking-wider text-[#78716C]">Confidence Score</div></div>
+                <div><div className="display text-[28px] text-[#7A9E7E]">{importPanel.mapping.matches.length}</div><div className="text-[10px] uppercase tracking-wider text-[#78716C]">Mapped Columns</div></div>
               </div>
+
               <div>
-                <div className="wedding-label mb-3">Detected Field Mapping</div>
-                <div className="space-y-2">
+                <div className="wedding-label mb-3">Field Alignments</div>
+                <div className="space-y-2 max-h-[220px] overflow-y-auto pr-1">
                   {importPanel.mapping.matches.map((m: any) => (
-                    <div key={m.from} className="flex items-center justify-between rounded-[14px] border border-[#e6d4be] px-4 py-2.5 text-[13px]">
-                      <span className="font-semibold text-[#2a231d]">{m.from}</span>
-                      <span className="text-[#8d7962]">→ {m.to.replace(/_/g, " ")}</span>
-                      <span className="text-[#b0743c] font-semibold">{m.confidence}%</span>
+                    <div key={m.from} className="flex items-center justify-between rounded-[14px] bg-white/[0.02] border border-white/[0.06] px-4 py-2.5 text-[13px]">
+                      <span className="font-semibold text-[#FAF7F2]">{m.from}</span>
+                      <span className="text-[#A8A29E]">→ {m.to.replace(/_/g, " ")}</span>
+                      <span className="text-[#D4A853] font-mono text-[12px]">{m.confidence}%</span>
                     </div>
                   ))}
                 </div>
               </div>
-              {importPanel.headers.length > 0 && (
-                <div>
-                  <div className="wedding-label mb-3">Detected Headers</div>
-                  <div className="flex flex-wrap gap-2">
-                    {importPanel.headers.map((h: string) => <span key={h} className="px-3 py-1 rounded-full bg-[#f5efe7] text-[#5a4735] text-[12px]">{h}</span>)}
-                  </div>
-                </div>
-              )}
-              {importPanel.validation.warnings.length > 0 && (
-                <div className="rounded-[16px] border border-[#e8d2b6] bg-[#fdf3e4] p-4 text-[13px] text-[#5a4735]">
-                  <strong className="block mb-1">Warnings</strong>
-                  {importPanel.validation.warnings.map((w: string, i: number) => <div key={i}>• {w}</div>)}
-                </div>
-              )}
-              {importPanel.validation.errors.length > 0 && (
-                <div className="rounded-[16px] border border-[#e0a09a] bg-[#fde9e6] p-4 text-[13px] text-[#7e3124]">
-                  <strong className="block mb-1">Errors</strong>
-                  {importPanel.validation.errors.map((e: string, i: number) => <div key={i}>• {e}</div>)}
-                </div>
-              )}
-              <div className="flex justify-end gap-2">
-                <button onClick={() => setImportPanel(null)} className="px-5 py-2.5 rounded-full border border-[#d9c6ae] text-[#5a4735]">Close</button>
-                <button onClick={() => { fileRef.current?.click(); setImportPanel(null); }} className="px-5 py-2.5 rounded-full bg-[#2b2723] text-[#f9f2e8]">Import another file</button>
+
+              <div className="flex justify-end gap-3 pt-4 border-t border-white/[0.08]">
+                <button onClick={() => setImportPanel(null)} className="fv-btn-primary !py-2.5 !px-6 text-[12px]">Complete & Close</button>
               </div>
             </div>
           </div>
         </div>
       )}
 
-      {spotlightOpen && (
-        <div className="fixed inset-0 z-50 bg-black/35 backdrop-blur-sm flex items-start justify-center p-4 pt-[10vh]" onClick={() => setSpotlightOpen(false)}>
-          <div className="w-full max-w-2xl bg-white rounded-[28px] border border-[#e6d4be] shadow-2xl overflow-hidden" onClick={e => e.stopPropagation()}>
-            <div className="p-4 border-b border-[#e6d4be] flex items-center gap-3">
-              <Search size={18} className="text-[#b0743c]" />
-              <input autoFocus value={query} onChange={e => setQuery(e.target.value)} placeholder="Search couples, slugs, venues, access codes..." className="flex-1 outline-none text-[15px]" />
-              <button onClick={() => setSpotlightOpen(false)} className="w-8 h-8 rounded-full border border-[#e6d4be] flex items-center justify-center"><X size={14}/></button>
+      {/* Tool Module Panel */}
+      {toolPanel && (
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-xl flex items-center justify-center p-4" onClick={() => setToolPanel(null)}>
+          <div className="w-full max-w-3xl glass-obsidian rounded-[32px] border border-white/[0.15] p-8 shadow-2xl" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between pb-6 border-b border-white/[0.08] mb-6">
+              <div><div className="wedding-label">Wedding Gallery</div><h2 className="display text-[28px] text-[#FAF7F2] capitalize">{toolPanel} Library</h2></div>
+              <button onClick={() => setToolPanel(null)} className="w-9 h-9 rounded-full bg-white/[0.06] flex items-center justify-center"><X size={15}/></button>
             </div>
-            <div className="max-h-[420px] overflow-y-auto p-2">
-              {filteredWeddings.slice(0, 8).map(w => (
-                <button key={w.id} onClick={() => { setDetailWedding(w); setSpotlightOpen(false); }} className="w-full flex items-center gap-3 p-3 rounded-[18px] hover:bg-[#fdf9f4] text-left">
-                  <img src={w.cover_image || w.hero_image} alt="" className="w-12 h-12 rounded-[14px] object-cover" />
-                  <div className="flex-1 min-w-0"><div className="font-semibold text-[#2a231d] truncate">{w.couple_names}</div><div className="text-[12px] text-[#8d7962] truncate">/{w.slug} · {w.access_code}</div></div>
-                  <ChevronRight size={15} className="text-[#b0743c]" />
-                </button>
+            <div className="grid sm:grid-cols-2 gap-4 max-h-[400px] overflow-y-auto">
+              {templateLibrary.map(t => (
+                <div key={t.name} className="rounded-[20px] border border-white/[0.08] overflow-hidden bg-white/[0.02]">
+                  <img src={t.image} alt="" className="h-32 w-full object-cover" />
+                  <div className="p-4 font-semibold text-[14px] text-[#FAF7F2]">{t.name}</div>
+                </div>
               ))}
             </div>
           </div>
         </div>
       )}
 
-      {toolPanel && (
-        <div className="fixed inset-0 z-50 bg-black/35 backdrop-blur-sm flex items-center justify-center p-4" onClick={() => setToolPanel(null)}>
-          <div className="w-full max-w-3xl bg-white rounded-[28px] border border-[#e6d4be] shadow-2xl overflow-hidden" onClick={e => e.stopPropagation()}>
-            <div className="p-5 border-b border-[#e6d4be] flex items-center justify-between bg-[#fdf9f4]">
-              <div>
-                <div className="wedding-label">Platform Module</div>
-                <div className="display text-[30px] text-[#2a231d] capitalize">{toolPanel}</div>
-              </div>
-              <button onClick={() => setToolPanel(null)} className="w-9 h-9 rounded-full border border-[#e6d4be] flex items-center justify-center"><X size={14}/></button>
+      {/* Wedding Detail Slide-Over */}
+      {detailWedding && (
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-xl flex justify-end" onClick={() => setDetailWedding(null)}>
+          <div className="w-full max-w-2xl glass-obsidian h-full overflow-y-auto border-l border-white/[0.1] p-8 shadow-2xl" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between pb-6 border-b border-white/[0.08] mb-6">
+              <div><div className="wedding-label">Wedding Details</div><h2 className="display text-[32px] text-[#FAF7F2]">{detailWedding.couple_names}</h2></div>
+              <button onClick={() => setDetailWedding(null)} className="w-9 h-9 rounded-full bg-white/[0.06] flex items-center justify-center"><X size={16}/></button>
             </div>
-            <div className="p-6">
-              {toolPanel === "templates" && (
-                <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-4">
-                  {templateLibrary.map(t => (
-                    <div key={t.name} className="rounded-[18px] border border-[#e6d4be] overflow-hidden">
-                      <img src={t.image} alt="" className="h-28 w-full object-cover" />
-                      <div className="p-3 font-semibold text-[13px] text-[#2a231d]">{t.name}</div>
-                    </div>
-                  ))}
+
+            <div className="space-y-6">
+              <img src={detailWedding.cover_image || detailWedding.hero_image} alt="" className="w-full h-56 object-cover rounded-[24px] border border-white/[0.1]" />
+
+              <div className="p-5 rounded-[20px] bg-white/[0.03] border border-white/[0.08] space-y-3">
+                <div className="wedding-label">Wedding Access & Links</div>
+                <div className="flex items-center justify-between text-[13px]"><span className="text-[#A8A29E]">Guest Portal</span><code className="text-[#D4A853] font-mono">/wedding/{detailWedding.slug}</code></div>
+                <div className="flex items-center justify-between text-[13px]"><span className="text-[#A8A29E]">Couple Dashboard</span><code className="text-[#D4A853] font-mono">/couple/{detailWedding.slug}/dashboard</code></div>
+                <div className="flex items-center justify-between text-[13px]"><span className="text-[#A8A29E]">Access Code</span><code className="text-[#FAF7F2] font-mono bg-white/[0.08] px-2.5 py-1 rounded">{detailWedding.access_code}</code></div>
+              </div>
+
+              <div className="flex flex-col gap-2.5">
+                <button onClick={() => shareCoupleAccess(detailWedding)} className="w-full fv-btn-primary !bg-[#EAB308] !text-[#09090B] py-3.5 text-[13px] flex items-center justify-center gap-2 shadow-lg">
+                  <Send size={15} /> Copy & Send Couple Access Kit ({detailWedding.access_code})
+                </button>
+                <div className="flex gap-3">
+                  <button onClick={() => { localStorage.setItem("couple_wedding_id", detailWedding.id); localStorage.setItem("couple_wedding_slug", detailWedding.slug); window.open(`/couple/${detailWedding.slug}/dashboard`, "_blank"); }} className="flex-1 fv-btn-ghost py-3 text-[12px]">Launch Couple Dashboard</button>
+                  <Link to={`/wedding/${detailWedding.slug}?preview=1`} target="_blank" className="flex-1 fv-btn-ghost py-3 text-[12px] text-center">Preview Guest Site</Link>
                 </div>
-              )}
-              {toolPanel === "themes" && (
-                <div className="grid sm:grid-cols-2 gap-4">
-                  {templateLibrary.map(t => (
-                    <div key={t.name} className="rounded-[18px] border border-[#e6d4be] p-4 flex items-center gap-4">
-                      <div className="w-12 h-12 rounded-full" style={{ backgroundColor: t.color }} />
-                      <div><div className="font-semibold text-[#2a231d]">{t.name}</div><div className="text-[12px] text-[#8d7962]">Typography, colors, buttons, cards</div></div>
-                    </div>
-                  ))}
-                </div>
-              )}
-              {toolPanel === "assets" && (
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                  {["Hero Images", "Backgrounds", "Icons", "Logos", "Fonts", "Decorative Elements"].map(asset => (
-                    <div key={asset} className="rounded-[18px] border border-[#e6d4be] bg-[#fcf7f1] p-5 text-center text-[#5a4735]"><HardDrive className="mx-auto mb-2 text-[#b0743c]" size={20}/>{asset}</div>
-                  ))}
-                </div>
-              )}
-              {toolPanel === "users" && (
-                <div className="space-y-3">
-                  {["Admin · Pedro", "Couple · Elara & Julian", "Couple · Towa & Mathew"].map(user => <div key={user} className="p-4 rounded-[16px] border border-[#e6d4be] text-[#2a231d]">{user}</div>)}
-                </div>
-              )}
-              {toolPanel === "settings" && (
-                <div className="grid sm:grid-cols-2 gap-4">
-                  {["Platform Branding", "Email Templates", "QR Settings", "Storage", "Authentication", "Theme Defaults"].map(setting => <div key={setting} className="p-4 rounded-[16px] border border-[#e6d4be] text-[#2a231d]">{setting}</div>)}
-                </div>
-              )}
+              </div>
             </div>
           </div>
         </div>
       )}
 
-      {detailWedding && (
-        <div className="fixed inset-0 z-50 bg-black/35 backdrop-blur-sm flex justify-end" onClick={() => setDetailWedding(null)}>
-          <div className="w-full max-w-3xl bg-[#faf8f5] h-full overflow-y-auto shadow-2xl" onClick={e => e.stopPropagation()}>
-            <div className="sticky top-0 bg-white border-b border-[#e6d4be] p-5 flex items-center justify-between z-10">
-              <div><div className="wedding-label">Wedding Workspace</div><div className="display text-[28px] text-[#2a231d]">{detailWedding.couple_names}</div></div>
-              <button onClick={() => setDetailWedding(null)} className="w-10 h-10 rounded-full border border-[#e6d4be] flex items-center justify-center"><X size={16}/></button>
+      {/* Spotlight Search Modal */}
+      {spotlightOpen && (
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-xl flex items-start justify-center p-4 pt-[12vh]" onClick={() => setSpotlightOpen(false)}>
+          <div className="w-full max-w-xl glass-obsidian rounded-[28px] border border-white/[0.15] shadow-2xl overflow-hidden" onClick={e => e.stopPropagation()}>
+            <div className="p-5 border-b border-white/[0.08] flex items-center gap-3.5">
+              <Search size={18} className="text-[#D4A853]" />
+              <input autoFocus value={query} onChange={e => setQuery(e.target.value)} placeholder="Search celebrations, access codes, guests..." className="w-full bg-transparent text-[15px] text-[#FAF7F2] outline-none placeholder-[#78716C]" />
+              <button onClick={() => setSpotlightOpen(false)} className="w-8 h-8 rounded-full bg-white/[0.06] flex items-center justify-center"><X size={14}/></button>
             </div>
-            <div className="p-6 space-y-6">
-              <img src={detailWedding.cover_image || detailWedding.hero_image} alt="" className="w-full h-64 object-cover rounded-[24px] border border-[#e6d4be]" />
-              <div className="grid sm:grid-cols-3 gap-4">
-                {["Overview", "Couple Information", "Guest Management", "RSVPs", "Gallery", "Venue Map", "Accommodation", "Updates", "Analytics", "Settings"].map(section => (
-                  <button key={section} className="bg-white rounded-[18px] border border-[#e6d4be] p-4 text-left hover:bg-[#fdf9f4]">
-                    <MoreHorizontal size={16} className="text-[#b0743c] mb-2" />
-                    <div className="text-[13px] font-semibold text-[#2a231d]">{section}</div>
-                  </button>
-                ))}
-              </div>
-              <div className="bg-white rounded-[22px] border border-[#e6d4be] p-5">
-                <div className="wedding-label mb-3">Generated Links</div>
-                <div className="space-y-3 text-[13px]">
-                  <div className="flex items-center justify-between gap-3"><span className="text-[#6b5d4f]">Couple Dashboard</span><code className="truncate text-[#b0743c]">/couple/{detailWedding.slug}</code></div>
-                  <div className="flex items-center justify-between gap-3"><span className="text-[#6b5d4f]">Guest Website</span><code className="truncate text-[#b0743c]">/wedding/{detailWedding.slug}</code></div>
-                  <div className="flex items-center justify-between gap-3"><span className="text-[#6b5d4f]">Access Code</span><code className="tracking-[0.18em] text-[#2a231d]">{detailWedding.access_code}</code></div>
-                </div>
-              </div>
-              <div className="bg-white rounded-[22px] border border-[#e6d4be] p-5">
-                <div className="wedding-label mb-5">Wedding History</div>
-                <div className="relative pl-6 border-l-2 border-[#f5efe7] space-y-5">
-                  {[
-                    ["Created", detailWedding.created_at || new Date().toISOString()],
-                    [detailWedding.published ? "Published" : "Draft Prepared", detailWedding.created_at || new Date().toISOString()],
-                    ["First RSVP", store.where("rsvps", (r: any) => r.wedding_id === detailWedding.id)[0]?.submitted_at],
-                    ["Gallery Uploaded", store.where("gallery", (g: any) => g.wedding_id === detailWedding.id)[0]?.created_at],
-                    ["Wedding Day", detailWedding.wedding_date],
-                    [getWeddingStage(detailWedding), new Date().toISOString()],
-                  ].filter(([, date]) => Boolean(date)).map(([label, date]) => (
-                    <div key={label as string} className="relative">
-                      <div className="absolute -left-[34px] top-0 w-5 h-5 rounded-full bg-white border border-[#d6bc9c] flex items-center justify-center"><div className="w-2 h-2 rounded-full bg-[#b0743c]" /></div>
-                      <div className="text-[14px] font-semibold text-[#2a231d]">{label}</div>
-                      <div className="text-[12px] text-[#8d7962] mt-0.5">{date ? format(new Date(date as string), "d MMM yyyy · HH:mm") : "Pending"}</div>
-                    </div>
-                  ))}
-                </div>
-              </div>
+            <div className="max-h-[380px] overflow-y-auto p-3 space-y-1.5">
+              {filteredWeddings.slice(0, 6).map(w => (
+                <button key={w.id} onClick={() => { setDetailWedding(w); setSpotlightOpen(false); }} className="w-full flex items-center gap-3.5 p-3 rounded-[16px] hover:bg-white/[0.06] text-left transition">
+                  <img src={w.cover_image || w.hero_image} alt="" className="w-10 h-10 rounded-[12px] object-cover" />
+                  <div className="flex-1 min-w-0"><div className="font-semibold text-[#FAF7F2] truncate">{w.couple_names}</div><div className="text-[11px] font-mono text-[#A8A29E]">/{w.slug}</div></div>
+                  <ChevronRight size={15} className="text-[#78716C]" />
+                </button>
+              ))}
             </div>
           </div>
         </div>
@@ -1022,9 +1066,9 @@ export default function AdminDashboard() {
       <ConfirmModal
         open={!!deleteWeddingConfirm}
         title="Delete Wedding"
-        message={`Delete "${deleteWeddingConfirm?.couple_names}"? This removes all linked data.`}
+        message={`Delete "${deleteWeddingConfirm?.couple_names}"? This removes all linked RSVPs, photos, and guestbook moments permanently.`}
         destructive
-        confirmLabel="Delete"
+        confirmLabel="Delete Celebration"
         onCancel={() => setDeleteWeddingConfirm(null)}
         onConfirm={() => {
           if (deleteWeddingConfirm) {
