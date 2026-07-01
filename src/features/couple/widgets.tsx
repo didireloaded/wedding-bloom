@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { differenceInDays, formatDistanceToNow } from "date-fns";
 import {
   Heart, Users, MessageCircle, Camera, Eye, QrCode, Sparkles, Bell,
-  ArrowRight, TrendingUp, Activity, Calendar, MapPin,
+  ArrowRight, TrendingUp, Activity, Calendar, MapPin, CheckCircle2, Megaphone,
   Send, ExternalLink, Image, BarChart3, Zap, ShieldCheck, Check, Clock
 } from "lucide-react";
 import { store } from "@/store/weddingStore";
@@ -311,26 +311,26 @@ export function ActivityTimeline({ rsvps, moments, guestPhotos, updates }: any) 
     rsvps.forEach((r: any) => {
       list.push({
         ts: new Date(r.submitted_at).getTime(),
-        icon: <Heart size={14} className="text-[#D4A853]" />,
+        icon: <CheckCircle2 size={14} className="text-[#A8A29E]" />,
         text: `${r.guest_name} ${r.attending === "confirmed" ? "confirmed attendance" : r.attending === "declined" ? "declined" : "submitted an RSVP"}`,
         sub: r.guest_count > 1 ? `${r.guest_count} guests` : "",
       });
     });
     moments.forEach((m: any) => list.push({
       ts: new Date(m.created_at).getTime(),
-      icon: <MessageCircle size={14} className="text-[#A882DD]" />,
+      icon: <MessageCircle size={14} className="text-[#D4A853]/80" />,
       text: `${m.guest_name} shared a moment`,
       sub: `"${m.message.slice(0, 60)}${m.message.length > 60 ? "…" : ""}"`,
     }));
     guestPhotos.forEach((p: any) => list.push({
       ts: new Date(p.created_at).getTime(),
-      icon: <Camera size={14} className="text-[#E8C97A]" />,
+      icon: <Camera size={14} className="text-[#D4A853]/80" />,
       text: `${p.guest_name} uploaded a photo`,
       sub: "",
     }));
     updates.forEach((u: any) => list.push({
       ts: new Date(u.created_at).getTime(),
-      icon: <Bell size={14} className="text-[#7A9E7E]" />,
+      icon: <Megaphone size={14} className="text-[#A8A29E]" />,
       text: `Announcement: ${u.title}`,
       sub: u.message.slice(0, 60),
     }));
@@ -341,7 +341,7 @@ export function ActivityTimeline({ rsvps, moments, guestPhotos, updates }: any) 
     <GlassCard variant="obsidian" padding="lg" className="border border-white/[0.1]">
       <div className="wedding-label mb-5">Activity River</div>
       {items.length === 0 ? (
-        <div className="text-[13px] text-[#78716C] text-center py-8">No events logged yet. Share your guest portal to start collecting activity.</div>
+        <div className="text-[13px] text-[#A8A29E] text-center py-8">No events logged yet. Share your guest portal to start collecting activity.</div>
       ) : (
         <div className="relative pl-6 border-l border-white/[0.1] space-y-6">
           {items.map((it, i) => (
@@ -351,7 +351,7 @@ export function ActivityTimeline({ rsvps, moments, guestPhotos, updates }: any) 
               </div>
               <div className="text-[14px] text-[#FAF7F2] font-medium">{it.text}</div>
               {it.sub && <div className="text-[12px] text-[#A8A29E] mt-0.5 italic">{it.sub}</div>}
-              <div className="text-[10px] text-[#78716C] font-mono mt-1">{formatDistanceToNow(new Date(it.ts), { addSuffix: true })}</div>
+              <div className="text-[11px] text-[#A8A29E] font-mono mt-1">{formatDistanceToNow(new Date(it.ts), { addSuffix: true })}</div>
             </div>
           ))}
         </div>

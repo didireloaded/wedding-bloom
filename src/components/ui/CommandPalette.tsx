@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Search, Heart, LayoutDashboard, PlusCircle, ArrowRight, X, ExternalLink } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";

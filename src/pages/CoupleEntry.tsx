@@ -262,7 +262,7 @@ export default function CoupleEntry() {
                       </div>
                       <div className="p-5 flex items-center justify-between text-[13px] text-[#A8A29E] border-t border-white/[0.06]">
                         <span>{w.venue_address || w.ceremony_venue || "Private Venue"}</span>
-                        <span className="text-[#D4A853] font-semibold flex items-center gap-1">Open Preview <ArrowRight size={14}/></span>
+                        <span className="text-[#D4A853] font-semibold flex items-center gap-1">Open Preview <ArrowRight size={14} /></span>
                       </div>
                     </GlassCard>
                   ))}

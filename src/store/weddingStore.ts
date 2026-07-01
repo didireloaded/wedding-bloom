@@ -9,6 +9,7 @@ export type Wedding = {
   wedding_date: string | null;
   ceremony_time: string | null;
   ceremony_venue: string | null;
+  reception_venue?: string | null;
   venue_address: string | null;
   venue_map_url: string | null;
   cover_image: string | null;
@@ -20,6 +21,7 @@ export type Wedding = {
   legacy_mode: boolean;
   soundtrack_url: string | null;
   theme: Record<string, string>;
+  schedule?: any;
   created_at: string;
 };
 
@@ -59,10 +61,13 @@ export type VenueMarker = {
 export type GalleryItem = {
   id: string;
   wedding_id: string;
-  url: string;
+  url?: string;
+  image_url?: string;
+  title?: string;
   caption: string | null;
-  is_official: boolean; // Distinguishes between Couple Gallery and Guest Photos
-  created_at: string;
+  is_official?: boolean; // Distinguishes between Couple Gallery and Guest Photos
+  sort_order?: number;
+  created_at?: string;
 };
 
 export type GuestPhoto = {
@@ -70,7 +75,8 @@ export type GuestPhoto = {
   wedding_id: string;
   guest_name: string;
   photo_url: string;
-  likes: number;
+  caption?: string | null;
+  likes?: number;
   created_at: string;
 };
 
@@ -80,7 +86,7 @@ export type RSVP = {
   guest_name: string;
   guest_count: number;
   attending: 'confirmed' | 'declined' | 'maybe' | 'pending';
-  dietary_preference: string | null;
+  dietary_preference?: string | null;
   dietary_requirements?: string | null;
   vip_status?: boolean;
   table_id?: string;
