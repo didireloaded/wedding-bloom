@@ -6,7 +6,7 @@ import {
   Flower2, Heart, Users, Camera, LogOut, ExternalLink,
   Copy, CheckCircle2, Calendar, MapPin, Edit3, Trash2, Plus,
   MessageCircle, Clock, UserCheck, Gift, Bell, Home, Image as ImageIcon,
-  Settings, Sparkles, Radio, Menu, X
+  Settings, Sparkles, Radio, Menu, X, DollarSign, Award, Mail
 } from "lucide-react";
 import { toast } from "sonner";
 import { store } from "@/store/weddingStore";
@@ -21,6 +21,9 @@ import {
 import {
   RunSheetModule, FloorPlannerModule, TaskBoardModule, GuestCrmModule, BroadcastHubModule
 } from "@/features/couple/executionSuite";
+import {
+  BudgetVendorModule, MoodBoardModule, ThankYouTrackerModule
+} from "@/features/couple/planningSuite";
 
 export default function CoupleDashboard() {
   const navigate = useNavigate();
@@ -41,8 +44,12 @@ export default function CoupleDashboard() {
   const [tablesList, setTablesList] = useState<any[]>([]);
   const [runSheet, setRunSheet] = useState<any[]>([]);
   const [broadcasts, setBroadcasts] = useState<any[]>([]);
+  const [budgets, setBudgets] = useState<any[]>([]);
+  const [vendors, setVendors] = useState<any[]>([]);
+  const [moodItems, setMoodItems] = useState<any[]>([]);
+  const [gifts, setGifts] = useState<any[]>([]);
 
-  type TabId = "workspace" | "overview" | "rsvp" | "crm" | "run_sheet" | "tables" | "tasks" | "broadcasts" | "events" | "map" | "accommodations" | "gallery" | "guest_photos" | "moments" | "updates" | "share" | "checkins";
+  type TabId = "workspace" | "overview" | "budget" | "mood_board" | "gifts" | "rsvp" | "crm" | "run_sheet" | "tables" | "tasks" | "broadcasts" | "events" | "map" | "accommodations" | "gallery" | "guest_photos" | "moments" | "updates" | "share" | "checkins";
   const [tab, setTab] = useState<TabId>("workspace");
   const [editingWedding, setEditingWedding] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -89,7 +96,11 @@ export default function CoupleDashboard() {
     const off11 = store.subscribe("tables", refresh);
     const off12 = store.subscribe("run_sheet", refresh);
     const off13 = store.subscribe("broadcasts", refresh);
-    return () => { off1(); off2(); off3(); off4(); off5(); off6(); off7(); off8(); off9(); off10(); off11(); off12(); off13(); };
+    const off14 = store.subscribe("budgets", refresh);
+    const off15 = store.subscribe("vendors", refresh);
+    const off16 = store.subscribe("mood_items", refresh);
+    const off17 = store.subscribe("gifts", refresh);
+    return () => { off1(); off2(); off3(); off4(); off5(); off6(); off7(); off8(); off9(); off10(); off11(); off12(); off13(); off14(); off15(); off16(); off17(); };
   }, [weddingId, slug]);
 
   const refresh = () => {
@@ -114,6 +125,10 @@ export default function CoupleDashboard() {
     setTablesList(store.where("tables", (r: any) => r.wedding_id === targetId));
     setRunSheet(store.where("run_sheet", (r: any) => r.wedding_id === targetId));
     setBroadcasts(store.where("broadcasts", (r: any) => r.wedding_id === targetId));
+    setBudgets(store.where("budgets", (r: any) => r.wedding_id === targetId));
+    setVendors(store.where("vendors", (r: any) => r.wedding_id === targetId));
+    setMoodItems(store.where("mood_items", (r: any) => r.wedding_id === targetId));
+    setGifts(store.where("gifts", (r: any) => r.wedding_id === targetId));
 
     setUnread(unreadCount(
       w,
@@ -265,6 +280,14 @@ export default function CoupleDashboard() {
                 group: "Command Center",
                 items: [
                   { id: "workspace", label: "Mission Cockpit", icon: <Home size={16} /> },
+                ]
+              },
+              {
+                group: "Treasury & Vision",
+                items: [
+                  { id: "budget", label: "Budget & Vendor Hub", count: vendors.length, icon: <DollarSign size={16} /> },
+                  { id: "mood_board", label: "Vision & Mood Board", count: moodItems.length, icon: <Sparkles size={16} /> },
+                  { id: "gifts", label: "Thank-You Tracker", count: gifts.length, icon: <Gift size={16} /> },
                 ]
               },
               {
@@ -841,6 +864,11 @@ export default function CoupleDashboard() {
           {tab === "tasks" && <TaskBoardModule wedding={wedding} tasks={tasks} refresh={refresh} />}
           {tab === "crm" && <GuestCrmModule wedding={wedding} rsvps={rsvps} tablesList={tablesList} refresh={refresh} />}
           {tab === "broadcasts" && <BroadcastHubModule wedding={wedding} broadcasts={broadcasts} rsvps={rsvps} refresh={refresh} />}
+
+          {/* New Interactive Treasury, Vision & Gratitude Modules */}
+          {tab === "budget" && <BudgetVendorModule wedding={wedding} budgets={budgets} vendors={vendors} refresh={refresh} />}
+          {tab === "mood_board" && <MoodBoardModule wedding={wedding} moodItems={moodItems} refresh={refresh} />}
+          {tab === "gifts" && <ThankYouTrackerModule wedding={wedding} gifts={gifts} rsvps={rsvps} refresh={refresh} />}
         </main>
       </div>
 

@@ -155,7 +155,48 @@ export type BroadcastItem = {
   recipient_count: number;
 };
 
-type TableName = "weddings" | "events" | "accommodations" | "venue_markers" | "gallery" | "guest_photos" | "rsvps" | "guest_moments" | "checkins" | "updates" | "tasks" | "tables" | "run_sheet" | "broadcasts";
+export type BudgetItem = {
+  id: string;
+  wedding_id: string;
+  category: string;
+  item_name: string;
+  estimated_cost: number;
+  actual_cost: number;
+  deposit_paid: number;
+  due_date: string;
+  status: "pending" | "paid";
+};
+
+export type VendorItem = {
+  id: string;
+  wedding_id: string;
+  name: string;
+  role: string;
+  contact_email: string;
+  phone: string;
+  contract_url?: string;
+  pending_decision: string | null;
+};
+
+export type MoodItem = {
+  id: string;
+  wedding_id: string;
+  type: "photo" | "palette" | "swatch";
+  title: string;
+  value: string;
+  notes: string;
+};
+
+export type GiftItem = {
+  id: string;
+  wedding_id: string;
+  guest_name: string;
+  gift_item: string;
+  status: "pending" | "drafted" | "sent";
+  note_text: string | null;
+};
+
+type TableName = "weddings" | "events" | "accommodations" | "venue_markers" | "gallery" | "guest_photos" | "rsvps" | "guest_moments" | "checkins" | "updates" | "tasks" | "tables" | "run_sheet" | "broadcasts" | "budgets" | "vendors" | "mood_items" | "gifts";
 
 type Listener = (row: any, event: "INSERT" | "UPDATE" | "DELETE") => void;
 
@@ -176,6 +217,10 @@ type DB = {
   tables: FloorTable[];
   run_sheet: RunSheetItem[];
   broadcasts: BroadcastItem[];
+  budgets: BudgetItem[];
+  vendors: VendorItem[];
+  mood_items: MoodItem[];
+  gifts: GiftItem[];
 };
 
 const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
@@ -265,6 +310,27 @@ const defaultDB = (): DB => {
     ],
     broadcasts: [
       { id: "bc-1", wedding_id: w1Id, subject: "Lake Como Welcome Guide & Shuttle Times", template: "Logistics Reminder", target: "confirmed", sent_at: new Date().toISOString(), recipient_count: 42 }
+    ],
+    budgets: [
+      { id: "b-1", wedding_id: w1Id, category: "Venue & Catering", item_name: "Villa Balbiano Exclusive Rental & Banquet", estimated_cost: 38000, actual_cost: 38500, deposit_paid: 19000, due_date: "2026-08-01", status: "pending" },
+      { id: "b-2", wedding_id: w1Id, category: "Floral & Decor", item_name: "Studio Flora Como Bespoke Installations", estimated_cost: 12000, actual_cost: 11800, deposit_paid: 6000, due_date: "2026-08-15", status: "pending" },
+      { id: "b-3", wedding_id: w1Id, category: "Photography", item_name: "Milan Luxury Editorial Photo & Video Package", estimated_cost: 9500, actual_cost: 9500, deposit_paid: 9500, due_date: "2026-07-01", status: "paid" },
+      { id: "b-4", wedding_id: w1Id, category: "Entertainment", item_name: "Venice Acoustic Quartet & DJ Lounge Set", estimated_cost: 5500, actual_cost: 5500, deposit_paid: 2750, due_date: "2026-08-20", status: "pending" }
+    ],
+    vendors: [
+      { id: "v-1", wedding_id: w1Id, name: "Villa Balbiano Events", role: "Primary Venue", contact_email: "events@villabalbiano.it", phone: "+39 031 555 0192", contract_url: "https://forevervow.app/contracts/vb-2026", pending_decision: "Approve final midnight curfew extension" },
+      { id: "v-2", wedding_id: w1Id, name: "Studio Flora Como", role: "Florist & Styling", contact_email: "design@studiofloracomo.com", phone: "+39 031 555 0844", contract_url: "https://forevervow.app/contracts/sfc-2026", pending_decision: "Select white orchid vs. Amalfi lemon centerpieces" },
+      { id: "v-3", wedding_id: w1Id, name: "Marco Vieri Photography", role: "Lead Photographer", contact_email: "marco@vieri.photo", phone: "+39 02 555 0141", contract_url: "https://forevervow.app/contracts/mv-2026", pending_decision: null }
+    ],
+    mood_items: [
+      { id: "m-1", wedding_id: w1Id, type: "palette", title: "Sunset Gold Accent", value: "#D4A853", notes: "Primary foil stamp color for stationery and menus" },
+      { id: "m-2", wedding_id: w1Id, type: "palette", title: "Obsidian Silk Noir", value: "#09090B", notes: "Lounge velvet drape and evening lighting contrast" },
+      { id: "m-3", wedding_id: w1Id, type: "photo", title: "Lakeside Floral Arch Inspiration", value: "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=800&q=80", notes: "Open structure overlooking Lake Como water" }
+    ],
+    gifts: [
+      { id: "gf-1", wedding_id: w1Id, guest_name: "Alexander Wright", gift_item: "Baccarat Crystal Champagne Flutes (Set of 4)", status: "drafted", note_text: "Dearest Alex, thank you so much for the stunning Baccarat crystal flutes! We will toast with them on our first anniversary." },
+      { id: "gf-2", wedding_id: w1Id, guest_name: "Chloe Bennett", gift_item: "KitchenAid Pro Artisan Stand Mixer (Matte Black)", status: "sent", note_text: "Chloe, your thoughtful gift is the centerpiece of our kitchen! Thank you for celebrating with us lakeside." },
+      { id: "gf-3", wedding_id: w1Id, guest_name: "Elena Rostova", gift_item: "Honeymoon Experience Fund Contribution ($500)", status: "pending", note_text: null }
     ]
   };
 };
@@ -288,6 +354,10 @@ function load(): DB {
     if (!parsed.tables) parsed.tables = fresh.tables;
     if (!parsed.run_sheet) parsed.run_sheet = fresh.run_sheet;
     if (!parsed.broadcasts) parsed.broadcasts = fresh.broadcasts;
+    if (!parsed.budgets) parsed.budgets = fresh.budgets;
+    if (!parsed.vendors) parsed.vendors = fresh.vendors;
+    if (!parsed.mood_items) parsed.mood_items = fresh.mood_items;
+    if (!parsed.gifts) parsed.gifts = fresh.gifts;
     return parsed;
   } catch {
     return defaultDB();

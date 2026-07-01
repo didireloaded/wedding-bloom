@@ -13,6 +13,7 @@ import {
 /* -------------------------------------------------------------------------- */
 export function RunSheetModule({ wedding, runSheet, refresh }: { wedding: any; runSheet: RunSheetItem[]; refresh: () => void }) {
   const [showAdd, setShowAdd] = useState(false);
+  const [filter, setFilter] = useState<"all" | "bridal" | "vendors">("all");
   const [time, setTime] = useState("12:00");
   const [duration, setDuration] = useState("45 min");
   const [title, setTitle] = useState("");
@@ -44,6 +45,16 @@ export function RunSheetModule({ wedding, runSheet, refresh }: { wedding: any; r
     toast.success("Master Run Sheet copied to clipboard ready to share with vendors & bridal party!");
   };
 
+  const pushBridalSync = () => {
+    toast.success("Bridal Party Mobile Itinerary synced via SMS & Pocket Link! Groomsmen & Bridesmaids call times updated.");
+  };
+
+  const filteredSheet = runSheet.filter(item => {
+    if (filter === "bridal") return item.title.toLowerCase().includes("bridal") || item.owner.toLowerCase().includes("beauty") || item.owner.toLowerCase().includes("party") || item.title.toLowerCase().includes("ceremony") || item.title.toLowerCase().includes("first look");
+    if (filter === "vendors") return item.owner.toLowerCase().includes("photographer") || item.owner.toLowerCase().includes("catering") || item.owner.toLowerCase().includes("dj") || item.owner.toLowerCase().includes("team");
+    return true;
+  });
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-6 rounded-[28px] bg-gradient-to-r from-[#EAB308]/15 via-white/[0.03] to-transparent border border-[#EAB308]/30">
@@ -54,14 +65,39 @@ export function RunSheetModule({ wedding, runSheet, refresh }: { wedding: any; r
             Keep vendors, coordinators, and the bridal party aligned with synchronized timing and accountability assignments.
           </p>
         </div>
-        <div className="flex items-center gap-2.5 shrink-0">
-          <button onClick={exportRunSheet} className="fv-btn-ghost !py-2.5 !px-4 text-[12px] flex items-center gap-2">
-            <Share2 size={14}/> Export Vendor Run Sheet
+        <div className="flex flex-wrap items-center gap-2.5 shrink-0">
+          <button onClick={pushBridalSync} className="fv-btn-ghost !py-2 !px-3.5 text-[11.5px] flex items-center gap-1.5 text-amber-300 border-amber-500/30">
+            📱 Bridal Party Sync
           </button>
-          <button onClick={() => setShowAdd(!showAdd)} className="fv-btn-primary !py-2.5 !px-4 text-[12px] flex items-center gap-2 shadow-lg">
+          <button onClick={exportRunSheet} className="fv-btn-ghost !py-2 !px-3.5 text-[11.5px] flex items-center gap-1.5">
+            <Share2 size={13}/> Export
+          </button>
+          <button onClick={() => setShowAdd(!showAdd)} className="fv-btn-primary !py-2 !px-4 text-[12px] flex items-center gap-2 shadow-lg">
             <Plus size={14}/> Add Time Block
           </button>
         </div>
+      </div>
+
+      {/* Bridal Party & Vendor Sync Filters */}
+      <div className="flex items-center gap-2 p-1 rounded-[16px] bg-white/[0.04] border border-white/[0.08] w-fit">
+        <button
+          onClick={() => setFilter("all")}
+          className={`px-4 py-1.5 rounded-[12px] text-[12px] font-semibold transition ${filter === "all" ? "bg-[#EAB308] text-[#09090B]" : "text-[#A1A1AA] hover:text-white"}`}
+        >
+          All Timeline ({runSheet.length})
+        </button>
+        <button
+          onClick={() => setFilter("bridal")}
+          className={`px-4 py-1.5 rounded-[12px] text-[12px] font-semibold transition ${filter === "bridal" ? "bg-[#EAB308] text-[#09090B]" : "text-[#A1A1AA] hover:text-white"}`}
+        >
+          👑 Bridal Party Pocket Call Times
+        </button>
+        <button
+          onClick={() => setFilter("vendors")}
+          className={`px-4 py-1.5 rounded-[12px] text-[12px] font-semibold transition ${filter === "vendors" ? "bg-[#EAB308] text-[#09090B]" : "text-[#A1A1AA] hover:text-white"}`}
+        >
+          🎧 Vendor & Crew Sync
+        </button>
       </div>
 
       {showAdd && (
@@ -101,7 +137,7 @@ export function RunSheetModule({ wedding, runSheet, refresh }: { wedding: any; r
       )}
 
       <div className="space-y-3 relative before:absolute before:top-4 before:bottom-4 before:left-[39px] before:w-0.5 before:bg-gradient-to-b before:from-[#EAB308]/50 before:via-white/10 before:to-transparent">
-        {runSheet.sort((a, b) => a.time.localeCompare(b.time)).map((item) => (
+        {filteredSheet.sort((a, b) => a.time.localeCompare(b.time)).map((item) => (
           <GlassCard key={item.id} variant="obsidian" padding="md" className="border border-white/[0.08] hover:border-white/[0.18] rounded-[20px] transition relative pl-20 group">
             <div className="absolute left-4 top-1/2 -translate-y-1/2 w-12 py-1.5 rounded-[12px] bg-[#EAB308]/20 border border-[#EAB308]/40 text-[#EAB308] font-mono text-[12px] font-bold text-center">
               {item.time}
@@ -310,6 +346,18 @@ export function FloorPlannerModule({ wedding, tablesList, rsvps, refresh }: { we
                       <div className="text-[10px] text-[#71717A] uppercase">Seats</div>
                     </div>
                   </div>
+
+                  {isFull && (
+                    <div className="mb-2.5 p-2 rounded-xl bg-red-500/15 border border-red-500/30 text-[11px] text-red-300 flex items-center gap-1.5 font-bold animate-pulse">
+                      <AlertCircle size={13}/> Conflict Alert: Maximum seat capacity reached!
+                    </div>
+                  )}
+
+                  {table.assigned_guests.length > 3 && (
+                    <div className="mb-2.5 p-2 rounded-xl bg-amber-500/15 border border-amber-500/30 text-[11px] text-amber-300 flex items-center gap-1.5">
+                      <AlertCircle size={13}/> Sandbox Notice: Verify household & seating compatibility.
+                    </div>
+                  )}
 
                   {diets.length > 0 && (
                     <div className="mb-3 p-2 rounded-xl bg-purple-500/10 border border-purple-500/20 text-[11px] text-purple-300 flex items-center gap-1.5 flex-wrap">
