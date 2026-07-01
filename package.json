@@ -9,6 +9,7 @@
     "dev:couple": "vite --port 5174 --open /couple-login",
     "dev:guest": "vite --port 5175 --open /",
     "build": "vite build",
+    "build:dev": "vite build --mode development",
     "preview": "vite preview"
   },
   "dependencies": {
