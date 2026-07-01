@@ -14,6 +14,11 @@ import {
 export function BudgetVendorModule({ wedding, budgets, vendors, refresh }: { wedding: any; budgets: BudgetItem[]; vendors: VendorItem[]; refresh: () => void }) {
   const [showAddBudget, setShowAddBudget] = useState(false);
   const [showAddVendor, setShowAddVendor] = useState(false);
+  const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({
+    "Venue & Catering": true,
+    "Floral & Decor": true,
+    "Photography": true
+  });
 
   // Budget form state
   const [bCat, setBCat] = useState("Venue & Catering");
@@ -22,6 +27,7 @@ export function BudgetVendorModule({ wedding, budgets, vendors, refresh }: { wed
   const [bAct, setBAct] = useState("");
   const [bDep, setBDep] = useState("");
   const [bDue, setBDue] = useState("2026-08-30");
+  const [bStatus, setBStatus] = useState<"pending" | "paid">("pending");
 
   // Vendor form state
   const [vName, setVName] = useState("");
@@ -32,8 +38,17 @@ export function BudgetVendorModule({ wedding, budgets, vendors, refresh }: { wed
 
   const totalEst = budgets.reduce((acc, b) => acc + Number(b.estimated_cost || 0), 0);
   const totalAct = budgets.reduce((acc, b) => acc + Number(b.actual_cost || 0), 0);
-  const totalDep = budgets.reduce((acc, b) => acc + Number(b.deposit_paid || 0), 0);
+  const remainingFunds = totalEst - totalAct;
   const percentUsed = totalEst > 0 ? Math.min(Math.round((totalAct / totalEst) * 100), 100) : 0;
+
+  // Dynamic progress color rule
+  const progressColorClass = percentUsed < 75 ? "bg-emerald-500" : percentUsed <= 90 ? "bg-amber-400" : "bg-rose-500";
+
+  const categories = Array.from(new Set(budgets.map(b => b.category)));
+
+  const toggleCategory = (cat: string) => {
+    setExpandedCategories(prev => ({ ...prev, [cat]: !prev[cat] }));
+  };
 
   const handleCreateBudget = (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,11 +61,22 @@ export function BudgetVendorModule({ wedding, budgets, vendors, refresh }: { wed
       actual_cost: Number(bAct) || Number(bEst) || 0,
       deposit_paid: Number(bDep) || 0,
       due_date: bDue,
-      status: "pending"
+      status: bStatus
     });
     toast.success("Budget line item saved");
     setBItem(""); setBEst(""); setBAct(""); setBDep(""); setShowAddBudget(false);
     refresh();
+  };
+
+  const handleUpdateItem = (id: string, patch: Partial<BudgetItem>) => {
+    store.update("budgets", id, patch);
+    refresh();
+  };
+
+  const cycleStatus = (item: BudgetItem) => {
+    const nextStatus = item.status === "pending" ? (item.deposit_paid > 0 ? "paid" : "paid") : "pending";
+    handleUpdateItem(item.id, { status: nextStatus });
+    toast.success(`Updated payment status for ${item.item_name}`);
   };
 
   const handleCreateVendor = (e: React.FormEvent) => {
@@ -82,56 +108,63 @@ export function BudgetVendorModule({ wedding, budgets, vendors, refresh }: { wed
 
   return (
     <div className="space-y-8">
-      {/* Visual Spend Tracker Header */}
-      <div className="p-6 rounded-[28px] bg-gradient-to-r from-[#EAB308]/15 via-white/[0.03] to-transparent border border-[#EAB308]/30 space-y-6">
+      {/* A. Top-Level Summary Dashboard (The "Hero" Section) */}
+      <div className="p-7 rounded-[32px] bg-gradient-to-r from-[#EAB308]/15 via-white/[0.03] to-transparent border border-[#EAB308]/30 space-y-6 shadow-2xl relative overflow-hidden">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <div className="wedding-label text-[#EAB308] flex items-center gap-1.5 mb-1"><DollarSign size={14}/> Executive Treasury</div>
-            <h3 className="display text-[26px] text-[#FAFAFA]">Interactive Budget & Financial Tracker</h3>
+            <h3 className="display text-[28px] text-[#FAFAFA]">Interactive Budget & Financial Tracker</h3>
           </div>
           <div className="flex items-center gap-2.5 shrink-0">
             <button onClick={sendPaymentReminders} className="fv-btn-ghost !py-2.5 !px-4 text-[12px] flex items-center gap-2">
               Payment Reminders
             </button>
-            <button onClick={() => setShowAddBudget(!showAddBudget)} className="fv-btn-primary !py-2.5 !px-4 text-[12px] flex items-center gap-2 shadow-lg">
-              <Plus size={14}/> Add Spend Item
+            <button onClick={() => setShowAddBudget(!showAddBudget)} className="fv-btn-primary !py-2.5 !px-5 text-[12.5px] flex items-center gap-2 shadow-xl font-bold">
+              <Plus size={15}/> Add Expense
             </button>
           </div>
         </div>
 
-        {/* Visual Progress Bar & KPI Stats */}
-        <div className="grid sm:grid-cols-3 gap-4">
-          <GlassCard variant="obsidian" padding="md" className="border border-white/[0.1] rounded-[20px]">
-            <div className="text-[11px] uppercase font-mono text-[#A1A1AA]">Estimated Budget</div>
-            <div className="display text-[28px] text-[#FAFAFA] mt-1">${totalEst.toLocaleString()}</div>
+        {/* Three Prominent Stat Cards */}
+        <div className="grid sm:grid-cols-3 gap-5">
+          <GlassCard variant="obsidian" padding="md" className="border border-white/[0.12] rounded-[22px] bg-white/[0.03]">
+            <div className="text-[11px] uppercase font-mono tracking-wider text-[#A1A1AA]">Total Budget</div>
+            <div className="display text-[32px] text-[#FAFAFA] mt-1.5">${totalEst.toLocaleString()}</div>
           </GlassCard>
-          <GlassCard variant="obsidian" padding="md" className="border border-[#EAB308]/40 rounded-[20px]">
-            <div className="text-[11px] uppercase font-mono text-[#EAB308]">Committed Actual Spend</div>
-            <div className="display text-[28px] text-[#EAB308] mt-1">${totalAct.toLocaleString()}</div>
+          <GlassCard variant="obsidian" padding="md" className="border border-[#EAB308]/40 rounded-[22px] bg-[#EAB308]/5">
+            <div className="text-[11px] uppercase font-mono tracking-wider text-[#EAB308]">Actual Spend</div>
+            <div className="display text-[32px] text-[#EAB308] mt-1.5">${totalAct.toLocaleString()}</div>
           </GlassCard>
-          <GlassCard variant="obsidian" padding="md" className="border border-white/[0.1] rounded-[20px]">
-            <div className="text-[11px] uppercase font-mono text-[#10B981]">Deposits Paid Out</div>
-            <div className="display text-[28px] text-[#10B981] mt-1">${totalDep.toLocaleString()}</div>
+          <GlassCard variant="obsidian" padding="md" className={`border rounded-[22px] ${remainingFunds >= 0 ? "border-emerald-500/40 bg-emerald-500/5" : "border-rose-500/40 bg-rose-500/5"}`}>
+            <div className="text-[11px] uppercase font-mono tracking-wider text-[#A1A1AA]">Remaining Funds</div>
+            <div className={`display text-[32px] mt-1.5 ${remainingFunds >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
+              ${remainingFunds.toLocaleString()}
+            </div>
           </GlassCard>
         </div>
 
-        <div>
-          <div className="flex items-center justify-between text-[12px] font-mono mb-2">
-            <span className="text-[#A1A1AA]">Treasury Utilization</span>
-            <span className="text-[#EAB308] font-bold">{percentUsed}% Committed</span>
+        {/* Thick Rounded Progress Bar */}
+        <div className="space-y-2 pt-1">
+          <div className="flex items-center justify-between text-[12.5px] font-mono">
+            <span className="text-[#A1A1AA]">Total Allocation Utilized</span>
+            <span className="text-[#FAFAFA] font-bold">{percentUsed}% ({totalAct > totalEst ? "Over Budget" : "On Track"})</span>
           </div>
-          <div className="w-full h-3 rounded-full bg-white/[0.06] overflow-hidden p-0.5 border border-white/[0.1]">
+          <div className="h-4 w-full rounded-full bg-white/[0.08] overflow-hidden p-0.5 border border-white/[0.12]">
             <div
-              className="h-full rounded-full bg-gradient-to-r from-[#EAB308] to-amber-400 transition-all duration-700"
+              className={`h-full rounded-full transition-all duration-700 ${progressColorClass}`}
               style={{ width: `${percentUsed}%` }}
             />
           </div>
         </div>
       </div>
 
+      {/* D. Add Expense Slide-Out Modal */}
       {showAddBudget && (
-        <GlassCard variant="obsidian" padding="lg" className="border border-[#EAB308]/40 rounded-[24px]">
-          <h4 className="font-semibold text-[#FAFAFA] mb-4 text-[15px]">Record Expense Item</h4>
+        <GlassCard variant="obsidian" padding="lg" className="border border-[#EAB308]/50 rounded-[28px] shadow-2xl animate-in fade-in slide-in-from-top-4 duration-300">
+          <div className="flex items-center justify-between mb-5 pb-3 border-b border-white/[0.08]">
+            <h4 className="font-bold text-[#FAFAFA] text-[17px]">Log New Expense Item</h4>
+            <button onClick={() => setShowAddBudget(false)} className="text-[#71717A] hover:text-white">✕</button>
+          </div>
           <form onSubmit={handleCreateBudget} className="grid sm:grid-cols-3 gap-4">
             <div>
               <label className="wedding-label block mb-1">Category</label>
@@ -141,61 +174,147 @@ export function BudgetVendorModule({ wedding, budgets, vendors, refresh }: { wed
                 <option value="Photography">Photography & Video</option>
                 <option value="Entertainment">Entertainment & Music</option>
                 <option value="Hospitality">Shuttles & Hospitality</option>
+                <option value="Wardrobe & Styling">Wardrobe & Styling</option>
               </select>
             </div>
             <div className="sm:col-span-2">
-              <label className="wedding-label block mb-1">Line Item Description</label>
-              <input value={bItem} onChange={e => setBItem(e.target.value)} placeholder="e.g. Studio Flora Como Bespoke Arch" className="fv-input" required />
+              <label className="wedding-label block mb-1">Item Name</label>
+              <input value={bItem} onChange={e => setBItem(e.target.value)} placeholder="e.g. Bridal Bouquet & Boutonnieres" className="fv-input" required />
             </div>
             <div>
               <label className="wedding-label block mb-1">Estimated Cost ($)</label>
               <input type="number" value={bEst} onChange={e => setBEst(e.target.value)} placeholder="12000" className="fv-input" required />
             </div>
             <div>
-              <label className="wedding-label block mb-1">Actual Contract ($)</label>
+              <label className="wedding-label block mb-1">Actual Cost ($)</label>
               <input type="number" value={bAct} onChange={e => setBAct(e.target.value)} placeholder="11800" className="fv-input" />
             </div>
             <div>
-              <label className="wedding-label block mb-1">Deposit Paid ($)</label>
-              <input type="number" value={bDep} onChange={e => setBDep(e.target.value)} placeholder="6000" className="fv-input" />
+              <label className="wedding-label block mb-1">Payment Status</label>
+              <select value={bStatus} onChange={e => setBStatus(e.target.value as any)} className="fv-input">
+                <option value="pending">Deposit Paid / Pending</option>
+                <option value="paid">Fully Paid</option>
+              </select>
             </div>
-            <div className="sm:col-span-3 flex justify-end gap-3 pt-2">
-              <button type="button" onClick={() => setShowAddBudget(false)} className="fv-btn-ghost !py-2 !px-4 text-[12px]">Cancel</button>
-              <button type="submit" className="fv-btn-primary !py-2 !px-5 text-[12px]">Save Expense</button>
+            <div className="sm:col-span-3 flex justify-end gap-3 pt-3 border-t border-white/[0.08]">
+              <button type="button" onClick={() => setShowAddBudget(false)} className="fv-btn-ghost !py-2.5 !px-5 text-[12px]">Cancel</button>
+              <button type="submit" className="fv-btn-primary !py-2.5 !px-6 text-[12.5px] font-bold">Save Expense</button>
             </div>
           </form>
         </GlassCard>
       )}
 
-      {/* Budget List */}
-      <div className="space-y-3">
-        <h4 className="font-bold text-[#FAFAFA] text-[15px]">Expense Breakdown</h4>
-        {budgets.map(b => (
-          <GlassCard key={b.id} variant="obsidian" padding="md" className="border border-white/[0.08] rounded-[20px] flex flex-col sm:flex-row sm:items-center justify-between gap-4 group">
-            <div>
-              <span className="px-2 py-0.5 rounded-md bg-white/[0.06] text-[#A1A1AA] text-[10px] uppercase tracking-wider font-mono font-bold">
-                {b.category}
-              </span>
-              <h5 className="font-semibold text-[#FAFAFA] text-[15px] mt-1.5">{b.item_name}</h5>
-              <div className="text-[12px] text-[#A1A1AA] mt-0.5">Due milestone: <strong className="text-[#FAFAFA]">{b.due_date}</strong></div>
-            </div>
+      {/* B. Category Breakdown & C. Line Item Details */}
+      <div className="space-y-4">
+        <h4 className="font-bold text-[#FAFAFA] text-[17px] tracking-wide">Category Breakdown</h4>
+        {categories.map(cat => {
+          const catItems = budgets.filter(b => b.category === cat);
+          const catEst = catItems.reduce((acc, b) => acc + Number(b.estimated_cost || 0), 0);
+          const catAct = catItems.reduce((acc, b) => acc + Number(b.actual_cost || 0), 0);
+          const catPercent = catEst > 0 ? Math.min(Math.round((catAct / catEst) * 100), 100) : 0;
+          const isExpanded = !!expandedCategories[cat];
 
-            <div className="flex items-center gap-6 justify-between sm:justify-end">
-              <div className="text-right">
-                <div className="font-mono font-bold text-[16px] text-[#EAB308]">${Number(b.actual_cost).toLocaleString()}</div>
-                <div className="text-[11px] text-[#71717A]">Paid: ${Number(b.deposit_paid).toLocaleString()}</div>
+          return (
+            <GlassCard key={cat} variant="obsidian" padding="none" className="border border-white/[0.1] rounded-[24px] overflow-hidden transition">
+              {/* Category Accordion Header */}
+              <div
+                onClick={() => toggleCategory(cat)}
+                className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 cursor-pointer hover:bg-white/[0.03] transition select-none"
+              >
+                <div className="flex items-center gap-3">
+                  <span className="w-8 h-8 rounded-xl bg-[#EAB308]/15 text-[#EAB308] flex items-center justify-center font-bold text-[14px]">
+                    {isExpanded ? "▾" : "▸"}
+                  </span>
+                  <div>
+                    <h5 className="font-bold text-[#FAFAFA] text-[16px]">{cat}</h5>
+                    <span className="text-[11.5px] text-[#A1A1AA]">{catItems.length} line items logged</span>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-6 justify-between sm:justify-end">
+                  {/* Mini progress bar for category */}
+                  <div className="hidden md:block w-32">
+                    <div className="flex justify-between text-[10px] font-mono text-[#A1A1AA] mb-1">
+                      <span>{catPercent}%</span>
+                    </div>
+                    <div className="h-2 w-full rounded-full bg-white/10 overflow-hidden">
+                      <div className="h-full rounded-full bg-[#EAB308]" style={{ width: `${catPercent}%` }} />
+                    </div>
+                  </div>
+
+                  <div className="text-right font-mono">
+                    <div className="text-[15px] font-bold text-[#FAFAFA]">${catAct.toLocaleString()} <span className="text-[12px] text-[#71717A] font-normal">spent</span></div>
+                    <div className="text-[11.5px] text-[#A1A1AA]">Allocated: ${catEst.toLocaleString()}</div>
+                  </div>
+                </div>
               </div>
 
-              <button
-                onClick={() => { store.remove("budgets", b.id); toast.success("Removed line item"); refresh(); }}
-                className="opacity-0 group-hover:opacity-100 p-2 rounded hover:text-[#EF4444] transition"
-                title="Delete item"
-              >
-                <Trash2 size={16}/>
-              </button>
-            </div>
-          </GlassCard>
-        ))}
+              {/* Line Item Details (Inside each Category) */}
+              {isExpanded && (
+                <div className="p-5 pt-2 border-t border-white/[0.08] bg-black/20 space-y-1">
+                  <div className="hidden sm:grid grid-cols-12 gap-4 pb-2 px-3 text-[11px] uppercase font-mono text-[#71717A] tracking-wider border-b border-white/[0.06]">
+                    <div className="col-span-5">Item Name</div>
+                    <div className="col-span-2 text-right">Est. Cost</div>
+                    <div className="col-span-2 text-right">Actual Cost</div>
+                    <div className="col-span-2 text-center">Payment Status</div>
+                    <div className="col-span-1 text-right">Actions</div>
+                  </div>
+
+                  {catItems.map(item => {
+                    const isFullyPaid = item.status === "paid";
+                    const isDepositPaid = item.deposit_paid > 0 && !isFullyPaid;
+
+                    return (
+                      <div key={item.id} className="grid grid-cols-1 sm:grid-cols-12 gap-3 sm:gap-4 items-center py-3.5 px-3 border-b border-white/[0.06] last:border-0 hover:bg-white/[0.02] rounded-xl transition">
+                        <div className="sm:col-span-5 font-semibold text-[#FAFAFA] text-[13.5px]">
+                          {item.item_name}
+                          <div className="sm:hidden text-[11px] text-[#A1A1AA]">Due: {item.due_date}</div>
+                        </div>
+
+                        <div className="sm:col-span-2 text-left sm:text-right font-mono text-[13px] text-[#A1A1AA]">
+                          <span className="sm:hidden text-[10px] text-[#71717A]">Est: </span>
+                          ${Number(item.estimated_cost).toLocaleString()}
+                        </div>
+
+                        <div className="sm:col-span-2 text-left sm:text-right font-mono text-[13.5px] font-bold text-[#EAB308]">
+                          <span className="sm:hidden text-[10px] text-[#71717A]">Act: </span>
+                          ${Number(item.actual_cost).toLocaleString()}
+                        </div>
+
+                        {/* Payment Status Pill Badge */}
+                        <div className="sm:col-span-2 flex justify-start sm:justify-center">
+                          <button
+                            onClick={() => cycleStatus(item)}
+                            className={`px-3 py-1 rounded-full text-[11px] font-bold transition flex items-center gap-1 ${
+                              isFullyPaid
+                                ? "bg-green-500/20 text-green-300 border border-green-500/30 hover:bg-green-500/30"
+                                : isDepositPaid
+                                ? "bg-blue-500/20 text-blue-300 border border-blue-500/30 hover:bg-blue-500/30"
+                                : "bg-amber-500/20 text-amber-300 border border-amber-500/30 hover:bg-amber-500/30"
+                            }`}
+                            title="Click to toggle payment status"
+                          >
+                            {isFullyPaid ? "✅ Fully Paid" : isDepositPaid ? "💳 Deposit Paid" : "⏳ Pending"}
+                          </button>
+                        </div>
+
+                        <div className="sm:col-span-1 flex justify-end">
+                          <button
+                            onClick={() => { store.remove("budgets", item.id); toast.success("Removed line item"); refresh(); }}
+                            className="p-1.5 text-[#71717A] hover:text-[#EF4444] transition rounded"
+                            title="Delete line item"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </GlassCard>
+          );
+        })}
       </div>
 
       {/* Vendor Hub Section */}

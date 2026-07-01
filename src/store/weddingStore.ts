@@ -196,7 +196,16 @@ export type GiftItem = {
   note_text: string | null;
 };
 
-type TableName = "weddings" | "events" | "accommodations" | "venue_markers" | "gallery" | "guest_photos" | "rsvps" | "guest_moments" | "checkins" | "updates" | "tasks" | "tables" | "run_sheet" | "broadcasts" | "budgets" | "vendors" | "mood_items" | "gifts";
+export type SeatAssignment = {
+  id: string;
+  wedding_id: string;
+  guest_id: string;
+  guest_name: string;
+  table_id: string;
+  seat_index: number;
+};
+
+type TableName = "weddings" | "events" | "accommodations" | "venue_markers" | "gallery" | "guest_photos" | "rsvps" | "guest_moments" | "checkins" | "updates" | "tasks" | "tables" | "run_sheet" | "broadcasts" | "budgets" | "vendors" | "mood_items" | "gifts" | "seat_assignments";
 
 type Listener = (row: any, event: "INSERT" | "UPDATE" | "DELETE") => void;
 
@@ -221,6 +230,7 @@ type DB = {
   vendors: VendorItem[];
   mood_items: MoodItem[];
   gifts: GiftItem[];
+  seat_assignments: SeatAssignment[];
 };
 
 const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
@@ -331,6 +341,11 @@ const defaultDB = (): DB => {
       { id: "gf-1", wedding_id: w1Id, guest_name: "Alexander Wright", gift_item: "Baccarat Crystal Champagne Flutes (Set of 4)", status: "drafted", note_text: "Dearest Alex, thank you so much for the stunning Baccarat crystal flutes! We will toast with them on our first anniversary." },
       { id: "gf-2", wedding_id: w1Id, guest_name: "Chloe Bennett", gift_item: "KitchenAid Pro Artisan Stand Mixer (Matte Black)", status: "sent", note_text: "Chloe, your thoughtful gift is the centerpiece of our kitchen! Thank you for celebrating with us lakeside." },
       { id: "gf-3", wedding_id: w1Id, guest_name: "Elena Rostova", gift_item: "Honeymoon Experience Fund Contribution ($500)", status: "pending", note_text: null }
+    ],
+    seat_assignments: [
+      { id: "sa-1", wedding_id: w1Id, guest_id: "r-1", guest_name: "Alexander Wright", table_id: "tb-1", seat_index: 1 },
+      { id: "sa-2", wedding_id: w1Id, guest_id: "r-2", guest_name: "Chloe Bennett", table_id: "tb-1", seat_index: 2 },
+      { id: "sa-3", wedding_id: w1Id, guest_id: "r-3", guest_name: "Elena Rostova", table_id: "tb-2", seat_index: 1 }
     ]
   };
 };
@@ -358,6 +373,7 @@ function load(): DB {
     if (!parsed.vendors) parsed.vendors = fresh.vendors;
     if (!parsed.mood_items) parsed.mood_items = fresh.mood_items;
     if (!parsed.gifts) parsed.gifts = fresh.gifts;
+    if (!parsed.seat_assignments) parsed.seat_assignments = fresh.seat_assignments;
     return parsed;
   } catch {
     return defaultDB();

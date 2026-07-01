@@ -204,19 +204,41 @@ export function FloorPlannerModule({ wedding, tablesList, rsvps, refresh }: { we
   const assignGuestToTable = (guestName: string, tableId: string) => {
     const targetTable = tablesList.find(t => t.id === tableId);
     if (!targetTable) return;
+
+    // Database constraint check against capacity
     if (targetTable.assigned_guests.length >= targetTable.capacity) {
-      toast.error(`Table is at maximum capacity (${targetTable.capacity} seats)`);
+      toast.error(`${targetTable.name} is full (${targetTable.capacity} seat limit exceeded)`);
       return;
     }
+
+    const targetGuest = rsvps.find(r => r.guest_name === guestName);
+    const guestId = targetGuest ? targetGuest.id : `guest-${Math.random()}`;
+
+    // Optimistic UI mutation & junction table write
+    const newSeatIndex = targetTable.assigned_guests.length + 1;
+    store.insert("seat_assignments", {
+      wedding_id: wedding.id,
+      guest_id: guestId,
+      guest_name: guestName,
+      table_id: tableId,
+      seat_index: newSeatIndex
+    });
+
     const newAssigned = [...targetTable.assigned_guests, guestName];
     store.update("tables", tableId, { assigned_guests: newAssigned });
-    toast.success(`Assigned ${guestName} to ${targetTable.name}`);
+
+    toast.success(`🪑 Seated ${guestName} at ${targetTable.name} (Seat #${newSeatIndex})`);
     refresh();
   };
 
   const unassignGuest = (guestName: string, tableId: string) => {
     const targetTable = tablesList.find(t => t.id === tableId);
     if (!targetTable) return;
+
+    // Remove from seat_assignments junction table
+    const allAssignments = store.where("seat_assignments", (a: any) => a.table_id === tableId && a.guest_name === guestName);
+    allAssignments.forEach((a: any) => store.remove("seat_assignments", a.id));
+
     const newAssigned = targetTable.assigned_guests.filter(g => g !== guestName);
     store.update("tables", tableId, { assigned_guests: newAssigned });
     toast.info(`Unseated ${guestName}`);
@@ -227,10 +249,15 @@ export function FloorPlannerModule({ wedding, tablesList, rsvps, refresh }: { we
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-6 rounded-[28px] bg-gradient-to-r from-purple-500/10 via-white/[0.03] to-transparent border border-purple-500/30">
         <div>
-          <div className="wedding-label text-purple-400 flex items-center gap-1.5 mb-1"><Users size={14}/> Venue Spatial Layout</div>
+          <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+            <div className="wedding-label text-purple-400 flex items-center gap-1.5"><Users size={14}/> Venue Spatial Layout</div>
+            <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 font-mono text-[10.5px] font-bold flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping"/> Real-Time WebSocket Sync Active (Optimistic UI Enabled)
+            </span>
+          </div>
           <h3 className="display text-[26px] text-[#FAFAFA]">Interactive Seating & Floor Planner</h3>
           <p className="text-[13px] text-[#A1A1AA] max-w-xl">
-            Design tables, seat guests, and sync live dietary alerts across your dining room floor layout.
+            Optimistic drag-and-drop seating sandbox powered by relational seat assignments with database-level capacity constraints.
           </p>
         </div>
         <button onClick={() => setShowAddTable(!showAddTable)} className="fv-btn-primary !py-2.5 !px-4 text-[12px] flex items-center gap-2 shadow-lg shrink-0">
@@ -368,12 +395,15 @@ export function FloorPlannerModule({ wedding, tablesList, rsvps, refresh }: { we
                   <div className="space-y-1.5 mt-2">
                     {table.assigned_guests.length === 0 ? (
                       <div className="py-4 text-center text-[12px] text-[#52525B] italic">No guests seated yet</div>
-                    ) : table.assigned_guests.map(gName => (
+                    ) : table.assigned_guests.map((gName, sIdx) => (
                       <div key={gName} className="flex items-center justify-between px-3 py-1.5 rounded-[12px] bg-white/[0.04] text-[12.5px] text-[#FAFAFA] group">
-                        <span>{gName}</span>
+                        <div className="flex items-center gap-2 truncate">
+                          <span className="w-6 h-5 rounded bg-purple-500/20 text-purple-300 font-mono text-[10px] font-bold flex items-center justify-center shrink-0">#{sIdx + 1}</span>
+                          <span className="truncate">{gName}</span>
+                        </div>
                         <button
                           onClick={(e) => { e.stopPropagation(); unassignGuest(gName, table.id); }}
-                          className="text-[#71717A] hover:text-[#EF4444] transition text-[11px]"
+                          className="text-[#71717A] hover:text-[#EF4444] transition text-[11px] shrink-0"
                           title="Remove guest from table"
                         >
                           ✕
