@@ -3,6 +3,7 @@ import { useParams, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Flower2, CheckCircle2, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
+import { supabase } from "@/utils/supabase";
 import { store } from "@/store/weddingStore";
 import { GlassCard } from "@/components/ui/GlassCard";
 
@@ -16,35 +17,42 @@ export default function WeddingCheckin() {
   const [rsvpMatch, setRsvpMatch] = useState<any>(null);
 
   useEffect(() => {
-    if (!slug) { setLoading(false); return; }
-    const w = store.find("weddings", (r: any) => r.slug === slug && r.published);
-    setWedding(w ?? null);
-    setLoading(false);
+    async function fetchWedding() {
+      if (!slug) { setLoading(false); return; }
+      let matched = store.find("weddings", (item: any) => item.slug === slug);
+      if (!matched) {
+        const { data } = await supabase.from("weddings").select("*").eq("slug", slug).single();
+        if (data) matched = data;
+      }
+      if (!matched && (slug === "amelia-daniel-2026" || slug === "preview" || slug === "demo")) {
+        matched = store.find("weddings", (item: any) => item.id === "preview-1");
+      }
+      setWedding(matched ?? null);
+      setLoading(false);
+    }
+    fetchWedding();
   }, [slug]);
 
-  const findMatch = (guestName: string) => {
-    if (!wedding?.id || !guestName.trim()) return null;
-    const normalized = guestName.trim().toLowerCase();
-    const rsvps = store.where<any>("rsvps", (r) => r.wedding_id === wedding.id);
-    if (!rsvps.length) return null;
-    const exact = rsvps.find(r => r.guest_name.toLowerCase() === normalized);
-    if (exact) return exact;
-    return rsvps.find(r =>
-      r.guest_name.toLowerCase().includes(normalized) ||
-      normalized.includes(r.guest_name.toLowerCase())
-    ) || null;
-  };
-
-  const handleCheckin = (e: React.FormEvent) => {
+  const handleCheckin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) { toast.error("Please enter your name"); return; }
     setSubmitting(true);
-    const match = findMatch(name);
-    store.insert("checkins", {
-      wedding_id: wedding.id,
-      guest_name: name.trim(),
-      checkin_time: new Date().toISOString(),
-    });
+    
+    let match = null;
+    if (wedding?.id) {
+      const { data: rsvps } = await supabase.from("rsvps").select("*").eq("wedding_id", wedding.id);
+      if (rsvps && rsvps.length) {
+        const normalized = name.trim().toLowerCase();
+        match = rsvps.find(r => r.guest_name.toLowerCase() === normalized) ||
+                rsvps.find(r => r.guest_name.toLowerCase().includes(normalized) || normalized.includes(r.guest_name.toLowerCase()));
+      }
+      await supabase.from("checkins").insert([{
+        wedding_id: wedding.id,
+        guest_name: name.trim(),
+        created_at: new Date().toISOString(),
+      }]);
+    }
+    
     setRsvpMatch(match);
     setCheckedIn(true);
     setSubmitting(false);

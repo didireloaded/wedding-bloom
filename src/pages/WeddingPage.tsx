@@ -5,11 +5,10 @@ import { Eye, Calendar, MapPin, Heart, Clock, Camera, Send, Sparkles, Flower2, M
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import { useWeddingData } from "@/hooks/useWeddingData";
-import { store } from "@/store/weddingStore";
 import { format, differenceInDays } from "date-fns";
 import { InvitationOverlay } from "@/components/wedding/InvitationOverlay";
 import { GlassCard } from "@/components/ui/GlassCard";
-import { submitRSVPToBackend } from "@/utils/supabase";
+import { submitRSVPToBackend, supabase } from "@/utils/supabase";
 import { siteContent } from "@/config/siteContent";
 
 function useCountdown(target: string | null) {
@@ -171,24 +170,41 @@ function MomentsSectionGuestbook({ wedding, isPreview }: { wedding: any; isPrevi
   const [name, setName] = useState("");
   const [message, setMessage] = useState("");
 
-  useEffect(() => {
-    setMessages(store.where("guest_moments", r => r.wedding_id === wedding.id));
-    const off = store.subscribe("guest_moments", () => setMessages(store.where("guest_moments", r => r.wedding_id === wedding.id)));
-    return off;
-  }, [wedding.id]);
+  const fetchMoments = async () => {
+    if (!wedding?.id) return;
+    const { data } = await supabase.from("guest_moments").select("*").eq("wedding_id", wedding.id);
+    if (data) setMessages(data);
+  };
 
-  const submit = (e: React.FormEvent) => {
+  useEffect(() => {
+    fetchMoments();
+    const channel = supabase
+      .channel("public:guest_moments")
+      .on("postgres_changes", { event: "*", schema: "public", table: "guest_moments" }, () => fetchMoments())
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [wedding?.id]);
+
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (isPreview) { toast.info("This is a preview — sharing is disabled"); return; }
+    if (isPreview) { toast.info("This is a preview — sharing is simulated"); return; }
     if (!name.trim() || !message.trim()) { toast.error("Please enter name and message"); return; }
-    store.insert("guest_moments", {
+    
+    const { error } = await supabase.from("guest_moments").insert([{
       wedding_id: wedding.id,
       guest_name: name.trim(),
       message: message.trim(),
       created_at: new Date().toISOString(),
-    });
+    }]);
+
+    if (error) {
+      toast.error("Could not post note: " + error.message);
+      return;
+    }
+
     setName(""); setMessage("");
     toast.success("Moment added to the wall");
+    fetchMoments();
   };
 
   return (
@@ -214,24 +230,40 @@ function GuestPhotosSection({ wedding, isPreview }: { wedding: any; isPreview?: 
   const [photos, setPhotos] = useState<any[]>([]);
   const fileRef = useRef<HTMLInputElement>(null);
 
+  const fetchPhotos = async () => {
+    if (!wedding?.id) return;
+    const { data } = await supabase.from("guest_photos").select("*").eq("wedding_id", wedding.id);
+    if (data) setPhotos(data);
+  };
+
   useEffect(() => {
-    const list = store.where("guest_photos", r => r.wedding_id === wedding.id);
-    setPhotos(list);
-    const off = store.subscribe("guest_photos", () => setPhotos(store.where("guest_photos", r => r.wedding_id === wedding.id)));
-    return off;
-  }, [wedding.id]);
+    fetchPhotos();
+    const channel = supabase
+      .channel("public:guest_photos")
+      .on("postgres_changes", { event: "*", schema: "public", table: "guest_photos" }, () => fetchPhotos())
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [wedding?.id]);
 
   const handleFile = (f: File) => {
+    if (isPreview) {
+      toast.info("Preview mode — photo upload simulated!");
+    }
     const reader = new FileReader();
-    reader.onload = () => {
-      store.insert("guest_photos", {
+    reader.onload = async () => {
+      const { error } = await supabase.from("guest_photos").insert([{
         wedding_id: wedding.id,
         guest_name: isPreview ? "Preview Guest" : "Guest",
         photo_url: reader.result as string,
         likes: 0,
         created_at: new Date().toISOString(),
-      });
-      toast.success("Photo uploaded to the vault");
+      }]);
+      if (error) {
+        toast.error("Upload error: " + error.message);
+      } else {
+        toast.success("Photo uploaded to the vault");
+        fetchPhotos();
+      }
     };
     reader.readAsDataURL(f);
   };

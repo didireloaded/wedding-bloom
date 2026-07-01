@@ -1,1 +1,22 @@
 project_id = "kmbcfpfzjzpidblgsvms"
+
+[functions.ai-wedding]
+verify_jwt = false
+
+[functions.delete-wedding]
+verify_jwt = true
+
+[functions.manage-moments]
+verify_jwt = false
+
+[functions.couple-update-wedding]
+verify_jwt = false
+
+[functions.analyze-csv-import]
+verify_jwt = false
+
+[functions.analyze-wedding-theme]
+verify_jwt = false
+
+[functions.analyze-image-focus]
+verify_jwt = false

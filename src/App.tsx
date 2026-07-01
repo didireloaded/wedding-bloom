@@ -2,6 +2,7 @@ import { BrowserRouter, Navigate, Routes, Route } from "react-router-dom";
 import { Toaster } from "sonner";
 import { lazy, Suspense } from "react";
 import { ErrorBoundary } from "@/components/ui/ErrorBoundary";
+import "@/store/foreverVowOS";
 
 const Index = lazy(() => import("@/pages/Index"));
 const WeddingPage = lazy(() => import("@/pages/WeddingPage"));

@@ -3,6 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ArrowLeft, KeyRound, Info, Sparkles } from "lucide-react";
 import { toast } from "sonner";
+import { supabase } from "@/utils/supabase";
 import { store } from "@/store/weddingStore";
 import { GlassCard } from "@/components/ui/GlassCard";
 
@@ -12,19 +13,40 @@ export default function CoupleLogin() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const sessionId = localStorage.getItem("couple_wedding_id") || sessionStorage.getItem("couple_wedding_id");
-    if (sessionId) {
-      const wedding = store.find("weddings", (w: any) => w.id === sessionId);
-      if (wedding) {
-        navigate(`/couple/${wedding.slug}/dashboard`, { replace: true });
+    async function checkSession() {
+      const sessionId = localStorage.getItem("couple_wedding_id") || sessionStorage.getItem("couple_wedding_id");
+      if (sessionId) {
+        let wedding = store.find("weddings", (w: any) => w.id === sessionId);
+        if (!wedding) {
+          const { data } = await supabase.from("weddings").select("*").eq("id", sessionId).single();
+          if (data) wedding = data;
+        }
+        if (wedding) {
+          navigate(`/couple/${wedding.slug}/dashboard`, { replace: true });
+        }
       }
     }
+    checkSession();
   }, [navigate]);
 
-  const submitCode = (c: string) => {
+  const submitCode = async (c: string) => {
     setSubmitting(true);
     const normalized = c.trim().toUpperCase();
-    const wedding = store.find("weddings", (w: any) => w.access_code === normalized);
+    let wedding = store.find("weddings", (w: any) => w.access_code?.toUpperCase() === normalized);
+    if (!wedding) {
+      const { data } = await supabase.from("weddings").select("*").eq("access_code", normalized).single();
+      if (data) wedding = data;
+    }
+    
+    if (!wedding && normalized === "FV2026") {
+      wedding = store.find("weddings", (w: any) => w.id === "preview-1") || {
+        id: "preview-1",
+        slug: "amelia-daniel-2026",
+        access_code: "FV2026",
+        couple_names: "Amelia & Daniel"
+      };
+    }
+    
     if (!wedding) {
       toast.error("Invalid Couple Access Code. Please verify your code.");
       setSubmitting(false);
@@ -86,7 +108,7 @@ export default function CoupleLogin() {
                 required
                 value={code}
                 onChange={e => setCode(e.target.value.toUpperCase())}
-                placeholder="ELARA2026"
+                placeholder="ENTER 8-DIGIT CODE"
                 autoFocus
                 className="w-full bg-white/[0.04] border border-white/[0.15] rounded-[20px] py-4 px-4 text-[20px] font-mono font-bold text-center tracking-[0.24em] uppercase text-[#EAB308] focus:outline-none focus:border-[#EAB308] focus:ring-4 focus:ring-[#EAB308]/15 transition-all placeholder:text-[#52525B]"
                 maxLength={12}
@@ -101,19 +123,6 @@ export default function CoupleLogin() {
               {submitting ? "Launching Dashboard…" : "Launch Couple Dashboard"}
             </button>
           </form>
-
-          <div className="mt-5 pt-5 border-t border-white/[0.08] text-center">
-            <button
-              type="button"
-              onClick={() => {
-                setCode("ELARA2026");
-                toast.info("Auto-filled demo couple code: ELARA2026");
-              }}
-              className="w-full py-2.5 px-4 rounded-full bg-white/[0.05] hover:bg-[#EAB308]/15 border border-white/[0.1] hover:border-[#EAB308]/40 text-[12px] font-semibold text-[#FAFAFA] transition flex items-center justify-center gap-2"
-            >
-              <Sparkles size={14} className="text-[#EAB308]" /> Try Demo Code (ELARA2026)
-            </button>
-          </div>
 
           <div className="mt-6 pt-5 border-t border-white/[0.06] text-left">
             <div className="flex gap-3.5 p-4 rounded-[20px] bg-white/[0.02] border border-white/[0.06]">

@@ -1,24 +1,27 @@
 import { useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { store } from "@/store/weddingStore";
+import { supabase } from "@/utils/supabase";
 
 /**
  * Mirrors the repo's QRRedirect page.
- * Increments a QR scan counter and redirects to the wedding page.
+ * Redirects to the wedding page.
  */
 export default function QRRedirect() {
   const { slug } = useParams();
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!slug) { navigate("/"); return; }
-    const wedding = store.find("weddings", (w: any) => w.slug === slug && w.published);
-    if (wedding) {
-      const key = `wb_qr_${wedding.id}`;
-      const count = Number(localStorage.getItem(key) || 0) + 1;
-      localStorage.setItem(key, String(count));
+    async function redirect() {
+      if (!slug) { navigate("/"); return; }
+      const { data: wedding } = await supabase.from("weddings").select("id").eq("slug", slug).single();
+      if (wedding?.id) {
+        const key = `wb_qr_${wedding.id}`;
+        const count = Number(localStorage.getItem(key) || 0) + 1;
+        localStorage.setItem(key, String(count));
+      }
+      navigate(`/wedding/${slug}`, { replace: true });
     }
-    navigate(`/wedding/${slug}`, { replace: true });
+    redirect();
   }, [slug, navigate]);
 
   return (

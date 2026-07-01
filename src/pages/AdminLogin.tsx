@@ -6,8 +6,6 @@ import { toast } from "sonner";
 import { store } from "@/store/weddingStore";
 import { GlassCard } from "@/components/ui/GlassCard";
 
-const DEMO_ADMIN = { email: "admin@forevervow.app", password: "vows2026" };
-
 export default function AdminLogin() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -32,13 +30,6 @@ export default function AdminLogin() {
       toast.error("Invalid admin credentials.");
     }
     setSubmitting(false);
-  };
-
-  const loginAsDemoAdmin = () => {
-    localStorage.setItem("wb_admin", "1");
-    sessionStorage.setItem("wb_admin", "1");
-    toast.success("Welcome to ForeverVow Command Center");
-    navigate("/admin/dashboard");
   };
 
   return (
@@ -161,31 +152,7 @@ export default function AdminLogin() {
               </button>
             </form>
 
-            {/* One-click demo admin */}
-            <div className="mt-8 pt-6 border-t border-white/[0.08]">
-              <div className="flex items-center justify-between mb-3">
-                <span className="wedding-label text-[10px]">Demo Studio</span>
-                <span className="text-[11px] text-[#78716C]">Instant Access</span>
-              </div>
-              <button
-                onClick={loginAsDemoAdmin}
-                type="button"
-                className="w-full flex items-center justify-between p-4 rounded-[18px] border border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.06] hover:border-[#D4A853]/40 transition-all text-left group"
-              >
-                <div className="flex items-center gap-3.5">
-                  <div className="w-10 h-10 rounded-[14px] bg-[#D4A853]/15 text-[#D4A853] flex items-center justify-center group-hover:scale-105 transition-transform">
-                    <KeyRound size={18} />
-                  </div>
-                  <div>
-                    <div className="text-[13.5px] text-[#FAF7F2] font-semibold">One-Click Staff Sign In</div>
-                    <div className="text-[11.5px] text-[#78716C] font-mono mt-0.5">{DEMO_ADMIN.email}</div>
-                  </div>
-                </div>
-                <ArrowRight size={16} className="text-[#D4A853] group-hover:translate-x-1 transition-transform" />
-              </button>
-            </div>
-
-            <div className="mt-6 pt-5 border-t border-white/[0.06] text-center">
+            <div className="mt-8 pt-6 border-t border-white/[0.08] text-center">
               <Link to="/couple-login" className="text-[12.5px] text-[#A8A29E] hover:text-[#FAF7F2] underline underline-offset-4 transition font-medium">
                 Are you a couple? Go to Couple Portal Gateway →
               </Link>

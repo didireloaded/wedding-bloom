@@ -1,9 +1,10 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, ArrowRight, Eye, Flower2, LockKeyhole, UserPlus, Sparkles, KeyRound } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
+import { supabase } from "@/utils/supabase";
 import { store } from "@/store/weddingStore";
 import { GlassCard } from "@/components/ui/GlassCard";
 
@@ -18,16 +19,27 @@ export default function CoupleEntry() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [code, setCode] = useState("");
+  const [wedding, setWedding] = useState<any>(null);
+  const [inspiration, setInspiration] = useState<any[]>([]);
 
-  const wedding = useMemo(
-    () => store.find("weddings", (w: any) => w.slug === slug),
-    [slug]
-  ) as any;
-
-  const inspiration = useMemo(
-    () => store.all("weddings").filter((w: any) => w.published),
-    []
-  ) as any[];
+  useEffect(() => {
+    async function fetchData() {
+      if (!slug) return;
+      let matched = store.find("weddings", (item: any) => item.slug === slug);
+      if (!matched) {
+        const { data: w } = await supabase.from("weddings").select("*").eq("slug", slug).single();
+        if (w) matched = w;
+      }
+      if (!matched && (slug === "amelia-daniel-2026" || slug === "preview" || slug === "demo")) {
+        matched = store.find("weddings", (item: any) => item.id === "preview-1");
+      }
+      setWedding(matched ?? null);
+      const { data: insp } = await supabase.from("weddings").select("*").limit(6);
+      if (insp && insp.length > 0) setInspiration(insp);
+      else setInspiration(store.all("weddings").slice(0, 6));
+    }
+    fetchData();
+  }, [slug]);
 
   useEffect(() => {
     if (!wedding) return;
@@ -327,23 +339,6 @@ export default function CoupleEntry() {
                     {mode === "signin" ? "Open Couple Dashboard" : "Register & Open Dashboard"}
                   </button>
                 </form>
-
-                {mode === "signin" && (
-                  <div className="mt-5 pt-5 border-t border-white/[0.08] text-center relative z-10">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setEmail("elara@forevervow.app");
-                        setPassword("demo2026");
-                        setCode(wedding.access_code || "ELARA2026");
-                        toast.info("Auto-filled demo couple credentials");
-                      }}
-                      className="w-full py-2.5 px-4 rounded-full bg-white/[0.05] hover:bg-[#EAB308]/15 border border-white/[0.1] hover:border-[#EAB308]/40 text-[12px] font-semibold text-[#FAFAFA] transition flex items-center justify-center gap-2"
-                    >
-                      <Sparkles size={14} className="text-[#EAB308]" /> Auto-Fill Demo Credentials ({wedding.access_code})
-                    </button>
-                  </div>
-                )}
 
                 <p className="mt-5 text-center text-[12px] text-[#71717A] relative z-10">
                   Your wedding coordinator provided your access code upon setup.
