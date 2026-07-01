@@ -18,6 +18,9 @@ import {
   ActivityTimeline, InsightsWidget, NotificationCenter, WorkspaceSearch, unreadCount,
   CommandCenter
 } from "@/features/couple/widgets";
+import {
+  RunSheetModule, FloorPlannerModule, TaskBoardModule, GuestCrmModule, BroadcastHubModule
+} from "@/features/couple/executionSuite";
 
 export default function CoupleDashboard() {
   const navigate = useNavigate();
@@ -34,7 +37,12 @@ export default function CoupleDashboard() {
   const [accommodations, setAccommodations] = useState<any[]>([]);
   const [markers, setMarkers] = useState<any[]>([]);
   const [updates, setUpdates] = useState<any[]>([]);
-  type TabId = "workspace" | "overview" | "rsvp" | "events" | "map" | "accommodations" | "gallery" | "guest_photos" | "moments" | "updates" | "share" | "checkins";
+  const [tasks, setTasks] = useState<any[]>([]);
+  const [tablesList, setTablesList] = useState<any[]>([]);
+  const [runSheet, setRunSheet] = useState<any[]>([]);
+  const [broadcasts, setBroadcasts] = useState<any[]>([]);
+
+  type TabId = "workspace" | "overview" | "rsvp" | "crm" | "run_sheet" | "tables" | "tasks" | "broadcasts" | "events" | "map" | "accommodations" | "gallery" | "guest_photos" | "moments" | "updates" | "share" | "checkins";
   const [tab, setTab] = useState<TabId>("workspace");
   const [editingWedding, setEditingWedding] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -77,7 +85,11 @@ export default function CoupleDashboard() {
     const off7 = store.subscribe("accommodations", refresh);
     const off8 = store.subscribe("venue_markers", refresh);
     const off9 = store.subscribe("updates", refresh);
-    return () => { off1(); off2(); off3(); off4(); off5(); off6(); off7(); off8(); off9(); };
+    const off10 = store.subscribe("tasks", refresh);
+    const off11 = store.subscribe("tables", refresh);
+    const off12 = store.subscribe("run_sheet", refresh);
+    const off13 = store.subscribe("broadcasts", refresh);
+    return () => { off1(); off2(); off3(); off4(); off5(); off6(); off7(); off8(); off9(); off10(); off11(); off12(); off13(); };
   }, [weddingId, slug]);
 
   const refresh = () => {
@@ -98,6 +110,10 @@ export default function CoupleDashboard() {
     setUpdates(store.where("updates", (r: any) => r.wedding_id === targetId));
     setCheckins(store.where("checkins", (r: any) => r.wedding_id === targetId));
     setEvents(store.where("events", (r: any) => r.wedding_id === targetId).sort((a: any, b: any) => a.sort_order - b.sort_order));
+    setTasks(store.where("tasks", (r: any) => r.wedding_id === targetId));
+    setTablesList(store.where("tables", (r: any) => r.wedding_id === targetId));
+    setRunSheet(store.where("run_sheet", (r: any) => r.wedding_id === targetId));
+    setBroadcasts(store.where("broadcasts", (r: any) => r.wedding_id === targetId));
 
     setUnread(unreadCount(
       w,
@@ -252,26 +268,31 @@ export default function CoupleDashboard() {
                 ]
               },
               {
+                group: "Execution Logistics",
+                items: [
+                  { id: "run_sheet", label: "Day-of Run Sheet", count: runSheet.length, icon: <Clock size={16} /> },
+                  { id: "tables", label: "Seating Floor Plan", count: tablesList.length, icon: <Users size={16} /> },
+                  { id: "tasks", label: "Delegation Board", count: tasks.filter(t => t.status !== "done").length, icon: <CheckCircle2 size={16} /> },
+                  { id: "map", label: "Interactive Map", count: markers.length, icon: <MapPin size={16} /> },
+                  { id: "accommodations", label: "Hotels & Stay", count: accommodations.length, icon: <Sparkles size={16} /> },
+                ]
+              },
+              {
+                group: "Guest Intelligence",
+                items: [
+                  { id: "crm", label: "Guest CRM Database", count: rsvps.length, icon: <Award size={16} /> },
+                  { id: "broadcasts", label: "Batch Communications", count: broadcasts.length, icon: <Mail size={16} /> },
+                  { id: "rsvp", label: "RSVP Manager", count: rsvps.length, icon: <UserCheck size={16} /> },
+                  { id: "checkins", label: "Day-of Check-ins", count: checkins.length, icon: <CheckCircle2 size={16} /> },
+                  { id: "moments", label: "Memory Wall", count: moments.length, icon: <MessageCircle size={16} /> },
+                ]
+              },
+              {
                 group: "Celebration Plan",
                 items: [
                   { id: "overview", label: "Overview & Story", icon: <Heart size={16} /> },
                   { id: "events", label: "Timeline Events", count: events.length, icon: <Calendar size={16} /> },
                   { id: "updates", label: "Live Broadcasts", count: updates.length, icon: <Radio size={16} /> },
-                ]
-              },
-              {
-                group: "Guest Operations",
-                items: [
-                  { id: "rsvp", label: "Guest RSVPs", count: rsvps.length, icon: <UserCheck size={16} /> },
-                  { id: "checkins", label: "Venue Check-ins", count: checkins.length, icon: <CheckCircle2 size={16} /> },
-                  { id: "moments", label: "Memory Wall", count: moments.length, icon: <MessageCircle size={16} /> },
-                ]
-              },
-              {
-                group: "Logistics",
-                items: [
-                  { id: "map", label: "Interactive Map", count: markers.length, icon: <MapPin size={16} /> },
-                  { id: "accommodations", label: "Hotels & Stay", count: accommodations.length, icon: <Sparkles size={16} /> },
                 ]
               },
               {
@@ -813,6 +834,13 @@ export default function CoupleDashboard() {
               </GlassCard>
             </div>
           )}
+
+          {/* New Advanced Execution Logistics & Guest Intelligence Modules */}
+          {tab === "run_sheet" && <RunSheetModule wedding={wedding} runSheet={runSheet} refresh={refresh} />}
+          {tab === "tables" && <FloorPlannerModule wedding={wedding} tablesList={tablesList} rsvps={rsvps} refresh={refresh} />}
+          {tab === "tasks" && <TaskBoardModule wedding={wedding} tasks={tasks} refresh={refresh} />}
+          {tab === "crm" && <GuestCrmModule wedding={wedding} rsvps={rsvps} tablesList={tablesList} refresh={refresh} />}
+          {tab === "broadcasts" && <BroadcastHubModule wedding={wedding} broadcasts={broadcasts} rsvps={rsvps} refresh={refresh} />}
         </main>
       </div>
 

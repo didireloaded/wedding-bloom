@@ -81,7 +81,12 @@ export type RSVP = {
   guest_count: number;
   attending: 'confirmed' | 'declined' | 'maybe' | 'pending';
   dietary_preference: string | null;
-  message: string | null; // Replaced song request with message
+  dietary_requirements?: string | null;
+  vip_status?: boolean;
+  table_id?: string;
+  household?: string;
+  notes?: string;
+  message: string | null;
   email: string | null;
   submitted_at: string;
 };
@@ -109,7 +114,48 @@ export type WeddingUpdate = {
   created_at: string;
 };
 
-type TableName = "weddings" | "events" | "accommodations" | "venue_markers" | "gallery" | "guest_photos" | "rsvps" | "guest_moments" | "checkins" | "updates";
+export type TaskItem = {
+  id: string;
+  wedding_id: string;
+  title: string;
+  category: string;
+  assignee: string;
+  due_date: string;
+  status: "todo" | "in_progress" | "done";
+  priority: "high" | "normal";
+};
+
+export type FloorTable = {
+  id: string;
+  wedding_id: string;
+  name: string;
+  type: "round" | "rect" | "vip";
+  capacity: number;
+  assigned_guests: string[];
+};
+
+export type RunSheetItem = {
+  id: string;
+  wedding_id: string;
+  time: string;
+  duration: string;
+  title: string;
+  owner: string;
+  location: string;
+  notes: string;
+};
+
+export type BroadcastItem = {
+  id: string;
+  wedding_id: string;
+  subject: string;
+  template: string;
+  target: string;
+  sent_at: string;
+  recipient_count: number;
+};
+
+type TableName = "weddings" | "events" | "accommodations" | "venue_markers" | "gallery" | "guest_photos" | "rsvps" | "guest_moments" | "checkins" | "updates" | "tasks" | "tables" | "run_sheet" | "broadcasts";
 
 type Listener = (row: any, event: "INSERT" | "UPDATE" | "DELETE") => void;
 
@@ -126,6 +172,10 @@ type DB = {
   guest_moments: GuestMoment[];
   checkins: Checkin[];
   updates: WeddingUpdate[];
+  tasks: TaskItem[];
+  tables: FloorTable[];
+  run_sheet: RunSheetItem[];
+  broadcasts: BroadcastItem[];
 };
 
 const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
@@ -187,14 +237,35 @@ const defaultDB = (): DB => {
       { id: "gp-1", wedding_id: w1Id, guest_name: "Elena Rostova", photo_url: "https://images.unsplash.com/photo-1532712938310-34cb3982ef74?auto=format&fit=crop&w=800&q=80", caption: "So excited for you both!!", created_at: new Date().toISOString() }
     ],
     rsvps: [
-      { id: "r-1", wedding_id: w1Id, guest_name: "Alexander Wright", email: "alex@wright.co", attending: "confirmed", guest_count: 2, dietary_requirements: "Vegetarian", message: "Can't wait to celebrate with you in Como!", submitted_at: new Date().toISOString() },
-      { id: "r-2", wedding_id: w1Id, guest_name: "Chloe Bennett", email: "chloe@bennett.design", attending: "confirmed", guest_count: 1, dietary_requirements: "None", message: "Counting down the days!", submitted_at: new Date().toISOString() },
+      { id: "r-1", wedding_id: w1Id, guest_name: "Alexander Wright", email: "alex@wright.co", attending: "confirmed", guest_count: 2, dietary_requirements: "Vegetarian", vip_status: true, table_id: "tb-1", household: "Wright Family", notes: "Prefers sparkling water", message: "Can't wait to celebrate with you in Como!", submitted_at: new Date().toISOString() },
+      { id: "r-2", wedding_id: w1Id, guest_name: "Chloe Bennett", email: "chloe@bennett.design", attending: "confirmed", guest_count: 1, dietary_requirements: "Gluten-Free", vip_status: true, table_id: "tb-1", household: "Chloe Bennett", notes: "Needs shuttle pick-up", message: "Counting down the days!", submitted_at: new Date().toISOString() },
+      { id: "r-3", wedding_id: w1Id, guest_name: "Elena Rostova", email: "elena@rostova.it", attending: "confirmed", guest_count: 2, dietary_requirements: "None", vip_status: false, table_id: "tb-2", household: "Rostova Household", notes: "", message: "See you lakeside!", submitted_at: new Date().toISOString() }
     ],
     guest_moments: [],
     checkins: [],
     updates: [
       { id: "u-1", wedding_id: w1Id, title: "Dress Code & Shuttle Schedule", message: "Shuttles will depart from Hotel Tremezzo at 3:45 PM sharp. Black tie optional.", created_at: new Date().toISOString() }
     ],
+    tasks: [
+      { id: "t-1", wedding_id: w1Id, title: "Finalize floral mockup with Studio Flora Como", category: "Vendors", assignee: "Elara Vance", due_date: "2026-08-15", status: "in_progress", priority: "high" },
+      { id: "t-2", wedding_id: w1Id, title: "Confirm shuttle bus headcount & driver routes", category: "Logistics", assignee: "Coordinator Team", due_date: "2026-09-01", status: "todo", priority: "high" },
+      { id: "t-3", wedding_id: w1Id, title: "Curate vintage prosecco selection for aperitivo", category: "Catering", assignee: "Julian Thorne", due_date: "2026-08-10", status: "done", priority: "normal" },
+      { id: "t-4", wedding_id: w1Id, title: "Deliver welcome gift baskets to Hotel Tremezzo", category: "Hospitality", assignee: "Bridal Party", due_date: "2026-09-16", status: "todo", priority: "normal" }
+    ],
+    tables: [
+      { id: "tb-1", wedding_id: w1Id, name: "Table 1 (VIP Head Table)", type: "vip", capacity: 8, assigned_guests: ["Alexander Wright", "Chloe Bennett"] },
+      { id: "tb-2", wedding_id: w1Id, name: "Table 2 (Lakeside View)", type: "round", capacity: 10, assigned_guests: ["Elena Rostova"] },
+      { id: "tb-3", wedding_id: w1Id, name: "Table 3 (Orchard Alcove)", type: "rect", capacity: 12, assigned_guests: [] }
+    ],
+    run_sheet: [
+      { id: "rs-1", wedding_id: w1Id, time: "10:00", duration: "120 min", title: "Bridal Suite Hair & Makeup Setup", owner: "Beauty Artist Team", location: "Villa Balbiano Master Suite", notes: "Fresh berries, pastries, and chilled champagne delivered to suite." },
+      { id: "rs-2", wedding_id: w1Id, time: "14:30", duration: "60 min", title: "First Look & Orchard Editorial Photoshoot", owner: "Lead Photographer", location: "South Olive Grove", notes: "Private security clears orchard pathways for couple arrival." },
+      { id: "rs-3", wedding_id: w1Id, time: "16:30", duration: "45 min", title: "Sunset Ceremony & Processional", owner: "Officiant & Quartet", location: "Lakefront Promenade Pavilion", notes: "String quartet begins prelude at 16:15 sharp." },
+      { id: "rs-4", wedding_id: w1Id, time: "18:00", duration: "90 min", title: "Grand Aperitivo & Sunset Reception Toast", owner: "Catering & DJ", location: "Main Garden Terraces", notes: "Prosecco fountain live, acoustic jazz trio playing." }
+    ],
+    broadcasts: [
+      { id: "bc-1", wedding_id: w1Id, subject: "Lake Como Welcome Guide & Shuttle Times", template: "Logistics Reminder", target: "confirmed", sent_at: new Date().toISOString(), recipient_count: 42 }
+    ]
   };
 };
 
@@ -212,6 +283,11 @@ function load(): DB {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(fresh));
       return fresh;
     }
+    const fresh = defaultDB();
+    if (!parsed.tasks) parsed.tasks = fresh.tasks;
+    if (!parsed.tables) parsed.tables = fresh.tables;
+    if (!parsed.run_sheet) parsed.run_sheet = fresh.run_sheet;
+    if (!parsed.broadcasts) parsed.broadcasts = fresh.broadcasts;
     return parsed;
   } catch {
     return defaultDB();
