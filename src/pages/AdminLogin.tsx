@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowLeft, Shield, Sparkles, KeyRound, ArrowRight, Lock } from "lucide-react";
+import { ArrowLeft, Shield, Sparkles } from "lucide-react";
 import { toast } from "sonner";
-import { store } from "@/store/weddingStore";
+import { supabase } from "@/utils/supabase";
 import { GlassCard } from "@/components/ui/GlassCard";
 
 export default function AdminLogin() {
@@ -13,24 +13,35 @@ export default function AdminLogin() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (localStorage.getItem("wb_admin") || sessionStorage.getItem("wb_admin")) {
-      navigate("/admin/dashboard", { replace: true });
-    }
+    supabase.auth.getSession().then(({ data }) => {
+      if (data.session) navigate("/admin/dashboard", { replace: true });
+    });
   }, [navigate]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
-    if (store.isAdmin(email, password)) {
-      localStorage.setItem("wb_admin", "1");
-      sessionStorage.setItem("wb_admin", "1");
-      toast.success("Welcome to ForeverVow Studio Headquarters");
-      navigate("/admin/dashboard");
-    } else {
-      toast.error("Invalid admin credentials.");
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error || !data.session) {
+      toast.error(error?.message || "Invalid admin credentials.");
+      setSubmitting(false);
+      return;
     }
+    // Verify admin role
+    const { data: isAdmin } = await supabase.rpc("has_role", { _user_id: data.user!.id, _role: "admin" });
+    if (!isAdmin) {
+      await supabase.auth.signOut();
+      toast.error("This account is not authorized as an admin.");
+      setSubmitting(false);
+      return;
+    }
+    sessionStorage.setItem("wb_admin", "1");
+    localStorage.setItem("wb_admin", "1");
+    toast.success("Welcome to ForeverVow Studio Headquarters");
+    navigate("/admin/dashboard");
     setSubmitting(false);
   };
+
 
   return (
     <div className="min-h-screen grid lg:grid-cols-12 bg-[#0C0A09] text-[#FAF7F2] relative overflow-hidden">

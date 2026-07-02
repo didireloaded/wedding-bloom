@@ -1,163 +1,118 @@
 // @ts-nocheck
-// ForeverVow Supabase Data Layer
-// Production cloud database layer with live Supabase database operations.
+// ForeverVow — Supabase-backed data cache.
+// No localStorage mock persistence, no seed data. Every read/write hits Supabase.
+// The `store` API is kept only as a compatibility surface for legacy dashboards.
 import { supabase } from "@/utils/supabase";
 import * as Types from "@/types/wedding";
-
 
 export type Wedding = Types.Wedding;
 export type WeddingEvent = Types.WeddingEvent;
 export type Accommodation = Types.Accommodation;
-export type VenueMarker = Types.VenueMarker;
 export type GalleryItem = Types.GalleryItem;
 export type WeddingUpdate = Types.WeddingUpdate;
 export type GuestPhoto = Types.GuestPhoto;
 export type GuestMoment = Types.GuestMoment;
 export type Checkin = Types.Checkin;
 export type RSVP = Types.RSVP;
-export type BudgetItem = Types.BudgetItem;
-export type VendorItem = Types.VendorItem;
-export type MoodItem = Types.MoodItem;
-export type GiftItem = Types.GiftItem;
-export type TaskItem = Types.TaskItem;
-export type TableItem = Types.TableItem;
-export type RunSheetItem = Types.RunSheetItem;
-export type BroadcastItem = Types.BroadcastItem;
 
-export type TableName =
-  | "weddings"
-  | "events"
-  | "accommodations"
-  | "venue_markers"
-  | "gallery"
-  | "guest_photos"
-  | "rsvps"
-  | "guest_moments"
-  | "checkins"
-  | "updates"
-  | "tasks"
-  | "tables"
-  | "run_sheet"
-  | "broadcasts"
-  | "budgets"
-  | "vendors"
-  | "mood_items"
-  | "gifts";
+// Only real Supabase tables. Deprecated legacy names return empty arrays.
+const REAL_TABLES = [
+  "weddings", "events", "accommodations", "gallery", "guest_photos",
+  "rsvps", "wedding_moments", "checkins", "wedding_updates",
+  "guestbook", "vendors", "seating_tables", "seating_assignments",
+  "themes", "wedding_analytics", "moment_reactions", "live_updates",
+] as const;
 
-type Listener = (row?: any, event?: string) => void;
+const LEGACY_ALIAS: Record<string, string> = {
+  updates: "wedding_updates",
+  guest_moments: "wedding_moments",
+  tables: "seating_tables",
+};
 
-const TABLES: TableName[] = [
-  "weddings",
-  "events",
-  "accommodations",
-  "venue_markers",
-  "gallery",
-  "guest_photos",
-  "rsvps",
-  "guest_moments",
-  "checkins",
-  "updates",
-  "tasks",
-  "tables",
-  "run_sheet",
-  "broadcasts",
-  "budgets",
-  "vendors",
-  "mood_items",
-  "gifts"
-];
+type TableName = string;
 
 const cache: Record<string, any[]> = {};
-TABLES.forEach(t => { cache[t] = []; });
+const listeners = new Map<string, Set<(row?: any, event?: string) => void>>();
 
-const listeners = new Map<TableName, Set<Listener>>();
+function resolve(t: string) { return LEGACY_ALIAS[t] || t; }
 
-function emit(table: TableName, row: any, event: "INSERT" | "UPDATE" | "DELETE") {
+function emit(table: string) {
   const subs = listeners.get(table);
-  if (!subs) return;
-  subs.forEach((fn) => {
-    try { fn(row, event); } catch {}
-  });
+  if (subs) subs.forEach(fn => { try { fn(); } catch {} });
 }
 
-// Initial fetch from Supabase
 let initialized = false;
 async function initStore() {
   if (initialized) return;
   initialized = true;
-  for (const t of TABLES) {
-    supabase.from(t).select("*").then(({ data }) => {
-      if (data) {
-        cache[t] = data;
-        emit(t, null, "UPDATE");
-      }
-    }).catch(() => {});
+  for (const t of REAL_TABLES) {
+    const { data } = await supabase.from(t).select("*");
+    cache[t] = data || [];
+    // Emit under legacy aliases too
+    emit(t);
+    for (const [alias, real] of Object.entries(LEGACY_ALIAS)) if (real === t) emit(alias);
   }
 }
 initStore();
 
 export const store = {
-  subscribe(table: TableName, fn: Listener) {
+  subscribe(table: TableName, fn: (row?: any, event?: string) => void) {
     if (!listeners.has(table)) listeners.set(table, new Set());
     listeners.get(table)!.add(fn);
     return () => { listeners.get(table)?.delete(fn); };
   },
 
   all<T = any>(table: TableName): T[] {
-    return (cache[table] || []) as T[];
+    const real = resolve(table);
+    return (cache[real] || []) as T[];
   },
 
   find<T = any>(table: TableName, predicate: (row: T) => boolean): T | undefined {
-    return (cache[table] || []).find(predicate);
+    return (this.all<T>(table)).find(predicate);
   },
 
   where<T = any>(table: TableName, predicate: (row: T) => boolean): T[] {
-    return (cache[table] || []).filter(predicate);
+    return (this.all<T>(table)).filter(predicate);
   },
 
   insert<T extends Record<string, any>>(table: TableName, row: T): T {
-    const full = { ...row, id: row.id || crypto.randomUUID(), created_at: new Date().toISOString() };
-    if (!cache[table]) cache[table] = [];
-    cache[table].push(full);
-    emit(table, full, "INSERT");
-    // Async insert to Supabase
-    supabase.from(table).insert([full]).then(({ error }) => {
-      if (error) console.error(`Supabase insert error on ${table}:`, error.message);
-    }).catch(() => {});
+    const real = resolve(table);
+    if (!REAL_TABLES.includes(real as any)) return row;
+    const full = { ...row, id: row.id || crypto.randomUUID(), created_at: row.created_at || new Date().toISOString() };
+    if (!cache[real]) cache[real] = [];
+    cache[real].push(full);
+    emit(real); emit(table);
+    supabase.from(real).insert([full]).then(({ data, error }) => {
+      if (error) { console.error(`insert ${real}:`, error.message); return; }
+      if (data && data[0]) {
+        const i = cache[real].findIndex(r => r.id === full.id);
+        if (i >= 0) cache[real][i] = data[0];
+        emit(real); emit(table);
+      }
+    });
     return full as T;
   },
 
   update<T = any>(table: TableName, id: string, patch: Partial<T>): T | undefined {
-    const rows = cache[table] || [];
+    const real = resolve(table);
+    if (!REAL_TABLES.includes(real as any)) return undefined;
+    const rows = cache[real] || [];
     const idx = rows.findIndex((r: any) => r.id === id);
-    if (idx < 0) return undefined;
-    rows[idx] = { ...rows[idx], ...patch };
-    emit(table, rows[idx], "UPDATE");
-    // Async update to Supabase
-    supabase.from(table).update(patch).eq("id", id).then(({ error }) => {
-      if (error) console.error(`Supabase update error on ${table}:`, error.message);
-    }).catch(() => {});
+    if (idx >= 0) { rows[idx] = { ...rows[idx], ...patch }; emit(real); emit(table); }
+    supabase.from(real).update(patch).eq("id", id).then(({ error }) => {
+      if (error) console.error(`update ${real}:`, error.message);
+    });
     return rows[idx];
   },
 
   remove(table: TableName, id: string) {
-    const rows = cache[table] || [];
+    const real = resolve(table);
+    if (!REAL_TABLES.includes(real as any)) return;
+    const rows = cache[real] || [];
     const idx = rows.findIndex((r: any) => r.id === id);
-    if (idx >= 0) {
-      const [removed] = rows.splice(idx, 1);
-      emit(table, removed, "DELETE");
-      // Async delete from Supabase
-      supabase.from(table).delete().eq("id", id).then(({ error }) => {
-        if (error) console.error(`Supabase remove error on ${table}:`, error.message);
-      }).catch(() => {});
-    }
-  },
-
-  refreshSession() {
-    location.reload();
-  },
-
-  isAdmin(email: string, password: string) {
-    return email === "admin@forevervow.app" && password === "vows2026";
+    if (idx >= 0) { rows.splice(idx, 1); emit(real); emit(table); }
+    supabase.from(real).delete().eq("id", id).then(({ error }) => {
+      if (error) console.error(`remove ${real}:`, error.message);
+    });
   },
 };

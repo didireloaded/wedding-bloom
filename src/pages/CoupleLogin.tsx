@@ -4,80 +4,58 @@ import { motion } from "framer-motion";
 import { ArrowLeft, KeyRound, Info, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/utils/supabase";
-import { store } from "@/store/weddingStore";
 import { GlassCard } from "@/components/ui/GlassCard";
 
+/**
+ * Couple portal login — pure Supabase.
+ * Verifies the 8-char access_code against the weddings table and stores the
+ * matching wedding id/slug in sessionStorage for the couple dashboard.
+ */
 export default function CoupleLogin() {
   const [code, setCode] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
-    async function checkSession() {
-      const sessionId = localStorage.getItem("couple_wedding_id") || sessionStorage.getItem("couple_wedding_id");
-      if (sessionId) {
-        let wedding = store.find("weddings", (w: any) => w.id === sessionId);
-        if (!wedding) {
-          const { data } = await supabase.from("weddings").select("*").eq("id", sessionId).single();
-          if (data) wedding = data;
-        }
-        if (wedding) {
-          navigate(`/couple/${wedding.slug}/dashboard`, { replace: true });
-        }
-      }
-    }
-    checkSession();
+    const slug = sessionStorage.getItem("couple_wedding_slug") || localStorage.getItem("couple_wedding_slug");
+    if (slug) navigate(`/couple/${slug}/dashboard`, { replace: true });
   }, [navigate]);
 
-  const submitCode = async (c: string) => {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const normalized = code.trim();
+    if (!normalized) return;
     setSubmitting(true);
-    const normalized = c.trim().toUpperCase();
-    let wedding = store.find("weddings", (w: any) => w.access_code?.toUpperCase() === normalized);
-    if (!wedding) {
-      const { data } = await supabase.from("weddings").select("*").eq("access_code", normalized).single();
-      if (data) wedding = data;
-    }
-    
-    if (!wedding && normalized === "FV2026") {
-      wedding = store.find("weddings", (w: any) => w.id === "preview-1") || {
-        id: "preview-1",
-        slug: "amelia-daniel-2026",
-        access_code: "FV2026",
-        couple_names: "Amelia & Daniel"
-      };
-    }
-    
-    if (!wedding) {
-      toast.error("Invalid Couple Access Code. Please verify your code.");
+
+    // Match case-insensitively (Postgres ilike)
+    const { data, error } = await supabase
+      .from("weddings")
+      .select("id, slug, couple_names, access_code")
+      .ilike("access_code", normalized)
+      .maybeSingle();
+
+    if (error || !data) {
+      toast.error("Invalid access code. Please verify with your coordinator.");
       setSubmitting(false);
       return;
     }
-    localStorage.setItem("couple_wedding_id", wedding.id);
-    localStorage.setItem("couple_wedding_slug", wedding.slug);
-    localStorage.setItem("couple_access_code", normalized);
-    sessionStorage.setItem("couple_wedding_id", wedding.id);
-    sessionStorage.setItem("couple_wedding_slug", wedding.slug);
-    sessionStorage.setItem("couple_access_code", normalized);
-    toast.success(`Welcome to ${wedding.couple_names}!`);
-    navigate(`/couple/${wedding.slug}/dashboard`);
-    setSubmitting(false);
-  };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!code.trim()) return;
-    submitCode(code);
+    sessionStorage.setItem("couple_wedding_id", data.id);
+    sessionStorage.setItem("couple_wedding_slug", data.slug);
+    sessionStorage.setItem("couple_access_code", data.access_code);
+    localStorage.setItem("couple_wedding_id", data.id);
+    localStorage.setItem("couple_wedding_slug", data.slug);
+    localStorage.setItem("couple_access_code", data.access_code);
+    toast.success(`Welcome, ${data.couple_names}!`);
+    navigate(`/couple/${data.slug}/dashboard`);
+    setSubmitting(false);
   };
 
   return (
     <div className="min-h-screen bg-[#09090B] text-[#FAFAFA] flex flex-col justify-center items-center px-4 relative overflow-hidden">
-      {/* Cinematic Ambient Glows */}
       <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-to-tr from-[#EAB308]/15 via-[#EAB308]/5 to-transparent rounded-full blur-3xl pointer-events-none" />
 
-      <Link
-        to="/"
-        className="absolute top-8 left-8 inline-flex items-center gap-2 text-[13px] font-semibold text-[#A1A1AA] hover:text-[#FAFAFA] transition-colors z-20"
-      >
+      <Link to="/" className="absolute top-8 left-8 inline-flex items-center gap-2 text-[13px] font-semibold text-[#A1A1AA] hover:text-[#FAFAFA] transition-colors z-20">
         <ArrowLeft size={16} className="text-[#EAB308]" /> Return to ForeverVow Home
       </Link>
 
@@ -97,7 +75,7 @@ export default function CoupleLogin() {
           </p>
           <h1 className="display text-[36px] text-[#FAFAFA] leading-tight mb-2">Celebration Access</h1>
           <p className="text-[14px] text-[#A1A1AA] mb-8 max-w-xs mx-auto">
-            Enter your private access code to launch your live celebration dashboard.
+            Enter your private access code to open your celebration dashboard.
           </p>
 
           <form onSubmit={handleSubmit} className="space-y-5 text-left">
@@ -111,16 +89,11 @@ export default function CoupleLogin() {
                 placeholder="ENTER 8-DIGIT CODE"
                 autoFocus
                 className="w-full bg-white/[0.04] border border-white/[0.15] rounded-[20px] py-4 px-4 text-[20px] font-mono font-bold text-center tracking-[0.24em] uppercase text-[#EAB308] focus:outline-none focus:border-[#EAB308] focus:ring-4 focus:ring-[#EAB308]/15 transition-all placeholder:text-[#52525B]"
-                maxLength={12}
+                maxLength={16}
               />
             </div>
-
-            <button
-              type="submit"
-              disabled={submitting}
-              className="w-full fv-btn-primary !py-4 text-[14px] shadow-lg disabled:opacity-50"
-            >
-              {submitting ? "Launching Dashboard…" : "Launch Couple Dashboard"}
+            <button type="submit" disabled={submitting} className="w-full fv-btn-primary !py-4 text-[14px] shadow-lg disabled:opacity-50">
+              {submitting ? "Verifying…" : "Launch Couple Dashboard"}
             </button>
           </form>
 
@@ -129,7 +102,7 @@ export default function CoupleLogin() {
               <Info size={18} className="text-[#EAB308] shrink-0 mt-0.5" />
               <div className="text-[12px] text-[#A1A1AA] leading-relaxed">
                 <strong className="text-[#FAFAFA] block mb-0.5">Where do I find my code?</strong>
-                Your staff coordinator sent your access code (Couple Name + 4 digits) when setting up your celebration profile.
+                Your coordinator sent your access code when your wedding was created.
               </div>
             </div>
           </div>
