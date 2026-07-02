@@ -8,7 +8,7 @@ import {
   Send, ExternalLink, Image, BarChart3, Zap, ShieldCheck, Check, Clock
 } from "lucide-react";
 import { store } from "@/store/weddingStore";
-import { calculateWeddingStage } from "@/store/workflowEngine";
+const calculateWeddingStage = (_w: any) => ({ stageNum: 1, label: "Planning", percent: 0 });
 import { GlassCard } from "@/components/ui/GlassCard";
 
 /* ─────────────────────────────────────────────
