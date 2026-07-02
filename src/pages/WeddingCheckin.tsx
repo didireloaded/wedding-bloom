@@ -4,9 +4,12 @@ import { motion } from "framer-motion";
 import { Flower2, CheckCircle2, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/utils/supabase";
-import { store } from "@/store/weddingStore";
 import { GlassCard } from "@/components/ui/GlassCard";
 
+/**
+ * Guest self-check-in page — pure Supabase.
+ * Fuzzy-matches the entered name against the RSVP list for a warmer welcome.
+ */
 export default function WeddingCheckin() {
   const { slug } = useParams();
   const [wedding, setWedding] = useState<any>(null);
@@ -17,42 +20,35 @@ export default function WeddingCheckin() {
   const [rsvpMatch, setRsvpMatch] = useState<any>(null);
 
   useEffect(() => {
-    async function fetchWedding() {
+    async function run() {
       if (!slug) { setLoading(false); return; }
-      let matched = store.find("weddings", (item: any) => item.slug === slug);
-      if (!matched) {
-        const { data } = await supabase.from("weddings").select("*").eq("slug", slug).single();
-        if (data) matched = data;
-      }
-      if (!matched && (slug === "amelia-daniel-2026" || slug === "preview" || slug === "demo")) {
-        matched = store.find("weddings", (item: any) => item.id === "preview-1");
-      }
-      setWedding(matched ?? null);
+      const { data } = await supabase.from("weddings").select("*").eq("slug", slug).maybeSingle();
+      setWedding(data ?? null);
       setLoading(false);
     }
-    fetchWedding();
+    run();
   }, [slug]);
 
   const handleCheckin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) { toast.error("Please enter your name"); return; }
+    if (!wedding?.id) return;
     setSubmitting(true);
-    
-    let match = null;
-    if (wedding?.id) {
-      const { data: rsvps } = await supabase.from("rsvps").select("*").eq("wedding_id", wedding.id);
-      if (rsvps && rsvps.length) {
-        const normalized = name.trim().toLowerCase();
-        match = rsvps.find(r => r.guest_name.toLowerCase() === normalized) ||
-                rsvps.find(r => r.guest_name.toLowerCase().includes(normalized) || normalized.includes(r.guest_name.toLowerCase()));
-      }
-      await supabase.from("checkins").insert([{
-        wedding_id: wedding.id,
-        guest_name: name.trim(),
-        created_at: new Date().toISOString(),
-      }]);
+
+    const { data: rsvps } = await supabase.from("rsvps").select("*").eq("wedding_id", wedding.id);
+    let match: any = null;
+    if (rsvps?.length) {
+      const norm = name.trim().toLowerCase();
+      match = rsvps.find(r => r.guest_name?.toLowerCase() === norm) ||
+              rsvps.find(r => r.guest_name?.toLowerCase().includes(norm) || norm.includes(r.guest_name?.toLowerCase() || ""));
     }
-    
+
+    await supabase.from("checkins").insert([{
+      wedding_id: wedding.id,
+      guest_name: name.trim(),
+      created_at: new Date().toISOString(),
+    }]);
+
     setRsvpMatch(match);
     setCheckedIn(true);
     setSubmitting(false);
@@ -61,7 +57,7 @@ export default function WeddingCheckin() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#FAF7F2]">
-        <div className="w-12 h-12 mx-auto border-2 border-[#C5A059] border-t-transparent rounded-full animate-spin"></div>
+        <div className="w-12 h-12 mx-auto border-2 border-[#C5A059] border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -84,10 +80,7 @@ export default function WeddingCheckin() {
         <ArrowLeft size={16}/> Return to Celebration
       </Link>
 
-      <motion.div
-        initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-lg"
-      >
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-lg">
         <GlassCard variant="crystal" padding="xl" className="border border-[#E5DEC9] shadow-2xl text-center">
           <div className="mx-auto w-16 h-16 rounded-full bg-[#2C2926] text-[#C5A059] flex items-center justify-center mb-6 shadow-md">
             <Flower2 size={24} />
@@ -98,7 +91,7 @@ export default function WeddingCheckin() {
               <p className="wedding-label mb-2">Self Check-in Portal</p>
               <h1 className="display text-[44px] text-[#2C2926] mb-2">{wedding.couple_names}</h1>
               {wedding.ceremony_venue && <p className="text-[14px] text-[#726C65] font-serif mb-8">{wedding.ceremony_venue}</p>}
-              
+
               <form onSubmit={handleCheckin} className="space-y-6">
                 <div>
                   <label className="wedding-label block mb-3">Please State Your Name</label>
@@ -120,7 +113,7 @@ export default function WeddingCheckin() {
               </div>
               <p className="wedding-label mb-1">Checked In</p>
               <h2 className="display text-[38px] text-[#2C2926] mb-6">Welcome to the Celebration!</h2>
-              
+
               {rsvpMatch ? (
                 <div className="bg-white rounded-[20px] border border-[#E5DEC9] p-6 text-left shadow-sm">
                   <div className="text-[17px] text-[#2C2926] font-semibold">Verified Guest: <strong>{rsvpMatch.guest_name}</strong></div>
@@ -130,7 +123,7 @@ export default function WeddingCheckin() {
                   </div>
                   {rsvpMatch.attending === false && (
                     <div className="mt-4 text-[13px] text-[#C97B7B] bg-[#C97B7B]/10 rounded-xl p-3 border border-[#C97B7B]/20">
-                      Notice: Your RSVP was previously logged as declined — please verify with our reception staff if needed.
+                      Notice: Your RSVP was previously logged as declined — please verify with reception staff.
                     </div>
                   )}
                 </div>
@@ -140,7 +133,7 @@ export default function WeddingCheckin() {
                   <span className="text-[12px] text-[#A37C4D] font-mono mt-1 block">Unregistered name — check with reception desk if seating is assigned.</span>
                 </div>
               )}
-              
+
               <Link to={`/wedding/${slug}`} className="mt-8 inline-block fv-btn-ghost !py-2.5 !px-6 text-[12px]">
                 Open Digital Invitation
               </Link>
