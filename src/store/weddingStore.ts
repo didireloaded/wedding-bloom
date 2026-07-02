@@ -2,7 +2,7 @@
 // Production cloud database layer with live Supabase database operations.
 import { supabase } from "@/utils/supabase";
 import * as Types from "@/types/wedding";
-import { siteContent } from "@/config/siteContent";
+
 
 export type Wedding = Types.Wedding;
 export type WeddingEvent = Types.WeddingEvent;
@@ -66,43 +66,8 @@ const TABLES: TableName[] = [
   "gifts"
 ];
 
-const defaultPreviewWeddings: any[] = [
-  {
-    id: "preview-1",
-    slug: "amelia-daniel-2026",
-    access_code: "FV2026",
-    couple_names: siteContent.coupleNames || "Amelia & Daniel",
-    wedding_date: siteContent.weddingDateISO.split("T")[0],
-    ceremony_time: "16:00",
-    ceremony_venue: siteContent.venue.defaultCeremonyVenue,
-    venue_address: siteContent.venue.defaultVenueAddress,
-    cover_image: "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1600&q=80",
-    hero_image: "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1600&q=80",
-    story: "Our journey began years ago and has blossomed into an everlasting promise of love and adventure.",
-    dress_code: "Black Tie Optional — Soft champagne & neutral florals",
-    hashtag: "#ForeverVow2026",
-    published: true,
-    legacy_mode: false,
-    theme: { vibe: "Romantic & Elegant" },
-    created_at: new Date().toISOString(),
-  }
-];
-
-const defaultPreviewEvents: any[] = siteContent.timeline.defaultEvents.map((ev, idx) => ({
-  id: ev.id || `ev-${idx}`,
-  wedding_id: "preview-1",
-  title: ev.title,
-  description: ev.description,
-  location: ev.location,
-  event_date: ev.event_date,
-  event_time: ev.event_time,
-  sort_order: idx + 1
-}));
-
 const cache: Record<string, any[]> = {};
 TABLES.forEach(t => { cache[t] = []; });
-cache["weddings"] = [...defaultPreviewWeddings];
-cache["events"] = [...defaultPreviewEvents];
 
 const listeners = new Map<TableName, Set<Listener>>();
 
@@ -121,16 +86,8 @@ async function initStore() {
   initialized = true;
   for (const t of TABLES) {
     supabase.from(t).select("*").then(({ data }) => {
-      if (data && data.length > 0) {
-        if (t === "weddings") {
-          const existingIds = new Set(data.map((r: any) => r.id));
-          cache[t] = [...data, ...defaultPreviewWeddings.filter(pw => !existingIds.has(pw.id))];
-        } else if (t === "events") {
-          const existingIds = new Set(data.map((r: any) => r.id));
-          cache[t] = [...data, ...defaultPreviewEvents.filter(pe => !existingIds.has(pe.id))];
-        } else {
-          cache[t] = data;
-        }
+      if (data) {
+        cache[t] = data;
         emit(t, null, "UPDATE");
       }
     }).catch(() => {});
