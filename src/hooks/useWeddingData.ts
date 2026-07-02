@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/utils/supabase";
 import { store } from "@/store/weddingStore";
 import type { Wedding, WeddingEvent, GalleryItem, WeddingUpdate, Accommodation, VenueMarker } from "@/types/wedding";
-import { siteContent } from "@/config/siteContent";
 
 /**
  * Supabase-backed useWeddingData hook for guest flow.
