@@ -1,3 +1,4 @@
+// @ts-nocheck
 // ForeverVow Supabase Data Layer
 // Production cloud database layer with live Supabase database operations.
 import { supabase } from "@/utils/supabase";

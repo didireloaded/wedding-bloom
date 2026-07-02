@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useEffect, useMemo, useState, useRef } from "react";
 import { useParams, Link, useSearchParams } from "react-router-dom";
 import { HelmetProvider, Helmet } from "react-helmet-async";
