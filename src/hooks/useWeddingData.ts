@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/utils/supabase";
 import { store } from "@/store/weddingStore";
 import type { Wedding, WeddingEvent, GalleryItem, WeddingUpdate, Accommodation, VenueMarker } from "@/types/wedding";
-import { siteContent } from "@/config/siteContent";
 
 /**
  * Supabase-backed useWeddingData hook for guest flow.
@@ -46,51 +45,6 @@ export function useWeddingData(slug: string | undefined) {
         setUpdates((updRes.data || []) as WeddingUpdate[]);
         setAccommodations((accRes.data || []) as Accommodation[]);
         setMarkers((mrkRes.data || []) as VenueMarker[]);
-      } else if (slug === "amelia-daniel-2026" || slug === "preview" || slug === "demo") {
-        // Showcase template preview data when exploring sample design
-        setWedding({
-          id: "preview-1",
-          slug: slug,
-          access_code: "FV2026",
-          couple_names: siteContent.coupleNames || "Amelia & Daniel",
-          wedding_date: siteContent.weddingDateISO.split("T")[0],
-          ceremony_time: "16:00",
-          ceremony_venue: siteContent.venue.defaultCeremonyVenue,
-          venue_address: siteContent.venue.defaultVenueAddress,
-          venue_map_url: "https://images.unsplash.com/photo-1541123437800-1bb1317badc2?auto=format&fit=crop&w=1200&q=80",
-          cover_image: "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1600&q=80",
-          hero_image: "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1600&q=80",
-          story: "Our journey began years ago and has blossomed into an everlasting promise of love and adventure.",
-          dress_code: "Black Tie Optional — Soft champagne & neutral florals",
-          hashtag: "#AmeliaAndDaniel2026",
-          published: true,
-          legacy_mode: false,
-          soundtrack_url: null,
-          theme: { vibe: "Romantic & Elegant" },
-          created_at: new Date().toISOString()
-        });
-        setEvents(siteContent.timeline.defaultEvents.map((t, i) => ({
-          id: `ev-${i}`,
-          wedding_id: "preview-1",
-          title: t.title,
-          description: t.description,
-          location: t.location,
-          event_date: siteContent.weddingDateISO.split("T")[0],
-          event_time: t.event_time,
-          sort_order: i
-        })));
-        setAccommodations([
-          {
-            id: "acc-1",
-            wedding_id: "preview-1",
-            name: "Relais de Chambord Grand Hotel",
-            price: "From €280/night",
-            distance: "On Estate Grounds (0.2 mi)",
-            booking_url: "https://www.relaisdechambord.com",
-            photo_url: "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=80",
-            phone: null
-          }
-        ]);
       }
       setLoading(false);
     }

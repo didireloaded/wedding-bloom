@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useState } from "react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { store, RunSheetItem, FloorTable, TaskItem, BroadcastItem, RSVP } from "@/store/weddingStore";

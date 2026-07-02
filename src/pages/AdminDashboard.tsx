@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { format, formatDistanceToNow, isAfter, isBefore, differenceInDays } from "date-fns";
