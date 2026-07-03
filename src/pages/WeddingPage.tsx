@@ -71,8 +71,8 @@ function RSVPForm({ wedding, isPreview }: { wedding: any; isPreview?: boolean })
       submitted_at: new Date().toISOString(),
     };
 
-    store.insert("rsvps", payload);
-    await submitRSVPToBackend(payload);
+    const res = await submitRSVPToBackend(payload);
+    if (!res.success) { toast.error(res.error || "Could not submit RSVP"); setLoading(false); return; }
     setLoading(false);
     setSubmitted(true);
     toast.success(form.attending === "yes" ? "RSVP Confirmed! ✨" : "RSVP Received", {

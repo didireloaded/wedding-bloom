@@ -8,7 +8,20 @@ import {
   Send, ExternalLink, Image, BarChart3, Zap, ShieldCheck, Check, Clock
 } from "lucide-react";
 import { store } from "@/store/weddingStore";
-const calculateWeddingStage = (_w: any) => ({ stageNum: 1, label: "Planning", percent: 0 });
+function calculateWeddingStage(w: any) {
+  const now = Date.now();
+  const wd = w?.wedding_date ? new Date(w.wedding_date + "T16:00:00").getTime() : null;
+  const daysUntil = wd ? Math.floor((wd - now) / 86400000) : null;
+  const daysAfter = wd ? Math.floor((now - wd) / 86400000) : null;
+  const isLegacyMode = !!(daysAfter && daysAfter > 7);
+  let stageNumber = 1, stageName = "Dream", progressPercent = 10;
+  if (w?.published) { stageNumber = 3; stageName = "Published"; progressPercent = 45; }
+  else if (w?.couple_names && w?.wedding_date) { stageNumber = 2; stageName = "Planning"; progressPercent = 25; }
+  if (daysUntil !== null && daysUntil <= 60 && w?.published) { stageNumber = 4; stageName = "RSVPs"; progressPercent = 65; }
+  if (daysUntil !== null && daysUntil <= 7 && daysUntil >= -1) { stageNumber = 5; stageName = "Live Week"; progressPercent = 85; }
+  if (isLegacyMode) { stageNumber = 6; stageName = "Memory Book"; progressPercent = 100; }
+  return { stageNumber, stageName, progressPercent, isLegacyMode };
+}
 import { GlassCard } from "@/components/ui/GlassCard";
 
 /* ─────────────────────────────────────────────
