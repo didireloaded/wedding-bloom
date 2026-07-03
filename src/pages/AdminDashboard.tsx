@@ -15,6 +15,8 @@ import { toast } from "sonner";
 import { store } from "@/store/weddingStore";
 import { ConfirmModal } from "@/components/ui/ConfirmModal";
 import { GlassCard } from "@/components/ui/GlassCard";
+import { QRCodeModal } from "@/components/wedding/QRCodeModal";
+import { supabase } from "@/utils/supabase";
 import { getStatusStyle } from "@/utils/designSystem";
 
 type StatusFilter = "all" | "draft" | "published" | "upcoming" | "completed" | "archived";
@@ -76,12 +78,11 @@ export default function AdminDashboard() {
   const [newDate, setNewDate] = useState("");
   const [newVenue, setNewVenue] = useState("");
   const [deleteWeddingConfirm, setDeleteWeddingConfirm] = useState<any | null>(null);
+  const [qrWedding, setQrWedding] = useState<any | null>(null);
 
   useEffect(() => {
-    if (!sessionStorage.getItem("wb_admin") && !localStorage.getItem("wb_admin")) {
-      navigate("/admin/login");
-      return;
-    }
+    // ProtectedAdminRoute already verified the Supabase session + admin role.
+    // Refresh data here.
     refresh();
     const offWeddings = store.subscribe("weddings", refresh);
     const offRsvps = store.subscribe("rsvps", refresh);
