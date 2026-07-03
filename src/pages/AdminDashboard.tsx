@@ -906,6 +906,9 @@ export default function AdminDashboard() {
                                 <Link to={`/wedding/${w.slug}?preview=1`} target="_blank" className="w-10 h-10 min-w-[40px] min-h-[40px] flex items-center justify-center rounded-lg hover:bg-white/[0.08] text-[#A8A29E]" title="Preview Site">
                                   <ExternalLink size={14} />
                                 </Link>
+                                <button onClick={() => setQrWedding(w)} className="w-10 h-10 min-w-[40px] min-h-[40px] flex items-center justify-center rounded-lg hover:bg-white/[0.08] text-[#A8A29E]" title="Show Guest QR Code">
+                                  <QrCode size={14} />
+                                </button>
                                 <button onClick={() => togglePublish(w)} className="w-10 h-10 min-w-[40px] min-h-[40px] flex items-center justify-center rounded-lg hover:bg-white/[0.08] text-[#A8A29E]" title="Toggle Publish">
                                   {w.published ? (<EyeOff size={14} />) : (<Eye size={14} />)}
                                 </button>
