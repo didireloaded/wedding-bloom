@@ -1,7 +1,7 @@
 // @ts-nocheck
 import { useEffect, useMemo, useState, useRef } from "react";
 import { useParams, Link, useSearchParams } from "react-router-dom";
-import { HelmetProvider, Helmet } from "react-helmet-async";
+import { Helmet } from "react-helmet-async";
 import { Eye, Calendar, MapPin, Heart, Clock, Camera, Send, Sparkles, Flower2, Mail, MessageCircle, X, Gift, Users, ArrowRight, Menu, Plane, Train, Car, Navigation, ShieldCheck, CheckCircle2, Radio, Compass } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
@@ -445,12 +445,32 @@ export default function WeddingPage() {
   const daysAway = differenceInDays(new Date(targetDateStr + "T16:00:00"), new Date());
   const timelineEvents = events.length > 0 ? events : siteContent.timeline.defaultEvents;
 
+  const pageUrl = `${window.location.origin}/wedding/${wedding.slug}`;
+  const shareTitle = `${wedding.couple_names} — Wedding Invitation`;
+  const shareDescription = `You're invited to ${wedding.couple_names}'s celebration${wedding.wedding_date ? ` on ${weddingDate}` : ""}${wedding.ceremony_venue ? ` at ${wedding.ceremony_venue}` : ""}.`;
+  const shareImage = wedding.cover_image || wedding.story_image || wedding.rsvp_image || undefined;
+
   return (
-    <HelmetProvider>
+    <>
       <Helmet>
-        <title>{wedding.couple_names} — ForeverVow</title>
-        <meta name="description" content={`You're invited to ${wedding.couple_names}'s celebration${wedding.wedding_date ? ` on ${weddingDate}` : ""}.`} />
-        {wedding.cover_image && <meta property="og:image" content={wedding.cover_image} />}
+        <title>{shareTitle}</title>
+        <meta name="description" content={shareDescription} />
+        <link rel="canonical" href={pageUrl} />
+
+        {/* Open Graph — WhatsApp, Facebook, LinkedIn, iMessage */}
+        <meta property="og:type" content="website" />
+        <meta property="og:site_name" content="ForeverVow" />
+        <meta property="og:url" content={pageUrl} />
+        <meta property="og:title" content={shareTitle} />
+        <meta property="og:description" content={shareDescription} />
+        {shareImage && <meta property="og:image" content={shareImage} />}
+        {shareImage && <meta property="og:image:alt" content={`${wedding.couple_names} wedding invitation`} />}
+
+        {/* Twitter / X */}
+        <meta name="twitter:card" content={shareImage ? "summary_large_image" : "summary"} />
+        <meta name="twitter:title" content={shareTitle} />
+        <meta name="twitter:description" content={shareDescription} />
+        {shareImage && <meta name="twitter:image" content={shareImage} />}
       </Helmet>
 
       <div className="min-h-screen bg-[#FAF7F2] text-[#2C2926]">
@@ -1164,6 +1184,6 @@ export default function WeddingPage() {
           </>
         )}
       </div>
-    </HelmetProvider>
+    </>
   );
 }
