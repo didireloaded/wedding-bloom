@@ -1166,11 +1166,21 @@ export default function AdminDashboard() {
                   <button onClick={() => { localStorage.setItem("couple_wedding_id", detailWedding.id); localStorage.setItem("couple_wedding_slug", detailWedding.slug); window.open(`/couple/${detailWedding.slug}/dashboard`, "_blank"); }} className="flex-1 fv-btn-ghost py-3 text-[12px]">Launch Couple Dashboard</button>
                   <Link to={`/wedding/${detailWedding.slug}?preview=1`} target="_blank" className="flex-1 fv-btn-ghost py-3 text-[12px] text-center">Preview Guest Site</Link>
                 </div>
+                <button onClick={() => setQrWedding(detailWedding)} className="w-full fv-btn-ghost py-3 text-[12px] flex items-center justify-center gap-2 border border-[#D4A853]/30 text-[#D4A853] hover:bg-[#D4A853]/10">
+                  <QrCode size={15} /> Show Guest QR Code
+                </button>
               </div>
             </div>
           </div>
         </div>
       )}
+
+      <QRCodeModal
+        open={!!qrWedding}
+        onClose={() => setQrWedding(null)}
+        slug={qrWedding?.slug || ""}
+        coupleNames={qrWedding?.couple_names}
+      />
 
       {/* Spotlight Search Modal */}
       {spotlightOpen && (
