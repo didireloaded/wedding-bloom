@@ -421,7 +421,8 @@ export default function AdminDashboard() {
     refresh();
   };
 
-  const logout = () => {
+  const logout = async () => {
+    await supabase.auth.signOut();
     sessionStorage.removeItem("wb_admin");
     localStorage.removeItem("wb_admin");
     navigate("/admin/login");
