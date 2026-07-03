@@ -2,6 +2,7 @@ import { BrowserRouter, Navigate, Routes, Route } from "react-router-dom";
 import { Toaster } from "sonner";
 import { lazy, Suspense } from "react";
 import { ErrorBoundary } from "@/components/ui/ErrorBoundary";
+import { ProtectedAdminRoute } from "@/components/auth/ProtectedAdminRoute";
 
 const Index = lazy(() => import("@/pages/Index"));
 const WeddingPage = lazy(() => import("@/pages/WeddingPage"));
@@ -67,7 +68,7 @@ export default function App() {
             <Route path="/admin" element={<AdminLogin />} />
             <Route path="/admin/login" element={<AdminLogin />} />
             <Route path="/admin-login" element={<Navigate to="/admin/login" replace />} />
-            <Route path="/admin/dashboard" element={<AdminDashboard />} />
+            <Route path="/admin/dashboard" element={<ProtectedAdminRoute><AdminDashboard /></ProtectedAdminRoute>} />
             <Route path="/admin-dashboard" element={<Navigate to="/admin/dashboard" replace />} />
             <Route path="/checkin/:slug" element={<WeddingCheckin />} />
             <Route path="/q/:slug" element={<QRRedirect />} />

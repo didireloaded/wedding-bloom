@@ -15,6 +15,8 @@ import { toast } from "sonner";
 import { store } from "@/store/weddingStore";
 import { ConfirmModal } from "@/components/ui/ConfirmModal";
 import { GlassCard } from "@/components/ui/GlassCard";
+import { QRCodeModal } from "@/components/wedding/QRCodeModal";
+import { supabase } from "@/utils/supabase";
 import { getStatusStyle } from "@/utils/designSystem";
 
 type StatusFilter = "all" | "draft" | "published" | "upcoming" | "completed" | "archived";
@@ -76,12 +78,11 @@ export default function AdminDashboard() {
   const [newDate, setNewDate] = useState("");
   const [newVenue, setNewVenue] = useState("");
   const [deleteWeddingConfirm, setDeleteWeddingConfirm] = useState<any | null>(null);
+  const [qrWedding, setQrWedding] = useState<any | null>(null);
 
   useEffect(() => {
-    if (!sessionStorage.getItem("wb_admin") && !localStorage.getItem("wb_admin")) {
-      navigate("/admin/login");
-      return;
-    }
+    // ProtectedAdminRoute already verified the Supabase session + admin role.
+    // Refresh data here.
     refresh();
     const offWeddings = store.subscribe("weddings", refresh);
     const offRsvps = store.subscribe("rsvps", refresh);
@@ -420,7 +421,8 @@ export default function AdminDashboard() {
     refresh();
   };
 
-  const logout = () => {
+  const logout = async () => {
+    await supabase.auth.signOut();
     sessionStorage.removeItem("wb_admin");
     localStorage.removeItem("wb_admin");
     navigate("/admin/login");
@@ -904,6 +906,9 @@ export default function AdminDashboard() {
                                 <Link to={`/wedding/${w.slug}?preview=1`} target="_blank" className="w-10 h-10 min-w-[40px] min-h-[40px] flex items-center justify-center rounded-lg hover:bg-white/[0.08] text-[#A8A29E]" title="Preview Site">
                                   <ExternalLink size={14} />
                                 </Link>
+                                <button onClick={() => setQrWedding(w)} className="w-10 h-10 min-w-[40px] min-h-[40px] flex items-center justify-center rounded-lg hover:bg-white/[0.08] text-[#A8A29E]" title="Show Guest QR Code">
+                                  <QrCode size={14} />
+                                </button>
                                 <button onClick={() => togglePublish(w)} className="w-10 h-10 min-w-[40px] min-h-[40px] flex items-center justify-center rounded-lg hover:bg-white/[0.08] text-[#A8A29E]" title="Toggle Publish">
                                   {w.published ? (<EyeOff size={14} />) : (<Eye size={14} />)}
                                 </button>
@@ -1164,11 +1169,21 @@ export default function AdminDashboard() {
                   <button onClick={() => { localStorage.setItem("couple_wedding_id", detailWedding.id); localStorage.setItem("couple_wedding_slug", detailWedding.slug); window.open(`/couple/${detailWedding.slug}/dashboard`, "_blank"); }} className="flex-1 fv-btn-ghost py-3 text-[12px]">Launch Couple Dashboard</button>
                   <Link to={`/wedding/${detailWedding.slug}?preview=1`} target="_blank" className="flex-1 fv-btn-ghost py-3 text-[12px] text-center">Preview Guest Site</Link>
                 </div>
+                <button onClick={() => setQrWedding(detailWedding)} className="w-full fv-btn-ghost py-3 text-[12px] flex items-center justify-center gap-2 border border-[#D4A853]/30 text-[#D4A853] hover:bg-[#D4A853]/10">
+                  <QrCode size={15} /> Show Guest QR Code
+                </button>
               </div>
             </div>
           </div>
         </div>
       )}
+
+      <QRCodeModal
+        open={!!qrWedding}
+        onClose={() => setQrWedding(null)}
+        slug={qrWedding?.slug || ""}
+        coupleNames={qrWedding?.couple_names}
+      />
 
       {/* Spotlight Search Modal */}
       {spotlightOpen && (
