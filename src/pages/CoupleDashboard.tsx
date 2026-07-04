@@ -13,6 +13,7 @@ import { store } from "@/store/weddingStore";
 import { ConfirmModal } from "@/components/ui/ConfirmModal";
 import { PromptModal } from "@/components/ui/PromptModal";
 import { GlassCard } from "@/components/ui/GlassCard";
+import { MobileBottomNav } from "@/components/nav/MobileBottomNav";
 import {
   CountdownWidget, HealthWidget, SummaryGrid, QuickActionsWidget,
   ActivityTimeline, InsightsWidget, NotificationCenter, WorkspaceSearch, unreadCount,
@@ -923,6 +924,15 @@ export default function CoupleDashboard() {
             refresh(); toast.success("Marker removed");
           }
         }}
+      />
+      <MobileBottomNav
+        items={[
+          { id: "workspace", label: "Home", icon: <Home size={20} />, active: tab === "workspace", onClick: () => { setTab("workspace"); setSidebarOpen(false); } },
+          { id: "rsvp", label: "RSVPs", icon: <UserCheck size={20} />, active: tab === "rsvp", badge: rsvps.length, onClick: () => { setTab("rsvp"); setSidebarOpen(false); } },
+          { id: "events", label: "Events", icon: <Calendar size={20} />, active: tab === "events", onClick: () => { setTab("events"); setSidebarOpen(false); } },
+          { id: "gallery", label: "Gallery", icon: <ImageIcon size={20} />, active: tab === "gallery", onClick: () => { setTab("gallery"); setSidebarOpen(false); } },
+          { id: "menu", label: sidebarOpen ? "Close" : "Menu", icon: sidebarOpen ? <X size={20} /> : <Menu size={20} />, onClick: () => setSidebarOpen((v) => !v) },
+        ]}
       />
     </div>
   );
