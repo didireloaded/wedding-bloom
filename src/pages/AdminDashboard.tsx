@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import { store } from "@/store/weddingStore";
 import { ConfirmModal } from "@/components/ui/ConfirmModal";
 import { GlassCard } from "@/components/ui/GlassCard";
+import { MobileBottomNav } from "@/components/nav/MobileBottomNav";
 import { QRCodeModal } from "@/components/wedding/QRCodeModal";
 import { supabase } from "@/utils/supabase";
 import { getStatusStyle } from "@/utils/designSystem";
