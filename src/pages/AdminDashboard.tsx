@@ -1222,6 +1222,15 @@ export default function AdminDashboard() {
           }
         }}
       />
+      <MobileBottomNav
+        items={[
+          { id: "home", label: "Home", icon: <Gauge size={20} />, active: !toolPanel, onClick: () => { setToolPanel(null); window.scrollTo({ top: 0, behavior: "smooth" }); } },
+          { id: "search", label: "Search", icon: <Search size={20} />, onClick: () => setSpotlightOpen(true) },
+          { id: "create", label: "Create", icon: <Plus size={22} />, accent: true, onClick: () => setShowCreate(true) },
+          { id: "reports", label: "Reports", icon: <BarChart3 size={20} />, active: toolPanel === "reports", onClick: () => setToolPanel("reports") },
+          { id: "signout", label: "Sign Out", icon: <LogOut size={20} />, onClick: logout },
+        ]}
+      />
     </div>
   );
 }
