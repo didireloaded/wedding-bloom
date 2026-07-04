@@ -13,6 +13,7 @@ import { store } from "@/store/weddingStore";
 import { ConfirmModal } from "@/components/ui/ConfirmModal";
 import { PromptModal } from "@/components/ui/PromptModal";
 import { GlassCard } from "@/components/ui/GlassCard";
+import { MobileBottomNav } from "@/components/nav/MobileBottomNav";
 import {
   CountdownWidget, HealthWidget, SummaryGrid, QuickActionsWidget,
   ActivityTimeline, InsightsWidget, NotificationCenter, WorkspaceSearch, unreadCount,
@@ -198,7 +199,7 @@ export default function CoupleDashboard() {
   const weddingUrl = `${window.location.origin}/wedding/${slug}`;
 
   return (
-    <div className="min-h-screen bg-[#0C0A09] text-[#FAF7F2] pb-24">
+    <div className="min-h-screen bg-[#0C0A09] text-[#FAF7F2] pb-28 md:pb-24">
       {/* Sticky Header Bar */}
       <header className="sticky top-0 z-30 glass-obsidian border-b border-white/[0.1] shadow-2xl">
         <div className="mx-auto max-w-[1520px] px-4 md:px-8 h-[74px] flex items-center gap-4">
@@ -923,6 +924,15 @@ export default function CoupleDashboard() {
             refresh(); toast.success("Marker removed");
           }
         }}
+      />
+      <MobileBottomNav
+        items={[
+          { id: "workspace", label: "Home", icon: <Home size={20} />, active: tab === "workspace", onClick: () => { setTab("workspace"); setSidebarOpen(false); } },
+          { id: "rsvp", label: "RSVPs", icon: <UserCheck size={20} />, active: tab === "rsvp", badge: rsvps.length, onClick: () => { setTab("rsvp"); setSidebarOpen(false); } },
+          { id: "events", label: "Events", icon: <Calendar size={20} />, active: tab === "events", onClick: () => { setTab("events"); setSidebarOpen(false); } },
+          { id: "gallery", label: "Gallery", icon: <ImageIcon size={20} />, active: tab === "gallery", onClick: () => { setTab("gallery"); setSidebarOpen(false); } },
+          { id: "menu", label: sidebarOpen ? "Close" : "Menu", icon: sidebarOpen ? <X size={20} /> : <Menu size={20} />, onClick: () => setSidebarOpen((v) => !v) },
+        ]}
       />
     </div>
   );

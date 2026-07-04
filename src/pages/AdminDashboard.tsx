@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import { store } from "@/store/weddingStore";
 import { ConfirmModal } from "@/components/ui/ConfirmModal";
 import { GlassCard } from "@/components/ui/GlassCard";
+import { MobileBottomNav } from "@/components/nav/MobileBottomNav";
 import { QRCodeModal } from "@/components/wedding/QRCodeModal";
 import { supabase } from "@/utils/supabase";
 import { getStatusStyle } from "@/utils/designSystem";
@@ -454,7 +455,7 @@ export default function AdminDashboard() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#0C0A09] text-[#FAF7F2] pb-20">
+    <div className="min-h-screen bg-[#0C0A09] text-[#FAF7F2] pb-24 md:pb-20">
       {/* Floating Top Navigation */}
       <header className="sticky top-4 z-40 mx-auto max-w-[1520px] px-4 md:px-8">
         <div className="glass-obsidian rounded-full h-[70px] px-6 flex items-center justify-between border border-white/[0.1] shadow-2xl">
@@ -1220,6 +1221,15 @@ export default function AdminDashboard() {
             setDeleteWeddingConfirm(null);
           }
         }}
+      />
+      <MobileBottomNav
+        items={[
+          { id: "home", label: "Home", icon: <Gauge size={20} />, active: !toolPanel, onClick: () => { setToolPanel(null); window.scrollTo({ top: 0, behavior: "smooth" }); } },
+          { id: "search", label: "Search", icon: <Search size={20} />, onClick: () => setSpotlightOpen(true) },
+          { id: "create", label: "Create", icon: <Plus size={22} />, accent: true, onClick: () => setShowCreate(true) },
+          { id: "reports", label: "Reports", icon: <BarChart3 size={20} />, active: toolPanel === "reports", onClick: () => setToolPanel("reports") },
+          { id: "signout", label: "Sign Out", icon: <LogOut size={20} />, onClick: logout },
+        ]}
       />
     </div>
   );
