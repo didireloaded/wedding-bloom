@@ -199,7 +199,7 @@ export default function CoupleDashboard() {
   const weddingUrl = `${window.location.origin}/wedding/${slug}`;
 
   return (
-    <div className="min-h-screen bg-[#0C0A09] text-[#FAF7F2] pb-24">
+    <div className="min-h-screen bg-[#0C0A09] text-[#FAF7F2] pb-28 md:pb-24">
       {/* Sticky Header Bar */}
       <header className="sticky top-0 z-30 glass-obsidian border-b border-white/[0.1] shadow-2xl">
         <div className="mx-auto max-w-[1520px] px-4 md:px-8 h-[74px] flex items-center gap-4">

@@ -455,7 +455,7 @@ export default function AdminDashboard() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#0C0A09] text-[#FAF7F2] pb-20">
+    <div className="min-h-screen bg-[#0C0A09] text-[#FAF7F2] pb-24 md:pb-20">
       {/* Floating Top Navigation */}
       <header className="sticky top-4 z-40 mx-auto max-w-[1520px] px-4 md:px-8">
         <div className="glass-obsidian rounded-full h-[70px] px-6 flex items-center justify-between border border-white/[0.1] shadow-2xl">
