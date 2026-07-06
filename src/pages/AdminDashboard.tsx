@@ -713,20 +713,20 @@ export default function AdminDashboard() {
           <div className="space-y-6">
             <GlassCard variant="obsidian" padding="none" className="border border-white/[0.1] overflow-hidden">
               {/* Header Bar */}
-              <div className="p-6 border-b border-white/[0.06] flex flex-wrap items-center justify-between gap-4">
+              <div className="p-4 sm:p-6 border-b border-white/[0.06] flex flex-col sm:flex-row sm:flex-wrap sm:items-center sm:justify-between gap-3">
                 <div>
                   <div className="wedding-label">Wedding Portfolio</div>
-                  <h3 className="display text-[24px] text-[#FAF7F2] mt-0.5">All Weddings ({filteredWeddings.length})</h3>
+                  <h3 className="display text-[20px] sm:text-[24px] text-[#FAF7F2] mt-0.5">All Weddings ({filteredWeddings.length})</h3>
                 </div>
 
-                <div className="flex items-center gap-3 flex-wrap">
-                  <div className="relative min-w-[240px]">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3 sm:flex-wrap">
+                  <div className="relative w-full sm:min-w-[240px] sm:w-auto">
                     <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#78716C]" />
                     <input
                       value={query}
                       onChange={e => setQuery(e.target.value)}
                       placeholder="Filter celebrations..."
-                      className="w-full bg-white/[0.04] border border-white/[0.08] rounded-full pl-10 pr-4 py-2 text-[13px] text-[#FAF7F2] placeholder-[#78716C] outline-none focus:border-[#D4A853]"
+                      className="w-full bg-white/[0.04] border border-white/[0.08] rounded-full pl-10 pr-4 py-2.5 sm:py-2 min-h-[44px] text-[14px] sm:text-[13px] text-[#FAF7F2] placeholder-[#78716C] outline-none focus:border-[#D4A853]"
                     />
                   </div>
 
