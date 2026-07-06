@@ -661,9 +661,30 @@ export default function AdminDashboard() {
           </GlassCard>
         </section>
 
-        {/* Filter & Metric Arc - Hidden on mobile via hidden md:block for Ruthless Consolidation */}
-        <section className="hidden md:block">
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5">
+        {/* Filter & Metric Arc — mobile: sticky horizontal chip strip; desktop: card grid */}
+        <section>
+          {/* Mobile sticky filter chips */}
+          <div className="md:hidden sticky top-0 z-30 -mx-4 px-4 py-2.5 bg-[#09090B]/85 backdrop-blur-xl border-b border-white/[0.06]">
+            <div className="flex gap-2 overflow-x-auto no-scrollbar snap-x">
+              {platformCards.slice(0, 6).map(card => (
+                <button
+                  key={card.label}
+                  onClick={() => setFilter(card.filter)}
+                  className={`snap-start shrink-0 min-h-[44px] px-4 rounded-full text-[12px] font-medium flex items-center gap-2 border transition ${
+                    filter === card.filter
+                      ? "bg-[#D4A853] text-[#0C0A09] border-[#D4A853]"
+                      : "bg-white/[0.04] text-[#FAF7F2] border-white/[0.08]"
+                  }`}
+                >
+                  <span className="opacity-80">{card.icon}</span>
+                  <span className="whitespace-nowrap">{card.label}</span>
+                  <span className={`text-[11px] font-mono ${filter === card.filter ? "text-[#0C0A09]/70" : "text-[#A8A29E]"}`}>{card.value}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="hidden md:grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5">
             {platformCards.slice(0, 6).map(card => (
               <button
                 key={card.label}
