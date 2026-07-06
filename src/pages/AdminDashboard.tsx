@@ -1167,31 +1167,34 @@ export default function AdminDashboard() {
       {/* Wedding Detail Slide-Over */}
       {detailWedding && (
         <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-xl flex justify-end" onClick={() => setDetailWedding(null)}>
-          <div className="w-full max-w-2xl glass-obsidian h-full overflow-y-auto border-l border-white/[0.1] p-8 shadow-2xl" onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between pb-6 border-b border-white/[0.08] mb-6">
-              <div><div className="wedding-label">Wedding Details</div><h2 className="display text-[32px] text-[#FAF7F2]">{detailWedding.couple_names}</h2></div>
-              <button onClick={() => setDetailWedding(null)} className="w-9 h-9 rounded-full bg-white/[0.06] flex items-center justify-center"><X size={16}/></button>
+          <div className="w-full sm:max-w-2xl glass-obsidian h-[100dvh] overflow-y-auto overscroll-contain border-l border-white/[0.1] shadow-2xl" onClick={e => e.stopPropagation()}>
+            <div className="sticky top-0 z-10 bg-[#0C0A09]/90 backdrop-blur-xl px-5 sm:px-8 py-4 sm:py-5 flex items-center justify-between border-b border-white/[0.08]">
+              <div className="min-w-0">
+                <div className="wedding-label">Wedding Details</div>
+                <h2 className="display text-[22px] sm:text-[32px] text-[#FAF7F2] truncate">{detailWedding.couple_names}</h2>
+              </div>
+              <button onClick={() => setDetailWedding(null)} className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-full bg-white/[0.06] hover:bg-white/[0.1] flex items-center justify-center shrink-0 ml-3"><X size={18}/></button>
             </div>
 
-            <div className="space-y-6">
-              <img src={detailWedding.cover_image || detailWedding.hero_image} alt="" className="w-full h-56 object-cover rounded-[24px] border border-white/[0.1]" />
+            <div className="px-5 sm:px-8 py-5 sm:py-6 space-y-5 sm:space-y-6 pb-[env(safe-area-inset-bottom)]">
+              <img src={detailWedding.cover_image || detailWedding.hero_image} alt="" className="w-full h-40 sm:h-56 object-cover rounded-[20px] sm:rounded-[24px] border border-white/[0.1]" />
 
-              <div className="p-5 rounded-[20px] bg-white/[0.03] border border-white/[0.08] space-y-3">
+              <div className="p-4 sm:p-5 rounded-[20px] bg-white/[0.03] border border-white/[0.08] space-y-3">
                 <div className="wedding-label">Wedding Access & Links</div>
-                <div className="flex items-center justify-between text-[13px]"><span className="text-[#A8A29E]">Guest Portal</span><code className="text-[#D4A853] font-mono">/wedding/{detailWedding.slug}</code></div>
-                <div className="flex items-center justify-between text-[13px]"><span className="text-[#A8A29E]">Couple Dashboard</span><code className="text-[#D4A853] font-mono">/couple/{detailWedding.slug}/dashboard</code></div>
-                <div className="flex items-center justify-between text-[13px]"><span className="text-[#A8A29E]">Access Code</span><code className="text-[#FAF7F2] font-mono bg-white/[0.08] px-2.5 py-1 rounded">{detailWedding.access_code}</code></div>
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 text-[13px]"><span className="text-[#A8A29E]">Guest Portal</span><code className="text-[#D4A853] font-mono break-all">/wedding/{detailWedding.slug}</code></div>
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 text-[13px]"><span className="text-[#A8A29E]">Couple Dashboard</span><code className="text-[#D4A853] font-mono break-all">/couple/{detailWedding.slug}/dashboard</code></div>
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 text-[13px]"><span className="text-[#A8A29E]">Access Code</span><code className="text-[#FAF7F2] font-mono bg-white/[0.08] px-2.5 py-1 rounded self-start sm:self-auto">{detailWedding.access_code}</code></div>
               </div>
 
               <div className="flex flex-col gap-2.5">
-                <button onClick={() => shareCoupleAccess(detailWedding)} className="w-full fv-btn-primary !bg-[#EAB308] !text-[#09090B] py-3.5 text-[13px] flex items-center justify-center gap-2 shadow-lg">
+                <button onClick={() => shareCoupleAccess(detailWedding)} className="w-full fv-btn-primary !bg-[#EAB308] !text-[#09090B] min-h-[48px] py-3.5 text-[13px] flex items-center justify-center gap-2 shadow-lg">
                   <Send size={15} /> Copy & Send Couple Access Kit ({detailWedding.access_code})
                 </button>
-                <div className="flex gap-3">
-                  <button onClick={() => { localStorage.setItem("couple_wedding_id", detailWedding.id); localStorage.setItem("couple_wedding_slug", detailWedding.slug); window.open(`/couple/${detailWedding.slug}/dashboard`, "_blank"); }} className="flex-1 fv-btn-ghost py-3 text-[12px]">Launch Couple Dashboard</button>
-                  <Link to={`/wedding/${detailWedding.slug}?preview=1`} target="_blank" className="flex-1 fv-btn-ghost py-3 text-[12px] text-center">Preview Guest Site</Link>
+                <div className="flex flex-col sm:flex-row gap-2.5 sm:gap-3">
+                  <button onClick={() => { localStorage.setItem("couple_wedding_id", detailWedding.id); localStorage.setItem("couple_wedding_slug", detailWedding.slug); window.open(`/couple/${detailWedding.slug}/dashboard`, "_blank"); }} className="flex-1 fv-btn-ghost min-h-[44px] py-3 text-[12px]">Launch Couple Dashboard</button>
+                  <Link to={`/wedding/${detailWedding.slug}?preview=1`} target="_blank" className="flex-1 fv-btn-ghost min-h-[44px] py-3 text-[12px] text-center flex items-center justify-center">Preview Guest Site</Link>
                 </div>
-                <button onClick={() => setQrWedding(detailWedding)} className="w-full fv-btn-ghost py-3 text-[12px] flex items-center justify-center gap-2 border border-[#D4A853]/30 text-[#D4A853] hover:bg-[#D4A853]/10">
+                <button onClick={() => setQrWedding(detailWedding)} className="w-full fv-btn-ghost min-h-[44px] py-3 text-[12px] flex items-center justify-center gap-2 border border-[#D4A853]/30 text-[#D4A853] hover:bg-[#D4A853]/10">
                   <QrCode size={15} /> Show Guest QR Code
                 </button>
               </div>
