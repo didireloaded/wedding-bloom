@@ -661,9 +661,30 @@ export default function AdminDashboard() {
           </GlassCard>
         </section>
 
-        {/* Filter & Metric Arc - Hidden on mobile via hidden md:block for Ruthless Consolidation */}
-        <section className="hidden md:block">
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5">
+        {/* Filter & Metric Arc — mobile: sticky horizontal chip strip; desktop: card grid */}
+        <section>
+          {/* Mobile sticky filter chips */}
+          <div className="md:hidden sticky top-0 z-30 -mx-4 px-4 py-2.5 bg-[#09090B]/85 backdrop-blur-xl border-b border-white/[0.06]">
+            <div className="flex gap-2 overflow-x-auto no-scrollbar snap-x">
+              {platformCards.slice(0, 6).map(card => (
+                <button
+                  key={card.label}
+                  onClick={() => setFilter(card.filter)}
+                  className={`snap-start shrink-0 min-h-[44px] px-4 rounded-full text-[12px] font-medium flex items-center gap-2 border transition ${
+                    filter === card.filter
+                      ? "bg-[#D4A853] text-[#0C0A09] border-[#D4A853]"
+                      : "bg-white/[0.04] text-[#FAF7F2] border-white/[0.08]"
+                  }`}
+                >
+                  <span className="opacity-80">{card.icon}</span>
+                  <span className="whitespace-nowrap">{card.label}</span>
+                  <span className={`text-[11px] font-mono ${filter === card.filter ? "text-[#0C0A09]/70" : "text-[#A8A29E]"}`}>{card.value}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="hidden md:grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5">
             {platformCards.slice(0, 6).map(card => (
               <button
                 key={card.label}
@@ -692,20 +713,20 @@ export default function AdminDashboard() {
           <div className="space-y-6">
             <GlassCard variant="obsidian" padding="none" className="border border-white/[0.1] overflow-hidden">
               {/* Header Bar */}
-              <div className="p-6 border-b border-white/[0.06] flex flex-wrap items-center justify-between gap-4">
+              <div className="p-4 sm:p-6 border-b border-white/[0.06] flex flex-col sm:flex-row sm:flex-wrap sm:items-center sm:justify-between gap-3">
                 <div>
                   <div className="wedding-label">Wedding Portfolio</div>
-                  <h3 className="display text-[24px] text-[#FAF7F2] mt-0.5">All Weddings ({filteredWeddings.length})</h3>
+                  <h3 className="display text-[20px] sm:text-[24px] text-[#FAF7F2] mt-0.5">All Weddings ({filteredWeddings.length})</h3>
                 </div>
 
-                <div className="flex items-center gap-3 flex-wrap">
-                  <div className="relative min-w-[240px]">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3 sm:flex-wrap">
+                  <div className="relative w-full sm:min-w-[240px] sm:w-auto">
                     <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#78716C]" />
                     <input
                       value={query}
                       onChange={e => setQuery(e.target.value)}
                       placeholder="Filter celebrations..."
-                      className="w-full bg-white/[0.04] border border-white/[0.08] rounded-full pl-10 pr-4 py-2 text-[13px] text-[#FAF7F2] placeholder-[#78716C] outline-none focus:border-[#D4A853]"
+                      className="w-full bg-white/[0.04] border border-white/[0.08] rounded-full pl-10 pr-4 py-2.5 sm:py-2 min-h-[44px] text-[14px] sm:text-[13px] text-[#FAF7F2] placeholder-[#78716C] outline-none focus:border-[#D4A853]"
                     />
                   </div>
 
@@ -749,7 +770,7 @@ export default function AdminDashboard() {
 
               {/* Cards Grid View - Default strictly to cards on mobile viewports, or when viewMode is cards */}
               {(viewMode === "cards" || (viewMode !== "cards" && typeof window !== "undefined")) && (
-                <div className={`p-6 grid md:grid-cols-2 gap-6 ${viewMode !== "cards" ? "block md:hidden" : "block"}`}>
+                <div className={`p-4 sm:p-6 grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 ${viewMode !== "cards" ? "block md:hidden" : "block"}`}>
                   {filteredWeddings.map(w => {
                     const stage = getWeddingStage(w);
                     const statusStyle = getStatusStyle(stage);
@@ -763,23 +784,23 @@ export default function AdminDashboard() {
                       >
                         <div>
                           {/* Image Cover */}
-                          <div className="relative h-48 overflow-hidden">
+                          <div className="relative h-40 sm:h-48 overflow-hidden">
                             <img
                               src={w.cover_image || w.hero_image}
                               alt=""
                               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 opacity-80"
                             />
                             <div className="absolute inset-0 bg-gradient-to-t from-[#0C0A09] via-[#0C0A09]/40 to-transparent" />
-                            
-                            <div className="absolute top-4 left-4 right-4 flex items-center justify-between">
-                              <span className={`px-3 py-1 rounded-full text-[10px] font-semibold tracking-wider uppercase flex items-center gap-1.5 ${statusStyle.bg}`}>
+
+                            <div className="absolute top-3 left-3 right-3 flex items-center justify-between gap-2">
+                              <span className={`px-2.5 py-1 rounded-full text-[10px] font-semibold tracking-wider uppercase flex items-center gap-1.5 ${statusStyle.bg}`}>
                                 <span className={`w-1.5 h-1.5 rounded-full ${statusStyle.dot}`} />
                                 {statusStyle.label}
                               </span>
 
                               {(!w.published || w.slug.includes("elara")) && (
                                 <span
-                                  className="px-2.5 py-1 rounded-full bg-[#0C0A09]/85 backdrop-blur-md border border-[#D4A853] text-[#D4A853] text-[10px] font-semibold tracking-wider uppercase flex items-center gap-1 shadow-[0_0_15px_rgba(212,168,83,0.4)] animate-pulse"
+                                  className="px-2.5 py-1 rounded-full bg-[#0C0A09]/85 backdrop-blur-md border border-[#D4A853] text-[#D4A853] text-[10px] font-semibold tracking-wider uppercase flex items-center gap-1 shadow-[0_0_15px_rgba(212,168,83,0.4)] animate-pulse shrink-0"
                                   title="Vendor action required: Contract signature & deposit pending"
                                 >
                                   <Briefcase size={12} /> Vendor Req
@@ -787,12 +808,12 @@ export default function AdminDashboard() {
                               )}
                             </div>
 
-                            <div className="absolute bottom-4 left-4 right-4">
-                              <div className="display text-[26px] text-[#FAF7F2] leading-none">{w.couple_names}</div>
-                              <div className="flex items-center justify-between gap-2 mt-1.5">
-                                <span className="text-[12px] text-[#A8A29E] font-mono">/{w.slug}</span>
+                            <div className="absolute bottom-3 left-3 right-3">
+                              <div className="display text-[22px] sm:text-[26px] text-[#FAF7F2] leading-tight break-words">{w.couple_names}</div>
+                              <div className="flex flex-wrap items-center justify-between gap-2 mt-1.5">
+                                <span className="text-[12px] text-[#A8A29E] font-mono truncate max-w-[55%]">/{w.slug}</span>
                                 <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#EAB308]/20 border border-[#EAB308]/40 text-[#FDE047] text-[10px] font-mono font-bold">
-                                  <KeyRound size={11} /> Code: {w.access_code}
+                                  <KeyRound size={11} /> {w.access_code}
                                 </span>
                               </div>
                             </div>
@@ -1146,31 +1167,34 @@ export default function AdminDashboard() {
       {/* Wedding Detail Slide-Over */}
       {detailWedding && (
         <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-xl flex justify-end" onClick={() => setDetailWedding(null)}>
-          <div className="w-full max-w-2xl glass-obsidian h-full overflow-y-auto border-l border-white/[0.1] p-8 shadow-2xl" onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between pb-6 border-b border-white/[0.08] mb-6">
-              <div><div className="wedding-label">Wedding Details</div><h2 className="display text-[32px] text-[#FAF7F2]">{detailWedding.couple_names}</h2></div>
-              <button onClick={() => setDetailWedding(null)} className="w-9 h-9 rounded-full bg-white/[0.06] flex items-center justify-center"><X size={16}/></button>
+          <div className="w-full sm:max-w-2xl glass-obsidian h-[100dvh] overflow-y-auto overscroll-contain border-l border-white/[0.1] shadow-2xl" onClick={e => e.stopPropagation()}>
+            <div className="sticky top-0 z-10 bg-[#0C0A09]/90 backdrop-blur-xl px-5 sm:px-8 py-4 sm:py-5 flex items-center justify-between border-b border-white/[0.08]">
+              <div className="min-w-0">
+                <div className="wedding-label">Wedding Details</div>
+                <h2 className="display text-[22px] sm:text-[32px] text-[#FAF7F2] truncate">{detailWedding.couple_names}</h2>
+              </div>
+              <button onClick={() => setDetailWedding(null)} className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-full bg-white/[0.06] hover:bg-white/[0.1] flex items-center justify-center shrink-0 ml-3"><X size={18}/></button>
             </div>
 
-            <div className="space-y-6">
-              <img src={detailWedding.cover_image || detailWedding.hero_image} alt="" className="w-full h-56 object-cover rounded-[24px] border border-white/[0.1]" />
+            <div className="px-5 sm:px-8 py-5 sm:py-6 space-y-5 sm:space-y-6 pb-[env(safe-area-inset-bottom)]">
+              <img src={detailWedding.cover_image || detailWedding.hero_image} alt="" className="w-full h-40 sm:h-56 object-cover rounded-[20px] sm:rounded-[24px] border border-white/[0.1]" />
 
-              <div className="p-5 rounded-[20px] bg-white/[0.03] border border-white/[0.08] space-y-3">
+              <div className="p-4 sm:p-5 rounded-[20px] bg-white/[0.03] border border-white/[0.08] space-y-3">
                 <div className="wedding-label">Wedding Access & Links</div>
-                <div className="flex items-center justify-between text-[13px]"><span className="text-[#A8A29E]">Guest Portal</span><code className="text-[#D4A853] font-mono">/wedding/{detailWedding.slug}</code></div>
-                <div className="flex items-center justify-between text-[13px]"><span className="text-[#A8A29E]">Couple Dashboard</span><code className="text-[#D4A853] font-mono">/couple/{detailWedding.slug}/dashboard</code></div>
-                <div className="flex items-center justify-between text-[13px]"><span className="text-[#A8A29E]">Access Code</span><code className="text-[#FAF7F2] font-mono bg-white/[0.08] px-2.5 py-1 rounded">{detailWedding.access_code}</code></div>
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 text-[13px]"><span className="text-[#A8A29E]">Guest Portal</span><code className="text-[#D4A853] font-mono break-all">/wedding/{detailWedding.slug}</code></div>
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 text-[13px]"><span className="text-[#A8A29E]">Couple Dashboard</span><code className="text-[#D4A853] font-mono break-all">/couple/{detailWedding.slug}/dashboard</code></div>
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 text-[13px]"><span className="text-[#A8A29E]">Access Code</span><code className="text-[#FAF7F2] font-mono bg-white/[0.08] px-2.5 py-1 rounded self-start sm:self-auto">{detailWedding.access_code}</code></div>
               </div>
 
               <div className="flex flex-col gap-2.5">
-                <button onClick={() => shareCoupleAccess(detailWedding)} className="w-full fv-btn-primary !bg-[#EAB308] !text-[#09090B] py-3.5 text-[13px] flex items-center justify-center gap-2 shadow-lg">
+                <button onClick={() => shareCoupleAccess(detailWedding)} className="w-full fv-btn-primary !bg-[#EAB308] !text-[#09090B] min-h-[48px] py-3.5 text-[13px] flex items-center justify-center gap-2 shadow-lg">
                   <Send size={15} /> Copy & Send Couple Access Kit ({detailWedding.access_code})
                 </button>
-                <div className="flex gap-3">
-                  <button onClick={() => { localStorage.setItem("couple_wedding_id", detailWedding.id); localStorage.setItem("couple_wedding_slug", detailWedding.slug); window.open(`/couple/${detailWedding.slug}/dashboard`, "_blank"); }} className="flex-1 fv-btn-ghost py-3 text-[12px]">Launch Couple Dashboard</button>
-                  <Link to={`/wedding/${detailWedding.slug}?preview=1`} target="_blank" className="flex-1 fv-btn-ghost py-3 text-[12px] text-center">Preview Guest Site</Link>
+                <div className="flex flex-col sm:flex-row gap-2.5 sm:gap-3">
+                  <button onClick={() => { localStorage.setItem("couple_wedding_id", detailWedding.id); localStorage.setItem("couple_wedding_slug", detailWedding.slug); window.open(`/couple/${detailWedding.slug}/dashboard`, "_blank"); }} className="flex-1 fv-btn-ghost min-h-[44px] py-3 text-[12px]">Launch Couple Dashboard</button>
+                  <Link to={`/wedding/${detailWedding.slug}?preview=1`} target="_blank" className="flex-1 fv-btn-ghost min-h-[44px] py-3 text-[12px] text-center flex items-center justify-center">Preview Guest Site</Link>
                 </div>
-                <button onClick={() => setQrWedding(detailWedding)} className="w-full fv-btn-ghost py-3 text-[12px] flex items-center justify-center gap-2 border border-[#D4A853]/30 text-[#D4A853] hover:bg-[#D4A853]/10">
+                <button onClick={() => setQrWedding(detailWedding)} className="w-full fv-btn-ghost min-h-[44px] py-3 text-[12px] flex items-center justify-center gap-2 border border-[#D4A853]/30 text-[#D4A853] hover:bg-[#D4A853]/10">
                   <QrCode size={15} /> Show Guest QR Code
                 </button>
               </div>

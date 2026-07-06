@@ -10,7 +10,9 @@
     "module": "ESNext",
     "skipLibCheck": true,
     "types": [
-      "node"
+      "node",
+      "vitest/globals",
+      "@testing-library/jest-dom"
     ],
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
