@@ -770,7 +770,7 @@ export default function AdminDashboard() {
 
               {/* Cards Grid View - Default strictly to cards on mobile viewports, or when viewMode is cards */}
               {(viewMode === "cards" || (viewMode !== "cards" && typeof window !== "undefined")) && (
-                <div className={`p-6 grid md:grid-cols-2 gap-6 ${viewMode !== "cards" ? "block md:hidden" : "block"}`}>
+                <div className={`p-4 sm:p-6 grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 ${viewMode !== "cards" ? "block md:hidden" : "block"}`}>
                   {filteredWeddings.map(w => {
                     const stage = getWeddingStage(w);
                     const statusStyle = getStatusStyle(stage);
@@ -784,23 +784,23 @@ export default function AdminDashboard() {
                       >
                         <div>
                           {/* Image Cover */}
-                          <div className="relative h-48 overflow-hidden">
+                          <div className="relative h-40 sm:h-48 overflow-hidden">
                             <img
                               src={w.cover_image || w.hero_image}
                               alt=""
                               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 opacity-80"
                             />
                             <div className="absolute inset-0 bg-gradient-to-t from-[#0C0A09] via-[#0C0A09]/40 to-transparent" />
-                            
-                            <div className="absolute top-4 left-4 right-4 flex items-center justify-between">
-                              <span className={`px-3 py-1 rounded-full text-[10px] font-semibold tracking-wider uppercase flex items-center gap-1.5 ${statusStyle.bg}`}>
+
+                            <div className="absolute top-3 left-3 right-3 flex items-center justify-between gap-2">
+                              <span className={`px-2.5 py-1 rounded-full text-[10px] font-semibold tracking-wider uppercase flex items-center gap-1.5 ${statusStyle.bg}`}>
                                 <span className={`w-1.5 h-1.5 rounded-full ${statusStyle.dot}`} />
                                 {statusStyle.label}
                               </span>
 
                               {(!w.published || w.slug.includes("elara")) && (
                                 <span
-                                  className="px-2.5 py-1 rounded-full bg-[#0C0A09]/85 backdrop-blur-md border border-[#D4A853] text-[#D4A853] text-[10px] font-semibold tracking-wider uppercase flex items-center gap-1 shadow-[0_0_15px_rgba(212,168,83,0.4)] animate-pulse"
+                                  className="px-2.5 py-1 rounded-full bg-[#0C0A09]/85 backdrop-blur-md border border-[#D4A853] text-[#D4A853] text-[10px] font-semibold tracking-wider uppercase flex items-center gap-1 shadow-[0_0_15px_rgba(212,168,83,0.4)] animate-pulse shrink-0"
                                   title="Vendor action required: Contract signature & deposit pending"
                                 >
                                   <Briefcase size={12} /> Vendor Req
@@ -808,12 +808,12 @@ export default function AdminDashboard() {
                               )}
                             </div>
 
-                            <div className="absolute bottom-4 left-4 right-4">
-                              <div className="display text-[26px] text-[#FAF7F2] leading-none">{w.couple_names}</div>
-                              <div className="flex items-center justify-between gap-2 mt-1.5">
-                                <span className="text-[12px] text-[#A8A29E] font-mono">/{w.slug}</span>
+                            <div className="absolute bottom-3 left-3 right-3">
+                              <div className="display text-[22px] sm:text-[26px] text-[#FAF7F2] leading-tight break-words">{w.couple_names}</div>
+                              <div className="flex flex-wrap items-center justify-between gap-2 mt-1.5">
+                                <span className="text-[12px] text-[#A8A29E] font-mono truncate max-w-[55%]">/{w.slug}</span>
                                 <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#EAB308]/20 border border-[#EAB308]/40 text-[#FDE047] text-[10px] font-mono font-bold">
-                                  <KeyRound size={11} /> Code: {w.access_code}
+                                  <KeyRound size={11} /> {w.access_code}
                                 </span>
                               </div>
                             </div>
