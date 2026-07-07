@@ -91,40 +91,7 @@ export const siteContent: SiteContentConfig = {
   timeline: {
     label: "Weekend Schedule",
     heading: "The Order of Celebration",
-    defaultEvents: [
-      {
-        id: "evt-1",
-        title: "Welcome Soirée & Cocktails",
-        event_date: "2026-10-17",
-        event_time: "17:30",
-        location: "Château Gardens Terrace",
-        description: "Join us under the stars for signature botanical cocktails, artisanal hors d'oeuvres, and acoustic jazz to kick off our wedding weekend."
-      },
-      {
-        id: "evt-2",
-        title: "The Ceremony of Vows",
-        event_date: "2026-10-18",
-        event_time: "16:00",
-        location: "Grand Orangerie Lawn",
-        description: "Please take your seats by 3:45 PM as we exchange our eternal promises surrounded by the historic forest and rolling hills."
-      },
-      {
-        id: "evt-3",
-        title: "Champagne Reception",
-        event_date: "2026-10-18",
-        event_time: "17:15",
-        location: "Cour d'Honneur",
-        description: "Raise a crystal coupe to the newlyweds with vintage French champagne, caviar tastings, and live string quartet melodies."
-      },
-      {
-        id: "evt-4",
-        title: "Royal Banquet & Revelry",
-        event_date: "2026-10-18",
-        event_time: "19:00",
-        location: "Grand Ballroom",
-        description: "An exquisite multi-course culinary journey followed by cake cutting, first dances, and late-night celebration."
-      }
-    ]
+    defaultEvents: []
   },
   venue: {
     label: "Destination Guide",

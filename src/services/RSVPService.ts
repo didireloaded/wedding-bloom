@@ -1,14 +1,22 @@
-import { BaseRepository } from "./repository/BaseRepository";
+import { RSVPRepository } from "@/repositories";
 import { RSVP } from "@/types/wedding";
 import { DomainEventBus } from "./events/DomainEventBus";
 import { submitRSVPToBackend } from "@/lib/supabase";
+import { rsvpSubmissionSchema } from "@/validators";
 
-class RSVPDomainService extends BaseRepository<RSVP> {
+class RSVPDomainService extends RSVPRepository {
   constructor() {
-    super("rsvps");
+    super();
   }
 
   async submitRSVP(payload: Omit<RSVP, "id">): Promise<{ success: boolean; error?: string }> {
+    try {
+      rsvpSubmissionSchema.parse(payload);
+    } catch (err: any) {
+      const msg = err?.issues?.[0]?.message || err?.errors?.[0]?.message || err.message || "Invalid RSVP data";
+      return { success: false, error: msg };
+    }
+
     const res = await submitRSVPToBackend(payload);
     if (res.success) {
       const isAttending = payload.attending === "confirmed" || payload.attending === "yes";

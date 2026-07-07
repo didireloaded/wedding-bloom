@@ -17,4 +17,17 @@ export default defineConfig({
       "@": path.resolve(__dirname, "src"),
     },
   },
+  build: {
+    chunkSizeWarningLimit: 600,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          "vendor-react": ["react", "react-dom", "react-router-dom"],
+          "vendor-ui": ["framer-motion", "lucide-react", "sonner"],
+          "vendor-db": ["@supabase/supabase-js"],
+          "vendor-utils": ["date-fns", "qrcode.react", "embla-carousel-react", "papaparse", "zod"]
+        }
+      }
+    }
+  },
 });

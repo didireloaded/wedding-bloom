@@ -1,7 +1,7 @@
-// @ts-nocheck
 import { useState } from "react";
 import { GlassCard } from "@/components/ui/GlassCard";
-import { store, BudgetItem, VendorItem, MoodItem, GiftItem, RSVP } from "@/store/weddingStore";
+import { store } from "@/store/weddingStore";
+import type { Wedding, BudgetItem, VendorItem, MoodItem, GiftItem, RSVP } from "@/types/wedding";
 import { toast } from "sonner";
 import {
   DollarSign, Briefcase, Plus, CheckCircle2, AlertCircle, Share2, Sparkles,
@@ -12,7 +12,14 @@ import {
 /* -------------------------------------------------------------------------- */
 /* 1. INTERACTIVE BUDGET & VENDOR DASHBOARD MODULE                            */
 /* -------------------------------------------------------------------------- */
-export function BudgetVendorModule({ wedding, budgets, vendors, refresh }: { wedding: any; budgets: BudgetItem[]; vendors: VendorItem[]; refresh: () => void }) {
+interface BudgetVendorProps {
+  wedding: Wedding;
+  budgets: BudgetItem[];
+  vendors: VendorItem[];
+  refresh: () => void;
+}
+
+export function BudgetVendorModule({ wedding, budgets, vendors, refresh }: BudgetVendorProps) {
   const [showAddBudget, setShowAddBudget] = useState(false);
   const [showAddVendor, setShowAddVendor] = useState(false);
   const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({
@@ -164,7 +171,7 @@ export function BudgetVendorModule({ wedding, budgets, vendors, refresh }: { wed
         <GlassCard variant="obsidian" padding="lg" className="border border-[#EAB308]/50 rounded-[28px] shadow-2xl animate-in fade-in slide-in-from-top-4 duration-300">
           <div className="flex items-center justify-between mb-5 pb-3 border-b border-white/[0.08]">
             <h4 className="font-bold text-[#FAFAFA] text-[17px]">Log New Expense Item</h4>
-            <button onClick={() => setShowAddBudget(false)} className="text-[#71717A] hover:text-white">✕</button>
+            <button onClick={() => setShowAddBudget(false)} className="text-[#71717A] hover:text-white" aria-label="Close form">✕</button>
           </div>
           <form onSubmit={handleCreateBudget} className="grid sm:grid-cols-3 gap-4">
             <div>
@@ -220,6 +227,10 @@ export function BudgetVendorModule({ wedding, budgets, vendors, refresh }: { wed
               {/* Category Accordion Header */}
               <div
                 onClick={() => toggleCategory(cat)}
+                onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggleCategory(cat); } }}
+                role="button"
+                tabIndex={0}
+                aria-expanded={isExpanded}
                 className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 cursor-pointer hover:bg-white/[0.03] transition select-none"
               >
                 <div className="flex items-center gap-3">
@@ -304,6 +315,7 @@ export function BudgetVendorModule({ wedding, budgets, vendors, refresh }: { wed
                             onClick={() => { store.remove("budgets", item.id); toast.success("Removed line item"); refresh(); }}
                             className="p-1.5 text-[#71717A] hover:text-[#EF4444] transition rounded"
                             title="Delete line item"
+                            aria-label={`Delete ${item.item_name}`}
                           >
                             ✕
                           </button>
@@ -376,6 +388,7 @@ export function BudgetVendorModule({ wedding, budgets, vendors, refresh }: { wed
                   <button
                     onClick={() => { store.remove("vendors", v.id); toast.success("Vendor removed"); refresh(); }}
                     className="opacity-0 group-hover:opacity-100 p-1 text-[#71717A] hover:text-[#EF4444] transition"
+                    aria-label={`Remove ${v.name}`}
                   >
                     ✕
                   </button>
@@ -424,7 +437,13 @@ export function BudgetVendorModule({ wedding, budgets, vendors, refresh }: { wed
 /* -------------------------------------------------------------------------- */
 /* 2. COLLABORATIVE VISION & MOOD BOARD MODULE                                */
 /* -------------------------------------------------------------------------- */
-export function MoodBoardModule({ wedding, moodItems, refresh }: { wedding: any; moodItems: MoodItem[]; refresh: () => void }) {
+interface MoodBoardProps {
+  wedding: Wedding;
+  moodItems: MoodItem[];
+  refresh: () => void;
+}
+
+export function MoodBoardModule({ wedding, moodItems, refresh }: MoodBoardProps) {
   const [showAdd, setShowAdd] = useState(false);
   const [type, setType] = useState<"photo" | "palette" | "swatch">("palette");
   const [title, setTitle] = useState("");
@@ -536,6 +555,7 @@ export function MoodBoardModule({ wedding, moodItems, refresh }: { wedding: any;
               <button
                 onClick={() => { store.remove("mood_items", item.id); toast.success("Removed element"); refresh(); }}
                 className="opacity-0 group-hover:opacity-100 p-1 text-[#71717A] hover:text-[#EF4444] transition text-[11px]"
+                aria-label={`Delete ${item.title}`}
               >
                 Delete
               </button>
@@ -550,7 +570,14 @@ export function MoodBoardModule({ wedding, moodItems, refresh }: { wedding: any;
 /* -------------------------------------------------------------------------- */
 /* 3. THANK-YOU NOTE TRACKER & REGISTRY MODULE                                */
 /* -------------------------------------------------------------------------- */
-export function ThankYouTrackerModule({ wedding, gifts, rsvps, refresh }: { wedding: any; gifts: GiftItem[]; rsvps: RSVP[]; refresh: () => void }) {
+interface ThankYouTrackerProps {
+  wedding: Wedding;
+  gifts: GiftItem[];
+  rsvps: RSVP[];
+  refresh: () => void;
+}
+
+export function ThankYouTrackerModule({ wedding, gifts, rsvps, refresh }: ThankYouTrackerProps) {
   const [showAdd, setShowAdd] = useState(false);
   const [guestName, setGuestName] = useState(rsvps[0]?.guest_name || "Alexander Wright");
   const [giftItem, setGiftItem] = useState("");
@@ -633,7 +660,7 @@ export function ThankYouTrackerModule({ wedding, gifts, rsvps, refresh }: { wedd
                 }`}>
                   {g.status === "sent" ? "✅ Sent" : g.status === "drafted" ? "✍️ Drafted" : "⏳ Pending Draft"}
                 </span>
-                <button onClick={() => { store.remove("gifts", g.id); toast.success("Deleted gift entry"); refresh(); }} className="opacity-0 group-hover:opacity-100 text-[#71717A] hover:text-[#EF4444] text-[12px]">✕</button>
+                <button onClick={() => { store.remove("gifts", g.id); toast.success("Deleted gift entry"); refresh(); }} className="opacity-0 group-hover:opacity-100 text-[#71717A] hover:text-[#EF4444] text-[12px]" aria-label={`Delete gift from ${g.guest_name}`}>✕</button>
               </div>
 
               <h4 className="font-bold text-[#FAFAFA] text-[17px] mt-2 flex items-center gap-2">

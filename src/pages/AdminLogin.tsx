@@ -1,42 +1,61 @@
 import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowLeft, Shield, Sparkles } from "lucide-react";
+import { ArrowLeft, Shield, Sparkles, Mail, Key } from "lucide-react";
 import { toast } from "sonner";
-import { supabase } from "@/utils/supabase";
+import { AuthService } from "@/services";
 import { GlassCard } from "@/components/ui/GlassCard";
 
 export default function AdminLogin() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loginMode, setLoginMode] = useState<"password" | "magiclink">("password");
   const [submitting, setSubmitting] = useState(false);
+  const [magicLinkSent, setMagicLinkSent] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      if (data.session) navigate("/admin/dashboard", { replace: true });
+    AuthService.getCurrentUser().then((user) => {
+      if (user) {
+        AuthService.checkUserRole(user.id, "admin").then((isAdmin) => {
+          if (isAdmin) navigate("/admin/dashboard", { replace: true });
+        });
+      }
     });
   }, [navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error || !data.session) {
-      toast.error(error?.message || "Invalid admin credentials.");
+
+    if (loginMode === "magiclink") {
+      const res = await AuthService.signInWithMagicLink(email, window.location.origin + "/admin/dashboard");
+      setSubmitting(false);
+      if (!res.success) {
+        toast.error(res.error || "Failed to send magic link.");
+      } else {
+        setMagicLinkSent(true);
+        toast.success("Magic link sent! Check your email inbox to enter headquarters.");
+      }
+      return;
+    }
+
+    const { user, session, error } = await AuthService.signInWithPassword(email, password);
+    if (error || !user || !session) {
+      toast.error(error || "Invalid admin credentials.");
       setSubmitting(false);
       return;
     }
+
     // Verify admin role
-    const { data: isAdmin } = await supabase.rpc("has_role", { _user_id: data.user!.id, _role: "admin" });
+    const isAdmin = await AuthService.checkUserRole(user.id, "admin");
     if (!isAdmin) {
-      await supabase.auth.signOut();
+      await AuthService.signOut();
       toast.error("This account is not authorized as an admin.");
       setSubmitting(false);
       return;
     }
-    sessionStorage.setItem("wb_admin", "1");
-    localStorage.setItem("wb_admin", "1");
+
     toast.success("Welcome to ForeverVow Studio Headquarters");
     navigate("/admin/dashboard");
     setSubmitting(false);
@@ -131,37 +150,75 @@ export default function AdminLogin() {
               </p>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-5">
-              <div>
-                <label className="block wedding-label mb-2.5">Administrator Email</label>
-                <input
-                  type="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="admin@forevervow.app"
-                  className="fv-input"
-                />
+            {magicLinkSent ? (
+              <div className="p-6 rounded-[20px] bg-white/[0.04] border border-[#D4A853]/30 text-center space-y-3">
+                <div className="w-12 h-12 rounded-full bg-[#D4A853]/20 text-[#D4A853] mx-auto flex items-center justify-center">
+                  <Mail size={22} />
+                </div>
+                <h3 className="text-[16px] font-semibold text-[#FAF7F2]">Check Your Email</h3>
+                <p className="text-[13px] text-[#A8A29E] leading-relaxed">
+                  We sent a passwordless login link to <strong className="text-[#FAF7F2]">{email}</strong>. Click the link to access Studio Headquarters.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setMagicLinkSent(false)}
+                  className="text-[12px] text-[#D4A853] hover:underline pt-2 block mx-auto font-medium"
+                >
+                  Use a different email or password →
+                </button>
               </div>
-              <div>
-                <label className="block wedding-label mb-2.5">Password</label>
-                <input
-                  type="password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  className="fv-input"
-                />
-              </div>
-              <button
-                type="submit"
-                disabled={submitting}
-                className="w-full fv-btn-primary py-4 mt-2 shadow-lg"
-              >
-                {submitting ? "Entering Headquarters…" : "Enter Wedding Headquarters"}
-              </button>
-            </form>
+            ) : (
+              <form onSubmit={handleSubmit} className="space-y-5">
+                <div>
+                  <label className="block wedding-label mb-2.5">Administrator Email</label>
+                  <input
+                    type="email"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="admin@forevervow.app"
+                    className="fv-input"
+                  />
+                </div>
+                {loginMode === "password" && (
+                  <div>
+                    <label className="block wedding-label mb-2.5">Password</label>
+                    <input
+                      type="password"
+                      required
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="••••••••"
+                      className="fv-input"
+                    />
+                  </div>
+                )}
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="w-full fv-btn-primary py-4 mt-2 shadow-lg"
+                >
+                  {submitting
+                    ? "Verifying Access…"
+                    : loginMode === "magiclink"
+                    ? "Send Passwordless Magic Link"
+                    : "Enter Wedding Headquarters"}
+                </button>
+                <div className="text-center pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setLoginMode(m => m === "password" ? "magiclink" : "password")}
+                    className="text-[12px] text-[#A8A29E] hover:text-[#D4A853] transition flex items-center justify-center gap-1.5 mx-auto font-medium"
+                  >
+                    {loginMode === "password" ? (
+                      <><Mail size={14} /> Sign in with Passwordless Magic Link</>
+                    ) : (
+                      <><Key size={14} /> Sign in with Password</>
+                    )}
+                  </button>
+                </div>
+              </form>
+            )}
 
             <div className="mt-8 pt-6 border-t border-white/[0.08] text-center">
               <Link to="/couple-login" className="text-[12.5px] text-[#A8A29E] hover:text-[#FAF7F2] underline underline-offset-4 transition font-medium">

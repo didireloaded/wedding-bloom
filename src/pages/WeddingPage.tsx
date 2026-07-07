@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { useEffect, useMemo, useState, useRef } from "react";
 import { useParams, Link, useSearchParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
@@ -11,6 +10,7 @@ import { InvitationOverlay } from "@/components/wedding/InvitationOverlay";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { submitRSVPToBackend, supabase } from "@/utils/supabase";
 import { siteContent } from "@/config/siteContent";
+import { AnalyticsService } from "@/services/AnalyticsService";
 
 function useCountdown(target: string | null) {
   const [now, setNow] = useState(() => Date.now());
@@ -382,9 +382,7 @@ export default function WeddingPage() {
 
   useEffect(() => {
     if (!wedding?.id) return;
-    const key = `wb_viewed_${wedding.id}`;
-    const count = Number(localStorage.getItem(key) || 0) + 1;
-    localStorage.setItem(key, String(count));
+    AnalyticsService.logPageView(wedding.id);
   }, [wedding?.id]);
 
   const nav = useMemo(() => {
@@ -443,7 +441,7 @@ export default function WeddingPage() {
   const weddingDate = wedding.wedding_date ? format(new Date(wedding.wedding_date), "d MMMM yyyy").toUpperCase() : siteContent.weddingDateFormatted;
   const targetDateStr = wedding.wedding_date || siteContent.weddingDateISO.split("T")[0];
   const daysAway = differenceInDays(new Date(targetDateStr + "T16:00:00"), new Date());
-  const timelineEvents = events.length > 0 ? events : siteContent.timeline.defaultEvents;
+  const timelineEvents = events;
 
   const pageUrl = `${window.location.origin}/wedding/${wedding.slug}`;
   const shareTitle = `${wedding.couple_names} — Wedding Invitation`;
@@ -771,9 +769,18 @@ export default function WeddingPage() {
                   <div className="absolute left-1/2 -translate-x-1/2 top-40 bottom-12 w-0.5 bg-gradient-to-b from-[#C5A059]/10 via-[#C5A059] to-[#C5A059]/10 hidden md:block" />
 
                   <div className="space-y-12 relative">
-                    {timelineEvents.map((ev, idx) => {
-                      const isEven = idx % 2 === 0;
-                      return (
+                    {timelineEvents.length === 0 ? (
+                      <div className="w-full max-w-xl mx-auto rounded-[24px] bg-white border border-[#E5DEC9] p-8 text-center shadow-sm">
+                        <div className="wedding-label text-[#A37C4D] mb-2">Schedule To Be Announced</div>
+                        <h4 className="display text-[24px] text-[#2C2926] mb-3">Timeline Coming Soon</h4>
+                        <p className="text-[14px] text-[#726C65] font-serif">
+                          The exact order of events and celebration timeline will be published here shortly.
+                        </p>
+                      </div>
+                    ) : (
+                      timelineEvents.map((ev, idx) => {
+                        const isEven = idx % 2 === 0;
+                        return (
                         <motion.div
                           key={ev.id}
                           initial={{ opacity: 0, y: 30 }}
@@ -818,7 +825,7 @@ export default function WeddingPage() {
                           <div className="hidden md:block w-[45%]" />
                         </motion.div>
                       );
-                    })}
+                    }))}
                   </div>
                 </div>
               </section>

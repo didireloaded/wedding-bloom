@@ -26,13 +26,9 @@ export function ProtectedAdminRoute({ children }: { children: ReactNode }) {
       if (cancelled) return;
       if (error || !isAdmin) {
         await supabase.auth.signOut();
-        sessionStorage.removeItem("wb_admin");
-        localStorage.removeItem("wb_admin");
         setStatus("denied");
         return;
       }
-      sessionStorage.setItem("wb_admin", "1");
-      localStorage.setItem("wb_admin", "1");
       setStatus("ok");
     }
 

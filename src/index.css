@@ -34,6 +34,14 @@
   --glass-blur-medium: 24px;
   --glass-blur-light: 14px;
 
+  /* ── Radius System ── */
+  --radius-sm: 12px;
+  --radius-md: 18px;
+  --radius-lg: 24px;
+  --radius-xl: 32px;
+  --radius-xxl: 40px;
+  --radius-full: 9999px;
+
   /* ── Motion ── */
   --ease-app: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -130,6 +138,66 @@ body {
   border: 1px solid rgba(0, 0, 0, 0.06);
   box-shadow: 0 20px 45px -15px rgba(0, 0, 0, 0.12);
   color: #09090B;
+}
+
+.glass-aurora {
+  background: linear-gradient(135deg, rgba(234, 179, 8, 0.14) 0%, rgba(18, 18, 21, 0.88) 50%, rgba(168, 85, 247, 0.14) 100%);
+  backdrop-filter: blur(var(--glass-blur-heavy));
+  -webkit-backdrop-filter: blur(var(--glass-blur-heavy));
+  border: 1px solid rgba(234, 179, 8, 0.28);
+  box-shadow: 0 20px 50px -12px rgba(234, 179, 8, 0.18), 0 0 35px rgba(168, 85, 247, 0.12);
+}
+
+.glass-ember {
+  background: linear-gradient(135deg, rgba(244, 63, 94, 0.14) 0%, rgba(18, 18, 21, 0.88) 50%, rgba(234, 179, 8, 0.14) 100%);
+  backdrop-filter: blur(var(--glass-blur-heavy));
+  -webkit-backdrop-filter: blur(var(--glass-blur-heavy));
+  border: 1px solid rgba(244, 63, 94, 0.28);
+  box-shadow: 0 20px 50px -12px rgba(244, 63, 94, 0.18), 0 0 35px rgba(234, 179, 8, 0.12);
+}
+
+.glass-heavy, .glass-heavy-dark {
+  background: rgba(9, 9, 11, 0.92);
+  backdrop-filter: blur(var(--glass-blur-heavy));
+  -webkit-backdrop-filter: blur(var(--glass-blur-heavy));
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.8);
+}
+
+.glass-medium, .glass-medium-dark {
+  background: rgba(18, 18, 21, 0.78);
+  backdrop-filter: blur(var(--glass-blur-medium));
+  -webkit-backdrop-filter: blur(var(--glass-blur-medium));
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 15px 35px -10px rgba(0, 0, 0, 0.6);
+}
+
+.glass-light {
+  background: rgba(24, 24, 27, 0.6);
+  backdrop-filter: blur(var(--glass-blur-light));
+  -webkit-backdrop-filter: blur(var(--glass-blur-light));
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 20px -6px rgba(0, 0, 0, 0.4);
+}
+
+/* ── Tactile Interactive Card Utilities ── */
+.hover-lift {
+  transition: transform var(--duration-normal) var(--ease-app), box-shadow var(--duration-normal) var(--ease-app), border-color var(--duration-normal) var(--ease-app);
+}
+
+.hover-lift:hover {
+  transform: translateY(-4px) scale(1.008);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8), 0 0 25px rgba(234, 179, 8, 0.18);
+  border-color: rgba(234, 179, 8, 0.38);
+}
+
+.hover-glow:hover {
+  box-shadow: 0 0 40px rgba(234, 179, 8, 0.35), 0 20px 45px -10px rgba(0, 0, 0, 0.8);
+  border-color: rgba(234, 179, 8, 0.55);
+}
+
+.premium-shadow {
+  box-shadow: 0 20px 45px -10px rgba(0, 0, 0, 0.7), 0 0 1px 1px rgba(255, 255, 255, 0.06);
 }
 
 /* ═══════════════════════════════════════════════

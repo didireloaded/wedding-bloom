@@ -1,7 +1,8 @@
-// @ts-nocheck
 import { useState } from "react";
 import { GlassCard } from "@/components/ui/GlassCard";
-import { store, RunSheetItem, FloorTable, TaskItem, BroadcastItem, RSVP } from "@/store/weddingStore";
+import { store } from "@/store/weddingStore";
+import { CommunicationService, GeolocationService } from "@/services";
+import type { Wedding, RunSheetItem, TableItem, FloorTable, TaskItem, BroadcastItem, RSVP } from "@/types/wedding";
 import { toast } from "sonner";
 import {
   Clock, Plus, Trash2, Share2, Send, Users, CheckCircle2, AlertCircle,
@@ -9,10 +10,12 @@ import {
   ChevronRight, Filter, MapPin, Navigation, Car, ShieldCheck, Radio, Compass, Heart
 } from "lucide-react";
 
+export * from "./LiveCockpitModule";
+
 /* -------------------------------------------------------------------------- */
 /* 1. DAY-OF TIMELINE / RUN SHEET MODULE                                      */
 /* -------------------------------------------------------------------------- */
-export function RunSheetModule({ wedding, runSheet, refresh }: { wedding: any; runSheet: RunSheetItem[]; refresh: () => void }) {
+export function RunSheetModule({ wedding, runSheet, refresh }: { wedding: Wedding; runSheet: RunSheetItem[]; refresh: () => void }) {
   const [showAdd, setShowAdd] = useState(false);
   const [filter, setFilter] = useState<"all" | "bridal" | "vendors">("all");
   const [time, setTime] = useState("12:00");
@@ -51,8 +54,9 @@ export function RunSheetModule({ wedding, runSheet, refresh }: { wedding: any; r
   };
 
   const filteredSheet = runSheet.filter(item => {
-    if (filter === "bridal") return item.title.toLowerCase().includes("bridal") || item.owner.toLowerCase().includes("beauty") || item.owner.toLowerCase().includes("party") || item.title.toLowerCase().includes("ceremony") || item.title.toLowerCase().includes("first look");
-    if (filter === "vendors") return item.owner.toLowerCase().includes("photographer") || item.owner.toLowerCase().includes("catering") || item.owner.toLowerCase().includes("dj") || item.owner.toLowerCase().includes("team");
+    const ownerStr = (item.owner || "").toLowerCase();
+    if (filter === "bridal") return item.title.toLowerCase().includes("bridal") || ownerStr.includes("beauty") || ownerStr.includes("party") || item.title.toLowerCase().includes("ceremony") || item.title.toLowerCase().includes("first look");
+    if (filter === "vendors") return ownerStr.includes("photographer") || ownerStr.includes("catering") || ownerStr.includes("dj") || ownerStr.includes("team");
     return true;
   });
 
@@ -175,7 +179,7 @@ export function RunSheetModule({ wedding, runSheet, refresh }: { wedding: any; r
 /* -------------------------------------------------------------------------- */
 /* 2. INTERACTIVE SEATING & FLOOR PLANNER MODULE                              */
 /* -------------------------------------------------------------------------- */
-export function FloorPlannerModule({ wedding, tablesList, rsvps, refresh }: { wedding: any; tablesList: FloorTable[]; rsvps: RSVP[]; refresh: () => void }) {
+export function FloorPlannerModule({ wedding, tablesList, rsvps, refresh }: { wedding: Wedding; tablesList: FloorTable[]; rsvps: RSVP[]; refresh: () => void }) {
   const [showAddTable, setShowAddTable] = useState(false);
   const [name, setName] = useState("");
   const [type, setType] = useState<"round" | "rect" | "vip">("round");
@@ -298,7 +302,7 @@ export function FloorPlannerModule({ wedding, tablesList, rsvps, refresh }: { we
         {/* Unassigned Guest Pool */}
         <div className="lg:col-span-4 space-y-3">
           <GlassCard variant="obsidian" padding="md" className="border border-white/[0.1] rounded-[24px]">
-            <div className="flex items-center justify-between mb-3 pb-3 border-b border-white/[0.08]">
+            <div className="flex items-center justify-between mb-3 pb-3 border-b border-white/[0.08] ">
               <div className="font-bold text-[#FAFAFA] text-[14px] flex items-center gap-2">
                 <span>Unseated Guests</span>
                 <span className="px-2 py-0.5 rounded-full bg-white/[0.08] text-[#EAB308] text-[11px] font-mono">{unassignedGuests.length}</span>
@@ -435,7 +439,7 @@ export function FloorPlannerModule({ wedding, tablesList, rsvps, refresh }: { we
 /* -------------------------------------------------------------------------- */
 /* 3. TASK MANAGEMENT & DELEGATION BOARD MODULE                               */
 /* -------------------------------------------------------------------------- */
-export function TaskBoardModule({ wedding, tasks, refresh }: { wedding: any; tasks: TaskItem[]; refresh: () => void }) {
+export function TaskBoardModule({ wedding, tasks, refresh }: { wedding: Wedding; tasks: TaskItem[]; refresh: () => void }) {
   const [showAddTask, setShowAddTask] = useState(false);
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState("Vendors");
@@ -604,7 +608,7 @@ export function TaskBoardModule({ wedding, tasks, refresh }: { wedding: any; tas
 /* -------------------------------------------------------------------------- */
 /* 4. ENHANCED GUEST CRM & PROFILING MODULE                                   */
 /* -------------------------------------------------------------------------- */
-export function GuestCrmModule({ wedding, rsvps, tablesList, refresh }: { wedding: any; rsvps: RSVP[]; tablesList: FloorTable[]; refresh: () => void }) {
+export function GuestCrmModule({ wedding, rsvps, tablesList, refresh }: { wedding: Wedding; rsvps: RSVP[]; tablesList: FloorTable[]; refresh: () => void }) {
   const [search, setSearch] = useState("");
   const [filterVipOnly, setFilterVipOnly] = useState(false);
   const [filterDietOnly, setFilterDietOnly] = useState(false);
@@ -749,24 +753,43 @@ export function GuestCrmModule({ wedding, rsvps, tablesList, refresh }: { weddin
 /* -------------------------------------------------------------------------- */
 /* 5. AUTOMATED COMMUNICATION HUB MODULE                                      */
 /* -------------------------------------------------------------------------- */
-export function BroadcastHubModule({ wedding, broadcasts, rsvps, refresh }: { wedding: any; broadcasts: BroadcastItem[]; rsvps: RSVP[]; refresh: () => void }) {
+export function BroadcastHubModule({ wedding, broadcasts, rsvps, refresh }: { wedding: Wedding; broadcasts: BroadcastItem[]; rsvps: RSVP[]; refresh: () => void }) {
   const [showSend, setShowSend] = useState(false);
   const [subject, setSubject] = useState("Important Event Update & Shuttle Schedule");
   const [template, setTemplate] = useState("Logistics Reminder");
   const [target, setTarget] = useState("confirmed");
+  const [channels, setChannels] = useState<("email" | "sms")[]>(["email", "sms"]);
+  const [loading, setLoading] = useState(false);
 
-  const handleDispatch = (e: React.FormEvent) => {
+  const toggleChannel = (ch: "email" | "sms") => {
+    if (channels.includes(ch)) {
+      if (channels.length === 1) {
+        toast.error("You must select at least one delivery channel");
+        return;
+      }
+      setChannels(channels.filter(c => c !== ch));
+    } else {
+      setChannels([...channels, ch]);
+    }
+  };
+
+  const handleDispatch = async (e: React.FormEvent) => {
     e.preventDefault();
-    const recipientCount = target === "confirmed" ? rsvps.filter(r => r.attending === "confirmed").length : rsvps.length;
-    store.insert("broadcasts", {
-      wedding_id: wedding.id,
+    if (loading) return;
+    setLoading(true);
+    const res = await CommunicationService.dispatchBroadcast(
+      wedding.id,
       subject,
       template,
       target,
-      sent_at: new Date().toISOString(),
-      recipient_count: recipientCount || 42
-    });
-    toast.success(`Broadcast dispatched successfully to ${recipientCount || 42} guest households!`);
+      channels
+    );
+    setLoading(false);
+    if (res.error) {
+      toast.error(`Dispatch failed: ${res.error}`);
+      return;
+    }
+    toast.success(`Broadcast dispatched successfully to ${res.recipientCount} guest households via ${channels.join(" & ").toUpperCase()}!`);
     setShowSend(false);
     refresh();
   };
@@ -792,27 +815,54 @@ export function BroadcastHubModule({ wedding, broadcasts, rsvps, refresh }: { we
           <form onSubmit={handleDispatch} className="grid sm:grid-cols-3 gap-4">
             <div className="sm:col-span-2">
               <label className="wedding-label block mb-1">Email / SMS Subject</label>
-              <input value={subject} onChange={e => setSubject(e.target.value)} className="fv-input" required />
+              <input value={subject} onChange={e => setSubject(e.target.value)} className="fv-input" required disabled={loading} />
             </div>
             <div>
               <label className="wedding-label block mb-1">Recipient Segment</label>
-              <select value={target} onChange={e => setTarget(e.target.value)} className="fv-input">
+              <select value={target} onChange={e => setTarget(e.target.value)} className="fv-input" disabled={loading}>
                 <option value="confirmed">Confirmed Guests Only</option>
                 <option value="all">All Invited Households</option>
+                <option value="pending">Pending RSVP Only</option>
+                <option value="vip">VIP Tier Only</option>
               </select>
             </div>
-            <div className="sm:col-span-3">
+            <div className="sm:col-span-2">
               <label className="wedding-label block mb-1">Template Style</label>
-              <select value={template} onChange={e => setTemplate(e.target.value)} className="fv-input">
+              <select value={template} onChange={e => setTemplate(e.target.value)} className="fv-input" disabled={loading}>
                 <option value="Logistics Reminder">Logistics Reminder (Shuttles, Parking & Ceremony Timing)</option>
                 <option value="Welcome Guide">Welcome Guide & Digital Itinerary Link</option>
                 <option value="Dress Code Note">Attire & Dress Code Advisory</option>
                 <option value="Thank You Note">Post-Wedding Gratitude & Official Photo Gallery Link</option>
               </select>
             </div>
+            <div>
+              <label className="wedding-label block mb-1">Delivery Channels</label>
+              <div className="flex items-center gap-2 mt-1">
+                <button
+                  type="button"
+                  onClick={() => toggleChannel("email")}
+                  className={`flex-1 py-2.5 rounded-xl text-[12px] font-bold border transition ${
+                    channels.includes("email") ? "bg-amber-500/20 text-amber-300 border-amber-500/40" : "bg-white/[0.04] text-[#71717A] border-white/[0.08]"
+                  }`}
+                >
+                  📧 Email
+                </button>
+                <button
+                  type="button"
+                  onClick={() => toggleChannel("sms")}
+                  className={`flex-1 py-2.5 rounded-xl text-[12px] font-bold border transition ${
+                    channels.includes("sms") ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/40" : "bg-white/[0.04] text-[#71717A] border-white/[0.08]"
+                  }`}
+                >
+                  💬 SMS
+                </button>
+              </div>
+            </div>
             <div className="sm:col-span-3 flex justify-end gap-3 pt-2">
-              <button type="button" onClick={() => setShowSend(false)} className="fv-btn-ghost !py-2 !px-4 text-[12px]">Cancel</button>
-              <button type="submit" className="fv-btn-primary !py-2.5 !px-6 text-[12px] flex items-center gap-2"><Send size={14}/> Dispatch Broadcast Now</button>
+              <button type="button" onClick={() => setShowSend(false)} className="fv-btn-ghost !py-2 !px-4 text-[12px]" disabled={loading}>Cancel</button>
+              <button type="submit" disabled={loading} className="fv-btn-primary !py-2.5 !px-6 text-[12px] flex items-center gap-2">
+                <Send size={14} className={loading ? "animate-spin" : ""} /> {loading ? "Dispatching..." : "Dispatch Broadcast Now"}
+              </button>
             </div>
           </form>
         </GlassCard>
@@ -842,35 +892,53 @@ export function BroadcastHubModule({ wedding, broadcasts, rsvps, refresh }: { we
 /* -------------------------------------------------------------------------- */
 /* 6. JOURNEY TO FOREVER / GUEST ARRIVALS MODULE                              */
 /* -------------------------------------------------------------------------- */
-export function GuestArrivalsModule({ wedding, rsvps }: { wedding: any; rsvps: RSVP[] }) {
-  const invitedCount = rsvps.length > 0 ? rsvps.length : 180;
-  const confirmedCount = rsvps.filter(r => r.attending === "confirmed").length || 142;
-  const arrivedCount = 119;
-  const travellingCount = 18;
-  const yetToStartCount = confirmedCount - arrivedCount - travellingCount;
+export function GuestArrivalsModule({ wedding, rsvps }: { wedding: Wedding; rsvps: RSVP[] }) {
+  const invitedCount = rsvps.length;
+  const confirmedCount = rsvps.filter(r => r.attending === "yes" || r.attending === "confirmed").length;
 
-  const [travellers, setTravellers] = useState([
-    { id: "1", name: "Sarah Johnson", status: "15 minutes away", detail: "Traffic is light • Route via A10", state: "travelling" },
-    { id: "2", name: "Michael Smith", status: "28 minutes away", detail: "Moderate traffic near junction 4", state: "travelling" },
-    { id: "3", name: "Emma Brown", status: "Arriving", detail: "Entering 100m Venue Geofence", state: "arriving" },
-    { id: "4", name: "David Jones", status: "Already at the venue", detail: "Checked In • Parked in Lot B", state: "arrived" },
-  ]);
+  const [travellers, setTravellers] = useState<Array<{ id: string; name: string; status: string; detail: string; state: "travelling" | "arriving" | "arrived" }>>([]);
 
-  const [vendors, setVendors] = useState([
-    { role: "Lead Photographer", name: "Lumière Studio", status: "12 minutes away", state: "travelling", icon: "📸" },
-    { role: "Floral Designer", name: "Fleur de Loire", status: "Already Arrived", state: "arrived", icon: "🌸" },
-    { role: "Master of Ceremonies & DJ", name: "Soundwave Collective", status: "25 minutes away", state: "travelling", icon: "🎵" },
-    { role: "Executive Catering", name: "Chambord Gastronomy", status: "Setting Up", state: "arrived", icon: "🥂" },
-  ]);
+  const allVendors = store.all("vendors") as any[];
+  const weddingVendors = allVendors.filter(v => v.wedding_id === wedding.id);
+
+  const arrivedCount = travellers.filter(t => t.state === "arrived").length;
+  const travellingCount = travellers.filter(t => t.state === "travelling" || t.state === "arriving").length;
+  const yetToStartCount = Math.max(0, confirmedCount - arrivedCount - travellingCount);
 
   const simulateArrival = (id: string) => {
+    const geo = new GeolocationService();
+    const venueCoords = { lat: 45.9872, lng: 9.2621 };
+    const geofence = geo.checkVIPGeofenceArrival(venueCoords, venueCoords, 100);
     setTravellers(prev => prev.map(t => {
       if (t.id === id) {
-        toast.success(`🎉 ${t.name} has arrived at ${wedding.ceremony_venue || "the venue"}! Geofence triggered.`);
-        return { ...t, status: "Already at the venue", detail: "Checked In • Parked in Lot B", state: "arrived" };
+        toast.success(`🎉 ${t.name} has entered the ${geofence.distanceMeters}m perimeter at ${wedding.ceremony_venue || "the venue"}! Geofence check-in triggered.`);
+        return { ...t, status: "Already at the venue (0.0 km)", detail: `Checked In • Radar Status: ${geofence.status.toUpperCase()}`, state: "arrived" };
       }
       return t;
     }));
+  };
+
+  const addTestTraveller = () => {
+    const geo = new GeolocationService();
+    const testNames = ["Sarah Vance (Test)", "Julian Thorne (Test)", "Elena Rostova (Test)"];
+    const name = testNames[travellers.length % testNames.length];
+    
+    const distanceKm = 8.5 - (travellers.length * 2.5);
+    const actualKm = Math.round(Math.max(0.05, distanceKm) * 10) / 10;
+    const estimate = geo.estimateTravelTime(actualKm);
+    const venueCoords = { lat: 45.9872, lng: 9.2621 };
+    const guestCoords = { lat: 45.9872 + (actualKm / 111), lng: 9.2621 };
+    const geofence = geo.checkVIPGeofenceArrival(guestCoords, venueCoords, 100);
+
+    const newT = {
+      id: "test-" + Date.now(),
+      name,
+      status: geofence.isWithinGeofence ? "Arrived at Venue" : `${estimate.formattedDriving} away (${geofence.distanceKm} km)`,
+      detail: `Live GPS Opt-In • Radar Status: ${geofence.status.toUpperCase()}`,
+      state: geofence.isWithinGeofence ? "arrived" as const : geofence.status === "approaching" ? "arriving" as const : "travelling" as const,
+    };
+    setTravellers(prev => [newT, ...prev]);
+    toast.info(`Simulated live geofenced radar for ${name} (${estimate.formattedDriving})`);
   };
 
   return (
@@ -888,11 +956,19 @@ export function GuestArrivalsModule({ wedding, rsvps }: { wedding: any; rsvps: R
               Real-time, privacy-first arrival monitoring answering exactly where your guests and key vendors are on the morning of your celebration.
             </p>
           </div>
-          <div className="flex items-center gap-3 shrink-0 bg-white/[0.04] border border-white/[0.1] px-4 py-3 rounded-[20px]">
-            <ShieldCheck size={20} className="text-[#7A9E7E] shrink-0" />
-            <div className="text-[11px] text-[#FAF7F2]/90 leading-tight">
-              <strong className="text-[#7A9E7E] block">100% Opt-In & Event-Specific</strong>
-              Tracking self-terminates upon venue geofence arrival.
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 shrink-0">
+            <button
+              onClick={addTestTraveller}
+              className="fv-btn-secondary !py-2.5 !px-4 text-[12px] flex items-center justify-center gap-2 border-[#D4A853]/40 hover:border-[#D4A853]"
+            >
+              <Navigation size={14} className="text-[#D4A853]" /> Simulate Test Journey
+            </button>
+            <div className="flex items-center gap-3 bg-white/[0.04] border border-white/[0.1] px-4 py-3 rounded-[20px]">
+              <ShieldCheck size={20} className="text-[#7A9E7E] shrink-0" />
+              <div className="text-[11px] text-[#FAF7F2]/90 leading-tight">
+                <strong className="text-[#7A9E7E] block">100% Opt-In & Event-Specific</strong>
+                Tracking self-terminates upon venue geofence arrival.
+              </div>
             </div>
           </div>
         </div>
@@ -921,7 +997,7 @@ export function GuestArrivalsModule({ wedding, rsvps }: { wedding: any; rsvps: R
         </GlassCard>
         <GlassCard variant="obsidian" padding="lg" className="border border-white/[0.1]">
           <div className="text-[11px] uppercase tracking-wider font-semibold text-[#A8A29E] mb-1">Yet to Start</div>
-          <div className="display text-[32px] text-[#A8A29E]">{yetToStartCount > 0 ? yetToStartCount : 0}</div>
+          <div className="display text-[32px] text-[#A8A29E]">{yetToStartCount}</div>
           <div className="text-[11px] text-[#78716C] mt-1">Departing shortly</div>
         </GlassCard>
       </div>
@@ -943,41 +1019,49 @@ export function GuestArrivalsModule({ wedding, rsvps }: { wedding: any; rsvps: R
           </div>
 
           <div className="space-y-3.5">
-            {travellers.map((t) => (
-              <div
-                key={t.id}
-                className="p-4 rounded-[18px] bg-white/[0.03] border border-white/[0.08] hover:border-white/[0.18] transition flex items-center justify-between gap-4"
-              >
-                <div className="flex items-center gap-3.5">
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-between justify-center shrink-0 ${
-                    t.state === "arrived" ? "bg-[#7A9E7E]/20 text-[#7A9E7E] border border-[#7A9E7E]/40" :
-                    t.state === "arriving" ? "bg-[#E8C97A]/20 text-[#E8C97A] border border-[#E8C97A]/40 animate-pulse" :
-                    "bg-[#D4A853]/15 text-[#D4A853] border border-[#D4A853]/30"
-                  }`}>
-                    {t.state === "arrived" ? <CheckCircle2 size={18} /> : t.state === "arriving" ? <Radio size={18} /> : <Car size={18} />}
-                  </div>
-                  <div>
-                    <div className="font-semibold text-[15px] text-[#FAF7F2]">{t.name}</div>
-                    <div className="text-[12px] text-[#A8A29E] mt-0.5">{t.detail}</div>
-                  </div>
-                </div>
-                <div className="text-right shrink-0">
-                  <div className={`text-[13px] font-bold ${
-                    t.state === "arrived" ? "text-[#7A9E7E]" : t.state === "arriving" ? "text-[#E8C97A]" : "text-[#D4A853]"
-                  }`}>
-                    {t.status}
-                  </div>
-                  {t.state !== "arrived" && (
-                    <button
-                      onClick={() => simulateArrival(t.id)}
-                      className="mt-1.5 text-[10px] text-[#A8A29E] hover:text-[#FAF7F2] underline underline-offset-2 transition"
-                    >
-                      Simulate 100m Arrival
-                    </button>
-                  )}
-                </div>
+            {travellers.length === 0 ? (
+              <div className="py-10 text-center border border-dashed border-white/[0.1] rounded-[18px]">
+                <Navigation size={28} className="mx-auto text-[#A8A29E]/40 mb-2.5" />
+                <div className="text-[14px] text-[#FAF7F2] font-medium">No active guest journeys</div>
+                <div className="text-[12px] text-[#A8A29E] mt-1 max-w-xs mx-auto">Guests who opt in on wedding day will appear here on live radar. You can also simulate a test journey above.</div>
               </div>
-            ))}
+            ) : (
+              travellers.map((t) => (
+                <div
+                  key={t.id}
+                  className="p-4 rounded-[18px] bg-white/[0.03] border border-white/[0.08] hover:border-white/[0.18] transition flex items-center justify-between gap-4"
+                >
+                  <div className="flex items-center gap-3.5">
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${
+                      t.state === "arrived" ? "bg-[#7A9E7E]/20 text-[#7A9E7E] border border-[#7A9E7E]/40" :
+                      t.state === "arriving" ? "bg-[#E8C97A]/20 text-[#E8C97A] border border-[#E8C97A]/40 animate-pulse" :
+                      "bg-[#D4A853]/15 text-[#D4A853] border border-[#D4A853]/30"
+                    }`}>
+                      {t.state === "arrived" ? <CheckCircle2 size={18} /> : t.state === "arriving" ? <Radio size={18} /> : <Car size={18} />}
+                    </div>
+                    <div>
+                      <div className="font-semibold text-[15px] text-[#FAF7F2]">{t.name}</div>
+                      <div className="text-[12px] text-[#A8A29E] mt-0.5">{t.detail}</div>
+                    </div>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <div className={`text-[13px] font-bold ${
+                      t.state === "arrived" ? "text-[#7A9E7E]" : t.state === "arriving" ? "text-[#E8C97A]" : "text-[#D4A853]"
+                    }`}>
+                      {t.status}
+                    </div>
+                    {t.state !== "arrived" && (
+                      <button
+                        onClick={() => simulateArrival(t.id)}
+                        className="mt-1.5 text-[10px] text-[#A8A29E] hover:text-[#FAF7F2] underline underline-offset-2 transition"
+                      >
+                        Simulate 100m Arrival
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </GlassCard>
 
@@ -991,34 +1075,40 @@ export function GuestArrivalsModule({ wedding, rsvps }: { wedding: any; rsvps: R
               <p className="text-[12px] text-[#A8A29E]">Day 0 arrival status for your creative team and coordinators</p>
             </div>
             <span className="px-2.5 py-1 rounded-full bg-[#7A9E7E]/20 text-[#7A9E7E] text-[10px] font-mono uppercase font-bold">
-              All Aligned
+              {weddingVendors.length > 0 ? "Tracking Active" : "Clean Slate"}
             </span>
           </div>
 
           <div className="space-y-3.5">
-            {vendors.map((v, i) => (
-              <div
-                key={i}
-                className="p-4 rounded-[18px] bg-white/[0.03] border border-white/[0.08] flex items-center justify-between gap-4"
-              >
-                <div className="flex items-center gap-3.5 min-w-0">
-                  <div className="w-10 h-10 rounded-xl bg-white/[0.05] border border-white/[0.1] flex items-center justify-center text-[18px] shrink-0">
-                    {v.icon}
-                  </div>
-                  <div className="min-w-0">
-                    <div className="text-[11px] uppercase tracking-wider font-semibold text-[#D4A853]">{v.role}</div>
-                    <div className="font-semibold text-[15px] text-[#FAF7F2] truncate">{v.name}</div>
-                  </div>
-                </div>
-                <div className="text-right shrink-0">
-                  <span className={`px-3 py-1 rounded-full text-[12px] font-bold ${
-                    v.state === "arrived" ? "bg-[#7A9E7E]/20 text-[#7A9E7E]" : "bg-[#D4A853]/20 text-[#D4A853]"
-                  }`}>
-                    {v.status}
-                  </span>
-                </div>
+            {weddingVendors.length === 0 ? (
+              <div className="py-10 text-center border border-dashed border-white/[0.1] rounded-[18px]">
+                <Sparkles size={28} className="mx-auto text-[#A8A29E]/40 mb-2.5" />
+                <div className="text-[14px] text-[#FAF7F2] font-medium">No vendors added yet</div>
+                <div className="text-[12px] text-[#A8A29E] mt-1 max-w-xs mx-auto">Add your creative team in the Planning Suite to track their day-of arrival status here.</div>
               </div>
-            ))}
+            ) : (
+              weddingVendors.map((v, i) => (
+                <div
+                  key={v.id || i}
+                  className="p-4 rounded-[18px] bg-white/[0.03] border border-white/[0.08] flex items-center justify-between gap-4"
+                >
+                  <div className="flex items-center gap-3.5 min-w-0">
+                    <div className="w-10 h-10 rounded-xl bg-white/[0.05] border border-white/[0.1] flex items-center justify-center text-[18px] shrink-0">
+                      ⭐
+                    </div>
+                    <div className="min-w-0">
+                      <div className="text-[11px] uppercase tracking-wider font-semibold text-[#D4A853]">{v.role}</div>
+                      <div className="font-semibold text-[15px] text-[#FAF7F2] truncate">{v.name}</div>
+                    </div>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <span className="px-3 py-1 rounded-full text-[12px] font-bold bg-[#D4A853]/20 text-[#D4A853]">
+                      Scheduled
+                    </span>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </GlassCard>
       </div>
@@ -1032,7 +1122,7 @@ export function GuestArrivalsModule({ wedding, rsvps }: { wedding: any; rsvps: R
             </div>
             <h4 className="display text-[22px] text-[#FAF7F2]">Automatic Venue Check-In & Parking Welcome</h4>
             <p className="text-[13px] text-[#A8A29E] max-w-2xl">
-              When a travelling guest crosses into the 100-meter radius around <strong className="text-[#FAF7F2]">{wedding.ceremony_venue || "Château de Chambord"}</strong>, ForeverVow automatically checks them in and changes their mobile screen to display assigned parking directions and immediate welcome guidance.
+              When a travelling guest crosses into the 100-meter radius around <strong className="text-[#FAF7F2]">{wedding.ceremony_venue || "your primary venue"}</strong>, ForeverVow automatically checks them in and changes their mobile screen to display assigned parking directions and immediate welcome guidance.
             </p>
           </div>
           <div className="p-4 rounded-[20px] bg-white/[0.04] border border-white/[0.1] text-center shrink-0 w-full md:w-auto">

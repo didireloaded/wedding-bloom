@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { supabase } from "@/lib/supabase";
 
 export interface PaginationOptions {
@@ -45,8 +44,7 @@ export class BaseRepository<T extends { id?: string }> {
 
   async create(payload: Partial<T>): Promise<{ data: T | null; error: string | null }> {
     try {
-      const { data, error } = await supabase
-        .from(this.tableName)
+      const { data, error } = await (supabase.from(this.tableName) as any)
         .insert([payload])
         .select()
         .single();
@@ -59,8 +57,7 @@ export class BaseRepository<T extends { id?: string }> {
 
   async update(id: string, patch: Partial<T>): Promise<{ data: T | null; error: string | null }> {
     try {
-      const { data, error } = await supabase
-        .from(this.tableName)
+      const { data, error } = await (supabase.from(this.tableName) as any)
         .update(patch)
         .eq("id", id)
         .select()

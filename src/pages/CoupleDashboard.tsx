@@ -1,4 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
+import type {
+  Wedding, RSVP, GalleryItem, GuestPhoto, GuestMoment,
+  Accommodation, VenueMarker, WeddingUpdate, Checkin,
+  WeddingEvent, TaskItem, TableItem, RunSheetItem,
+  BroadcastItem, BudgetItem, VendorItem, MoodItem, GiftItem
+} from "@/types/wedding";
 import { useNavigate, Link } from "react-router-dom";
 import { QRCodeSVG } from "qrcode.react";
 import { format } from "date-fns";
@@ -6,10 +12,12 @@ import {
   Flower2, Heart, Users, Camera, LogOut, ExternalLink,
   Copy, CheckCircle2, Calendar, MapPin, Edit3, Trash2, Plus,
   MessageCircle, Clock, UserCheck, Gift, Bell, Home, Image as ImageIcon,
-  Settings, Sparkles, Radio, Menu, X, DollarSign, Award, Mail, Navigation
+  Settings, Sparkles, Radio, Menu, X, DollarSign, Award, Mail, Navigation,
+  UploadCloud, Pin, Check, ThumbsUp, ShieldCheck, Eye, Upload
 } from "lucide-react";
 import { toast } from "sonner";
 import { store } from "@/store/weddingStore";
+import { MediaService } from "@/services";
 import { ConfirmModal } from "@/components/ui/ConfirmModal";
 import { PromptModal } from "@/components/ui/PromptModal";
 import { GlassCard } from "@/components/ui/GlassCard";
@@ -20,41 +28,45 @@ import {
   CommandCenter
 } from "@/features/couple/widgets";
 import {
-  RunSheetModule, FloorPlannerModule, TaskBoardModule, GuestCrmModule, BroadcastHubModule, GuestArrivalsModule
+  RunSheetModule, FloorPlannerModule, TaskBoardModule, GuestCrmModule, BroadcastHubModule, GuestArrivalsModule, LiveCockpitModule
 } from "@/features/couple/executionSuite";
 import {
   BudgetVendorModule, MoodBoardModule, ThankYouTrackerModule
 } from "@/features/couple/planningSuite";
+import { CoupleOnboardingModal } from "@/components/wedding/CoupleOnboardingModal";
 
 export default function CoupleDashboard() {
   const navigate = useNavigate();
   const weddingId = sessionStorage.getItem("couple_wedding_id") || localStorage.getItem("couple_wedding_id");
   const slug = sessionStorage.getItem("couple_wedding_slug") || localStorage.getItem("couple_wedding_slug");
 
-  const [wedding, setWedding] = useState<any>(null);
-  const [rsvps, setRsvps] = useState<any[]>([]);
-  const [gallery, setGallery] = useState<any[]>([]);
-  const [guestPhotos, setGuestPhotos] = useState<any[]>([]);
-  const [moments, setMoments] = useState<any[]>([]);
-  const [checkins, setCheckins] = useState<any[]>([]);
-  const [events, setEvents] = useState<any[]>([]);
-  const [accommodations, setAccommodations] = useState<any[]>([]);
-  const [markers, setMarkers] = useState<any[]>([]);
-  const [updates, setUpdates] = useState<any[]>([]);
-  const [tasks, setTasks] = useState<any[]>([]);
-  const [tablesList, setTablesList] = useState<any[]>([]);
-  const [runSheet, setRunSheet] = useState<any[]>([]);
-  const [broadcasts, setBroadcasts] = useState<any[]>([]);
-  const [budgets, setBudgets] = useState<any[]>([]);
-  const [vendors, setVendors] = useState<any[]>([]);
-  const [moodItems, setMoodItems] = useState<any[]>([]);
-  const [gifts, setGifts] = useState<any[]>([]);
+  const [wedding, setWedding] = useState<Wedding | null>(null);
+  const [rsvps, setRsvps] = useState<RSVP[]>([]);
+  const [gallery, setGallery] = useState<GalleryItem[]>([]);
+  const [guestPhotos, setGuestPhotos] = useState<GuestPhoto[]>([]);
+  const [moments, setMoments] = useState<GuestMoment[]>([]);
+  const [checkins, setCheckins] = useState<Checkin[]>([]);
+  const [events, setEvents] = useState<WeddingEvent[]>([]);
+  const [accommodations, setAccommodations] = useState<Accommodation[]>([]);
+  const [markers, setMarkers] = useState<VenueMarker[]>([]);
+  const [updates, setUpdates] = useState<WeddingUpdate[]>([]);
+  const [tasks, setTasks] = useState<TaskItem[]>([]);
+  const [tablesList, setTablesList] = useState<TableItem[]>([]);
+  const [runSheet, setRunSheet] = useState<RunSheetItem[]>([]);
+  const [broadcasts, setBroadcasts] = useState<BroadcastItem[]>([]);
+  const [budgets, setBudgets] = useState<BudgetItem[]>([]);
+  const [vendors, setVendors] = useState<VendorItem[]>([]);
+  const [moodItems, setMoodItems] = useState<MoodItem[]>([]);
+  const [gifts, setGifts] = useState<GiftItem[]>([]);
+  const refreshTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   type TabId = "workspace" | "overview" | "budget" | "mood_board" | "gifts" | "rsvp" | "crm" | "run_sheet" | "tables" | "tasks" | "broadcasts" | "events" | "map" | "accommodations" | "gallery" | "guest_photos" | "moments" | "updates" | "share" | "checkins" | "arrivals";
   const [tab, setTab] = useState<TabId>("workspace");
   const [editingWedding, setEditingWedding] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [notifsOpen, setNotifsOpen] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const [inCockpitMode, setInCockpitMode] = useState(false);
   const [unread, setUnread] = useState(0);
   const [newEvent, setNewEvent] = useState({ title: "", description: "", location: "", event_date: "", event_time: "" });
   const [showEventForm, setShowEventForm] = useState(false);
@@ -66,11 +78,14 @@ export default function CoupleDashboard() {
   const [markerPromptOpen, setMarkerPromptOpen] = useState(false);
   const [markerCoords, setMarkerCoords] = useState<{ x: number; y: number } | null>(null);
   const [deleteMarker, setDeleteMarker] = useState<{ id: string; title: string } | null>(null);
+  const [vaultFilter, setVaultFilter] = useState<string>("all");
+  const [uploadingMedia, setUploadingMedia] = useState<boolean>(false);
+  const [uploadStats, setUploadStats] = useState<string | null>(null);
 
   useEffect(() => {
     let activeId = weddingId;
     if (!activeId && slug) {
-      const found = store.find("weddings", (w: any) => w.slug === slug);
+      const found = store.find<Wedding>("weddings", (w) => w.slug === slug);
       if (found) {
         activeId = found.id;
         sessionStorage.setItem("couple_wedding_id", found.id);
@@ -83,7 +98,9 @@ export default function CoupleDashboard() {
       navigate("/couple-login");
       return;
     }
-    refresh();
+    store.loadForWedding(activeId).then(() => {
+      refresh();
+    });
     const off1 = store.subscribe("rsvps", refresh);
     const off2 = store.subscribe("guest_moments", refresh);
     const off3 = store.subscribe("checkins", refresh);
@@ -104,39 +121,51 @@ export default function CoupleDashboard() {
     return () => { off1(); off2(); off3(); off4(); off5(); off6(); off7(); off8(); off9(); off10(); off11(); off12(); off13(); off14(); off15(); off16(); off17(); };
   }, [weddingId, slug]);
 
-  const refresh = () => {
-    const activeId = sessionStorage.getItem("couple_wedding_id") || localStorage.getItem("couple_wedding_id") || weddingId;
-    let w = store.find("weddings", (r: any) => r.id === activeId);
-    if (!w && slug) {
-      w = store.find("weddings", (r: any) => r.slug === slug);
+  useEffect(() => {
+    if (wedding?.id) {
+      const completed = localStorage.getItem(`fv_onboarding_completed_${wedding.id}`);
+      if (!completed) {
+        setShowOnboarding(true);
+      }
     }
-    if (!w) return;
-    const targetId = w.id;
-    setWedding(w);
-    setRsvps(store.where("rsvps", (r: any) => r.wedding_id === targetId));
-    setGallery(store.where("gallery", (r: any) => r.wedding_id === targetId));
-    setGuestPhotos(store.where("guest_photos", (r: any) => r.wedding_id === targetId));
-    setMoments(store.where("guest_moments", (r: any) => r.wedding_id === targetId));
-    setAccommodations(store.where("accommodations", (r: any) => r.wedding_id === targetId));
-    setMarkers(store.where("venue_markers", (r: any) => r.wedding_id === targetId));
-    setUpdates(store.where("updates", (r: any) => r.wedding_id === targetId));
-    setCheckins(store.where("checkins", (r: any) => r.wedding_id === targetId));
-    setEvents(store.where("events", (r: any) => r.wedding_id === targetId).sort((a: any, b: any) => a.sort_order - b.sort_order));
-    setTasks(store.where("tasks", (r: any) => r.wedding_id === targetId));
-    setTablesList(store.where("tables", (r: any) => r.wedding_id === targetId));
-    setRunSheet(store.where("run_sheet", (r: any) => r.wedding_id === targetId));
-    setBroadcasts(store.where("broadcasts", (r: any) => r.wedding_id === targetId));
-    setBudgets(store.where("budgets", (r: any) => r.wedding_id === targetId));
-    setVendors(store.where("vendors", (r: any) => r.wedding_id === targetId));
-    setMoodItems(store.where("mood_items", (r: any) => r.wedding_id === targetId));
-    setGifts(store.where("gifts", (r: any) => r.wedding_id === targetId));
+  }, [wedding?.id]);
 
-    setUnread(unreadCount(
-      w,
-      store.where("rsvps", (r: any) => r.wedding_id === targetId),
-      store.where("guest_moments", (r: any) => r.wedding_id === targetId),
-      store.where("guest_photos", (r: any) => r.wedding_id === targetId)
-    ));
+  const refresh = () => {
+    if (refreshTimerRef.current) clearTimeout(refreshTimerRef.current);
+    refreshTimerRef.current = setTimeout(() => {
+      const activeId = sessionStorage.getItem("couple_wedding_id") || localStorage.getItem("couple_wedding_id") || weddingId;
+      let w = store.find<Wedding>("weddings", (r) => r.id === activeId);
+      if (!w && slug) {
+        w = store.find<Wedding>("weddings", (r) => r.slug === slug);
+      }
+      if (!w) return;
+      const targetId = w.id;
+      setWedding(w);
+      setRsvps(store.where<RSVP>("rsvps", (r) => r.wedding_id === targetId));
+      setGallery(store.where<GalleryItem>("gallery", (r) => r.wedding_id === targetId));
+      setGuestPhotos(store.where<GuestPhoto>("guest_photos", (r) => r.wedding_id === targetId));
+      setMoments(store.where<GuestMoment>("guest_moments", (r) => r.wedding_id === targetId));
+      setAccommodations(store.where<Accommodation>("accommodations", (r) => r.wedding_id === targetId));
+      setMarkers(store.where<VenueMarker>("venue_markers", (r) => r.wedding_id === targetId));
+      setUpdates(store.where<WeddingUpdate>("updates", (r) => r.wedding_id === targetId));
+      setCheckins(store.where<Checkin>("checkins", (r) => r.wedding_id === targetId));
+      setEvents(store.where<WeddingEvent>("events", (r) => r.wedding_id === targetId).sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0)));
+      setTasks(store.where<TaskItem>("tasks", (r) => r.wedding_id === targetId));
+      setTablesList(store.where<TableItem>("tables", (r) => r.wedding_id === targetId));
+      setRunSheet(store.where<RunSheetItem>("run_sheet", (r) => r.wedding_id === targetId));
+      setBroadcasts(store.where<BroadcastItem>("broadcasts", (r) => r.wedding_id === targetId));
+      setBudgets(store.where<BudgetItem>("budgets", (r) => r.wedding_id === targetId));
+      setVendors(store.where<VendorItem>("vendors", (r) => r.wedding_id === targetId));
+      setMoodItems(store.where<MoodItem>("mood_items", (r) => r.wedding_id === targetId));
+      setGifts(store.where<GiftItem>("gifts", (r) => r.wedding_id === targetId));
+
+      setUnread(unreadCount(
+        w,
+        store.where<RSVP>("rsvps", (r) => r.wedding_id === targetId),
+        store.where<GuestMoment>("guest_moments", (r) => r.wedding_id === targetId),
+        store.where<GuestPhoto>("guest_photos", (r) => r.wedding_id === targetId)
+      ));
+    }, 10);
   };
 
   const logout = () => {
@@ -155,7 +184,7 @@ export default function CoupleDashboard() {
     toast.success("Guest site URL copied to clipboard");
   };
 
-  const saveWeddingEdits = (patch: any) => {
+  const saveWeddingEdits = (patch: Partial<Wedding>) => {
     store.update("weddings", weddingId!, patch);
     toast.success("Wedding configuration updated");
     setEditingWedding(false);
@@ -170,7 +199,7 @@ export default function CoupleDashboard() {
       title: newEvent.title,
       description: newEvent.description || null,
       location: newEvent.location || null,
-      event_date: newEvent.event_date || wedding.wedding_date,
+      event_date: newEvent.event_date || (wedding?.wedding_date || null),
       event_time: newEvent.event_time || null,
       sort_order: events.length + 1,
     });
@@ -190,12 +219,29 @@ export default function CoupleDashboard() {
     );
   }
 
+  if (inCockpitMode) {
+    return (
+      <LiveCockpitModule
+        wedding={wedding}
+        rsvps={rsvps}
+        runSheet={runSheet}
+        refresh={refresh}
+        onExit={() => setInCockpitMode(false)}
+      />
+    );
+  }
+
   const confirmed = rsvps.filter(r => r.attending === 'confirmed').length;
   const pending = rsvps.filter(r => r.attending === 'pending').length;
   const totalGuests = rsvps.filter(r => r.attending === 'confirmed').reduce((s, r) => s + (r.guest_count || 0), 0);
   const dietary = rsvps
     .filter(r => r.attending && r.dietary_preference && r.dietary_preference !== "No preference")
-    .reduce((acc, r) => { acc[r.dietary_preference] = (acc[r.dietary_preference] || 0) + 1; return acc; }, {} as Record<string, number>);
+    .reduce((acc, r) => {
+      if (r.dietary_preference) {
+        acc[r.dietary_preference] = (acc[r.dietary_preference] || 0) + 1;
+      }
+      return acc;
+    }, {} as Record<string, number>);
   const weddingUrl = `${window.location.origin}/wedding/${slug}`;
 
   return (
@@ -225,6 +271,24 @@ export default function CoupleDashboard() {
           </div>
 
           <div className="ml-auto flex items-center gap-3">
+            <button
+              onClick={() => setInCockpitMode(true)}
+              className="inline-flex items-center gap-1.5 !py-2 !px-3.5 text-[12px] rounded-xl bg-[#7A9E7E]/20 hover:bg-[#7A9E7E] text-[#7A9E7E] hover:text-black border border-[#7A9E7E]/30 transition shadow-sm font-semibold"
+              title="Enter Day-Of Coordinator Cockpit Mode"
+            >
+              <Radio size={14} className="animate-pulse" />
+              <span className="hidden sm:inline">Live Cockpit</span>
+            </button>
+
+            <button
+              onClick={() => setShowOnboarding(true)}
+              className="inline-flex items-center gap-1.5 fv-btn-ghost !py-2 !px-3 text-[12px] text-[#E8C97A] border-[#D4A853]/30 hover:bg-[#D4A853]/10 transition"
+              title="Concierge Walkthrough Tour"
+            >
+              <Sparkles size={14} className="text-[#D4A853] animate-pulse" />
+              <span className="hidden sm:inline">Walkthrough</span>
+            </button>
+
             <button
               onClick={() => setNotifsOpen(true)}
               className="relative w-10 h-10 rounded-full bg-white/[0.04] border border-white/[0.08] hover:bg-white/[0.1] flex items-center justify-center text-[#FAF7F2] transition"
@@ -383,6 +447,7 @@ export default function CoupleDashboard() {
                 rsvps={rsvps}
                 moments={moments}
                 guestPhotos={guestPhotos}
+                onOpenOnboarding={() => setShowOnboarding(true)}
               />
 
               <div className="grid lg:grid-cols-3 gap-8">
@@ -398,6 +463,7 @@ export default function CoupleDashboard() {
                     wedding={wedding}
                     onNavigate={(t: TabId) => setTab(t)}
                     onCopyLink={copyLink}
+                    onOpenOnboarding={() => setShowOnboarding(true)}
                   />
                   <ActivityTimeline
                     rsvps={rsvps} moments={moments} guestPhotos={guestPhotos} updates={updates}
@@ -615,24 +681,67 @@ export default function CoupleDashboard() {
           {tab === "gallery" && (
             <div className="space-y-6">
               <GlassCard variant="obsidian" padding="md" className="border border-white/[0.1]">
-                <div className="flex items-center gap-3">
-                  <input value={galleryUrl} onChange={e => setGalleryUrl(e.target.value)} placeholder="High-Res Image URL" className="flex-1 fv-input" />
-                  <input value={galleryCap} onChange={e => setGalleryCap(e.target.value)} placeholder="Caption" className="flex-1 fv-input" />
-                  <button
-                    onClick={() => {
-                      if (!galleryUrl.trim()) { toast.error("URL required"); return; }
-                      store.insert("gallery", { wedding_id: weddingId, url: galleryUrl.trim(), caption: galleryCap.trim() || null });
-                      setGalleryUrl(""); setGalleryCap(""); toast.success("Photo added to gallery");
-                    }}
-                    className="fv-btn-primary !py-3 !px-6 text-[12px] shrink-0"
-                  >Add Photo</button>
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                  <div className="flex-1 flex items-center gap-2">
+                    <input value={galleryUrl} onChange={e => setGalleryUrl(e.target.value)} placeholder="High-Res Image URL or upload file →" className="flex-1 fv-input" />
+                    <input value={galleryCap} onChange={e => setGalleryCap(e.target.value)} placeholder="Caption" className="flex-1 fv-input" />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => {
+                        if (!galleryUrl.trim()) { toast.error("URL required"); return; }
+                        store.insert("gallery", { wedding_id: weddingId, url: galleryUrl.trim(), caption: galleryCap.trim() || null });
+                        setGalleryUrl(""); setGalleryCap(""); toast.success("Photo added to gallery");
+                      }}
+                      className="fv-btn-primary !py-3 !px-5 text-[12px] shrink-0"
+                    >Add URL</button>
+                    <label className="fv-btn-secondary !py-3 !px-4 text-[12px] shrink-0 cursor-pointer flex items-center gap-1.5 border border-white/[0.15] bg-white/[0.05] hover:bg-white/[0.1] rounded-xl text-white transition">
+                      <UploadCloud size={15} className="text-[#D4A853]" />
+                      <span>{uploadingMedia ? "Compressing..." : "Upload File"}</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        disabled={uploadingMedia}
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0];
+                          if (!file) return;
+                          setUploadingMedia(true);
+                          setUploadStats(null);
+                          toast.info("Compressing & optimizing image...");
+                          const res = await MediaService.uploadAsset(file, "gallery", weddingId || "");
+                          setUploadingMedia(false);
+                          if (res.error) {
+                            toast.error(res.error);
+                          } else {
+                            store.insert("gallery", { wedding_id: weddingId, url: res.url, caption: file.name.replace(/\.[^/.]+$/, "") });
+                            setUploadStats(`Compressed: ${(res.compressedSize / 1024).toFixed(1)} KB (${res.reductionPercentage}% smaller, WebP)`);
+                            toast.success(`Uploaded & compressed (${res.reductionPercentage}% smaller)!`);
+                            refresh();
+                          }
+                        }}
+                      />
+                    </label>
+                  </div>
                 </div>
+                {uploadStats && (
+                  <div className="mt-3 text-[12px] text-[#A8A29E] bg-white/[0.03] p-2.5 rounded-lg border border-white/[0.08] flex items-center gap-2">
+                    <Sparkles size={14} className="text-[#D4A853]" />
+                    <span>{uploadStats}</span>
+                  </div>
+                )}
               </GlassCard>
 
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                 {gallery.map(g => (
                   <GlassCard key={g.id} variant="obsidian" padding="none" className="group relative overflow-hidden border border-white/[0.1] aspect-square">
-                    <img src={g.url} alt={g.caption || ""} className="w-full h-full object-cover" />
+                    <img
+                      src={g.url}
+                      srcSet={MediaService.generateResponsiveSrcset(g.url)}
+                      sizes="(max-width: 640px) 50vw, 25vw"
+                      alt={g.caption || ""}
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    />
                     {g.caption && (
                       <div className="absolute inset-x-0 bottom-0 p-3 bg-gradient-to-t from-black/80 to-transparent text-[12px] text-white font-medium">
                         {g.caption}
@@ -774,19 +883,134 @@ export default function CoupleDashboard() {
           {/* Guest Photo Vault Tab */}
           {tab === "guest_photos" && (
             <GlassCard variant="obsidian" padding="lg" className="border border-white/[0.1] space-y-6">
-              <div className="wedding-label">Guest Photo Vault ({guestPhotos.length})</div>
-              <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 gap-4">
-                {guestPhotos.slice().reverse().map((p: any) => (
-                  <div key={p.id} className="relative aspect-square rounded-[18px] overflow-hidden border border-white/[0.1] group shadow-md">
-                    <img src={p.photo_url} alt="" className="w-full h-full object-cover transition-transform group-hover:scale-105" />
-                    <div className="absolute inset-x-0 bottom-0 p-2.5 bg-gradient-to-t from-black/80 to-transparent">
-                      <div className="text-[11px] text-white font-medium truncate">{p.guest_name}</div>
-                    </div>
-                    <button onClick={() => { store.remove("guest_photos", p.id); refresh(); toast.success("Photo removed"); }} className="absolute top-2 right-2 w-8 h-8 rounded-full bg-black/60 text-white opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
-                      <Trash2 size={13}/>
-                    </button>
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div>
+                  <div className="wedding-label flex items-center gap-2">
+                    <span>Guest Photo Vault ({guestPhotos.length})</span>
+                    <span className="text-[11px] px-2 py-0.5 rounded-full bg-[#D4A853]/20 text-[#D4A853] font-normal">Moderation Enabled</span>
                   </div>
-                ))}
+                  <p className="text-[13px] text-[#A8A29E] mt-0.5">Review guest moments, pin highlights, or promote favorites directly to your Curated Portfolio.</p>
+                </div>
+
+                <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
+                  <div className="flex items-center bg-black/40 p-1 rounded-xl border border-white/[0.08]">
+                    {["all", "approved", "pinned", "pending"].map((f) => (
+                      <button
+                        key={f}
+                        onClick={() => setVaultFilter(f)}
+                        className={`px-3 py-1.5 rounded-lg text-[12px] font-medium capitalize transition ${
+                          vaultFilter === f ? "bg-[#D4A853] text-black" : "text-[#A8A29E] hover:text-white"
+                        }`}
+                      >
+                        {f === "all" ? `All (${guestPhotos.length})` : f}
+                      </button>
+                    ))}
+                  </div>
+
+                  <label className="fv-btn-primary !py-2.5 !px-4 text-[12px] cursor-pointer flex items-center gap-1.5 shrink-0">
+                    <UploadCloud size={15} />
+                    <span>{uploadingMedia ? "Compressing..." : "Upload Photo"}</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      disabled={uploadingMedia}
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+                        setUploadingMedia(true);
+                        toast.info("Compressing & optimizing photo...");
+                        const res = await MediaService.uploadAsset(file, "guest-vault", weddingId || "", "Couple Admin");
+                        setUploadingMedia(false);
+                        if (res.error) {
+                          toast.error(res.error);
+                        } else {
+                          toast.success(`Uploaded to Vault (${res.reductionPercentage}% smaller, WebP)!`);
+                          refresh();
+                        }
+                      }}
+                    />
+                  </label>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 gap-4">
+                {guestPhotos
+                  .filter((p) => {
+                    if (vaultFilter === "approved") return p.status === "approved" || !p.status;
+                    if (vaultFilter === "pinned") return p.status === "pinned";
+                    if (vaultFilter === "pending") return p.status === "pending";
+                    return p.status !== "rejected";
+                  })
+                  .slice()
+                  .reverse()
+                  .map((p: any) => (
+                    <div key={p.id} className="relative aspect-square rounded-[18px] overflow-hidden border border-white/[0.1] group shadow-md bg-black/40 flex flex-col justify-end">
+                      <img
+                        src={p.photo_url}
+                        srcSet={MediaService.generateResponsiveSrcset(p.photo_url)}
+                        sizes="(max-width: 640px) 50vw, 20vw"
+                        alt=""
+                        className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      />
+                      <div className="absolute inset-x-0 top-0 p-2.5 bg-gradient-to-b from-black/80 via-black/40 to-transparent flex items-center justify-between opacity-90 group-hover:opacity-100 transition">
+                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-black/60 border border-white/[0.15] text-white backdrop-blur-md font-medium capitalize">
+                          {p.status || "approved"}
+                        </span>
+                        {p.is_promoted && (
+                          <span title="Promoted to Gallery" className="text-[10px] px-2 py-0.5 rounded-full bg-[#D4A853] text-black font-semibold flex items-center gap-1 shadow-sm">
+                            <Sparkles size={10} /> Promoted
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="absolute inset-x-0 bottom-0 p-3 bg-gradient-to-t from-black/95 via-black/70 to-transparent flex flex-col gap-2 translate-y-2 group-hover:translate-y-0 transition-transform">
+                        <div className="text-[11px] text-white font-medium truncate">{p.guest_name}</div>
+                        <div className="flex items-center justify-between gap-1 opacity-0 group-hover:opacity-100 transition-opacity pt-1 border-t border-white/[0.1]">
+                          <button
+                            title="Promote to Curated Gallery"
+                            onClick={async () => {
+                              toast.info("Promoting to Curated Portfolio...");
+                              const res = await MediaService.promoteToCuratedGallery(weddingId || "", p);
+                              if (res.error) toast.error(res.error);
+                              else {
+                                toast.success("✨ Promoted to Curated Portfolio!");
+                                refresh();
+                              }
+                            }}
+                            className="p-1.5 rounded-lg bg-[#D4A853]/20 hover:bg-[#D4A853] text-[#D4A853] hover:text-black transition"
+                          >
+                            <Sparkles size={13} />
+                          </button>
+                          <button
+                            title={p.status === "pinned" ? "Unpin" : "Pin to Top"}
+                            onClick={async () => {
+                              await MediaService.moderatePhoto(p.id, p.status === "pinned" ? "approve" : "pin");
+                              toast.success(p.status === "pinned" ? "Unpinned photo" : "Pinned photo to top");
+                              refresh();
+                            }}
+                            className={`p-1.5 rounded-lg transition ${
+                              p.status === "pinned" ? "bg-[#D4A853] text-black" : "bg-white/[0.1] hover:bg-white/[0.2] text-white"
+                            }`}
+                          >
+                            <Pin size={13} />
+                          </button>
+                          <button
+                            title="Reject / Remove Photo"
+                            onClick={() => {
+                              store.remove("guest_photos", p.id);
+                              MediaService.moderatePhoto(p.id, "reject");
+                              refresh();
+                              toast.success("Photo removed");
+                            }}
+                            className="p-1.5 rounded-lg bg-red-500/20 hover:bg-red-500 text-red-400 hover:text-white transition"
+                          >
+                            <Trash2 size={13} />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
                 {guestPhotos.length === 0 && (
                   <div className="col-span-full text-center py-12 text-[13px] text-[#78716C] border border-dashed border-white/[0.15] rounded-[20px]">
                     No guest photos uploaded yet.
@@ -824,7 +1048,7 @@ export default function CoupleDashboard() {
                       <div className="w-9 h-9 rounded-full bg-[#7A9E7E]/20 text-[#7A9E7E] flex items-center justify-center"><CheckCircle2 size={16}/></div>
                       <div>
                         <div className="text-[14.5px] text-[#FAF7F2] font-semibold">{c.guest_name}</div>
-                        <div className="text-[11px] font-mono text-[#A8A29E]">{format(new Date(c.checkin_time), "HH:mm • d MMM")}</div>
+                        <div className="text-[11px] font-mono text-[#A8A29E]">{format(new Date(c.checkin_time || c.created_at || Date.now()), "HH:mm • d MMM")}</div>
                       </div>
                     </div>
                     <button onClick={() => { store.remove("checkins", c.id); refresh(); }} className="text-[#E4A5A5] hover:bg-[#C97B7B]/20 p-2 rounded-lg">
@@ -933,6 +1157,13 @@ export default function CoupleDashboard() {
           { id: "gallery", label: "Gallery", icon: <ImageIcon size={20} />, active: tab === "gallery", onClick: () => { setTab("gallery"); setSidebarOpen(false); } },
           { id: "menu", label: sidebarOpen ? "Close" : "Menu", icon: sidebarOpen ? <X size={20} /> : <Menu size={20} />, onClick: () => setSidebarOpen((v) => !v) },
         ]}
+      />
+      <CoupleOnboardingModal
+        open={showOnboarding}
+        onClose={() => setShowOnboarding(false)}
+        coupleNames={wedding?.couple_names || ""}
+        weddingId={wedding?.id || ""}
+        onNavigate={(t) => setTab(t as TabId)}
       />
     </div>
   );

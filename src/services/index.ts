@@ -1,5 +1,6 @@
-export * from "./repository/BaseRepository";
+export * from "@/repositories";
 export * from "./events/DomainEventBus";
+export * from "./AuthService";
 export * from "./WeddingService";
 export * from "./GuestService";
 export * from "./RSVPService";
@@ -12,4 +13,7 @@ export * from "./MemoryBookService";
 export * from "./ImportService";
 export * from "./ObservabilityService";
 export * from "./DataGovernanceService";
+export * from "./CommunicationService";
+export * from "./GeolocationService";
+export * from "./MediaService";
 export * from "./integrations/IntegrationGateway";

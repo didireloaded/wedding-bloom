@@ -48,7 +48,9 @@ class DataGovernanceDomainService {
           record_count: recordCount,
           created_at: pkg.exportedAt
         }]);
-      } catch {}
+      } catch (err) {
+        console.warn("[DataGovernance] Export tracking write failed:", err);
+      }
 
       await DomainEventBus.publish("MemoryBookGenerated", weddingId, `Generated full data archive package (${recordCount} records)`);
 

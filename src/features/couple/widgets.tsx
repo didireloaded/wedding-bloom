@@ -1,6 +1,6 @@
-// @ts-nocheck
 import { useEffect, useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import type { Wedding, RSVP, GuestMoment, GuestPhoto, WeddingEvent, Accommodation, VenueMarker, WeddingUpdate } from "@/types/wedding";
 import { differenceInDays, formatDistanceToNow } from "date-fns";
 import {
   Heart, Users, MessageCircle, Camera, Eye, QrCode, Sparkles, Bell,
@@ -8,26 +8,50 @@ import {
   Send, ExternalLink, Image, BarChart3, Zap, ShieldCheck, Check, Clock
 } from "lucide-react";
 import { store } from "@/store/weddingStore";
-function calculateWeddingStage(w: any) {
+import { toast } from "sonner";
+import { NotificationService, CommunicationService } from "@/services";
+function calculateWeddingStage(w: Wedding) {
   const now = Date.now();
   const wd = w?.wedding_date ? new Date(w.wedding_date + "T16:00:00").getTime() : null;
   const daysUntil = wd ? Math.floor((wd - now) / 86400000) : null;
   const daysAfter = wd ? Math.floor((now - wd) / 86400000) : null;
   const isLegacyMode = !!(daysAfter && daysAfter > 7);
   let stageNumber = 1, stageName = "Dream", progressPercent = 10;
-  if (w?.published) { stageNumber = 3; stageName = "Published"; progressPercent = 45; }
-  else if (w?.couple_names && w?.wedding_date) { stageNumber = 2; stageName = "Planning"; progressPercent = 25; }
-  if (daysUntil !== null && daysUntil <= 60 && w?.published) { stageNumber = 4; stageName = "RSVPs"; progressPercent = 65; }
-  if (daysUntil !== null && daysUntil <= 7 && daysUntil >= -1) { stageNumber = 5; stageName = "Live Week"; progressPercent = 85; }
-  if (isLegacyMode) { stageNumber = 6; stageName = "Memory Book"; progressPercent = 100; }
-  return { stageNumber, stageName, progressPercent, isLegacyMode };
+  let recommendation = "Start building your vision board and adding estimated budget items.";
+  let actionLabel = "Open Vision Board";
+  if (w?.published) {
+    stageNumber = 3; stageName = "Published"; progressPercent = 45;
+    recommendation = "Share your guest website link with friends and family to collect RSVPs.";
+    actionLabel = "Share Website";
+  }
+  else if (w?.couple_names && w?.wedding_date) {
+    stageNumber = 2; stageName = "Planning"; progressPercent = 25;
+    recommendation = "Add your vendors and start finalizing your guest list and seating arrangements.";
+    actionLabel = "Manage Guests & Seating";
+  }
+  if (daysUntil !== null && daysUntil <= 60 && w?.published) {
+    stageNumber = 4; stageName = "RSVPs"; progressPercent = 65;
+    recommendation = "Track incoming guest RSVPs and dietary preferences in real time.";
+    actionLabel = "View RSVP CRM";
+  }
+  if (daysUntil !== null && daysUntil <= 7 && daysUntil >= -1) {
+    stageNumber = 5; stageName = "Live Week"; progressPercent = 85;
+    recommendation = "Check your run sheet timeline and broadcast updates to guests.";
+    actionLabel = "Open Run Sheet";
+  }
+  if (isLegacyMode) {
+    stageNumber = 6; stageName = "Memory Book"; progressPercent = 100;
+    recommendation = "Your celebration is complete! Explore your permanent digital memory archive.";
+    actionLabel = "View Memory Book";
+  }
+  return { stageNumber, stageName, progressPercent, isLegacyMode, recommendation, actionLabel };
 }
 import { GlassCard } from "@/components/ui/GlassCard";
 
 /* ─────────────────────────────────────────────
    GREETING + COUNTDOWN HEADER (MISSION CONTROL)
    ───────────────────────────────────────────── */
-export function CommandCenter({ wedding, rsvps, moments, guestPhotos }: any) {
+export function CommandCenter({ wedding, rsvps, moments, guestPhotos, onOpenOnboarding }: { wedding: Wedding; rsvps: RSVP[]; moments: GuestMoment[]; guestPhotos: GuestPhoto[]; onOpenOnboarding?: () => void }) {
   const hour = new Date().getHours();
   const greet = hour < 12 ? "Good Morning" : hour < 18 ? "Good Afternoon" : "Good Evening";
   const days = wedding.wedding_date ? differenceInDays(new Date(wedding.wedding_date + "T16:00:00"), new Date()) : null;
@@ -55,11 +79,21 @@ export function CommandCenter({ wedding, rsvps, moments, guestPhotos }: any) {
 
       <div className="relative z-10 grid lg:grid-cols-12 gap-8 items-center">
         <div className="lg:col-span-7">
-          <div className="flex flex-wrap items-center gap-3 mb-4">
-            <span className={`w-2.5 h-2.5 rounded-full animate-pulse ${stageInfo.isLegacyMode ? "bg-[#C97B7B]" : wedding.published ? "bg-[#7A9E7E]" : "bg-[#D4A853]"}`} />
-            <div className="text-[11px] uppercase tracking-[0.24em] font-semibold text-[#A8A29E]">
-              Stage {stageInfo.stageNumber} of 6: <span className="text-[#FAF7F2] font-bold">{stageInfo.stageName}</span>
+          <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+            <div className="flex items-center gap-3">
+              <span className={`w-2.5 h-2.5 rounded-full animate-pulse ${stageInfo.isLegacyMode ? "bg-[#C97B7B]" : wedding.published ? "bg-[#7A9E7E]" : "bg-[#D4A853]"}`} />
+              <div className="text-[11px] uppercase tracking-[0.24em] font-semibold text-[#A8A29E]">
+                Stage {stageInfo.stageNumber} of 6: <span className="text-[#FAF7F2] font-bold">{stageInfo.stageName}</span>
+              </div>
             </div>
+            {onOpenOnboarding && (
+              <button
+                onClick={onOpenOnboarding}
+                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#D4A853]/20 border border-[#D4A853]/40 hover:bg-[#D4A853]/30 text-[#D4A853] text-[11px] font-semibold tracking-wide transition shadow-sm"
+              >
+                <Sparkles size={13} className="animate-pulse" /> Onboarding Tour
+              </button>
+            )}
           </div>
 
           <div className="text-[13px] uppercase tracking-[0.15em] text-[#D4A853] font-semibold mb-1">{greet},</div>
@@ -144,7 +178,7 @@ export function CommandCenter({ wedding, rsvps, moments, guestPhotos }: any) {
 /* ─────────────────────────────────────────────
    COUNTDOWN WIDGET
    ───────────────────────────────────────────── */
-export function CountdownWidget({ wedding }: { wedding: any }) {
+export function CountdownWidget({ wedding }: { wedding: Wedding }) {
   const [now, setNow] = useState(Date.now());
   useEffect(() => {
     const t = setInterval(() => setNow(Date.now()), 1000);
@@ -178,7 +212,7 @@ export function CountdownWidget({ wedding }: { wedding: any }) {
 /* ─────────────────────────────────────────────
    WEDDING HEALTH / PROGRESS
    ───────────────────────────────────────────── */
-export function HealthWidget({ wedding, gallery, events, accommodations }: any) {
+export function HealthWidget({ wedding, gallery, events, accommodations }: { wedding: Wedding; gallery: any[]; events: WeddingEvent[]; accommodations: Accommodation[] }) {
   const categories = [
     {
       name: "Wedding Details",
@@ -235,12 +269,13 @@ export function HealthWidget({ wedding, gallery, events, accommodations }: any) 
 /* ─────────────────────────────────────────────
    SUMMARY STATS GRID
    ───────────────────────────────────────────── */
-export function SummaryGrid({ rsvps, moments, guestPhotos, wedding, onNavigate }: any) {
+export function SummaryGrid({ rsvps, moments, guestPhotos, wedding, onNavigate }: { rsvps: RSVP[]; moments: GuestMoment[]; guestPhotos: GuestPhoto[]; wedding: Wedding; onNavigate: (tab: any) => void }) {
   const confirmed = rsvps.filter((r: any) => r.attending === "confirmed").length;
   const pending = rsvps.filter((r: any) => r.attending === "pending" || r.attending === "maybe").length;
   const declined = rsvps.filter((r: any) => r.attending === "declined").length;
-  const views = Number(localStorage.getItem(`wb_viewed_${wedding.id}`) || 0);
-  const qrScans = Number(localStorage.getItem(`wb_qr_${wedding.id}`) || 0);
+  const analyticsRecords = store.all("analytics").filter((r: Record<string, unknown>) => r.wedding_id === wedding.id);
+  const views = analyticsRecords.filter((r: Record<string, unknown>) => r.event_type === "page_view").length;
+  const qrScans = analyticsRecords.filter((r: Record<string, unknown>) => r.event_type === "qr_scan").length;
 
   const cards = [
     { icon: <Users size={18} />, label: "Confirmed", value: confirmed, tab: "rsvp", color: "#7A9E7E", bg: "rgba(122,158,126,0.12)", sub: `Expecting ~${rsvps.length}` },
@@ -284,9 +319,10 @@ export function SummaryGrid({ rsvps, moments, guestPhotos, wedding, onNavigate }
 /* ─────────────────────────────────────────────
    QUICK ACTIONS
    ───────────────────────────────────────────── */
-export function QuickActionsWidget({ wedding, onNavigate, onCopyLink }: any) {
+export function QuickActionsWidget({ wedding, onNavigate, onCopyLink, onOpenOnboarding }: { wedding: Wedding; onNavigate: (tab: any) => void; onCopyLink: () => void; onOpenOnboarding?: () => void }) {
   const slug = wedding.slug;
   const actions = [
+    { icon: <Sparkles size={16} className="text-[#E8C97A] animate-pulse" />, label: "Onboarding Tour", onClick: onOpenOnboarding },
     { icon: <Send size={16} />, label: "Share Invitation", onClick: onCopyLink },
     { icon: <ExternalLink size={16} />, label: "Preview Site", onClick: () => window.open(`/wedding/${slug}`, "_blank") },
     { icon: <QrCode size={16} />, label: "Get QR Code", onClick: () => onNavigate("share") },
@@ -295,7 +331,7 @@ export function QuickActionsWidget({ wedding, onNavigate, onCopyLink }: any) {
     { icon: <MessageCircle size={16} />, label: "Post Announcement", onClick: () => onNavigate("updates") },
     { icon: <MapPin size={16} />, label: "Venue Map", onClick: () => onNavigate("map") },
     { icon: <Heart size={16} />, label: "Hotels & Stay", onClick: () => onNavigate("accommodations") },
-  ];
+  ].filter(a => a.onClick);
 
   return (
     <GlassCard variant="obsidian" padding="lg" id="mission-actions" className="border border-white/[0.1]">
@@ -319,7 +355,7 @@ export function QuickActionsWidget({ wedding, onNavigate, onCopyLink }: any) {
 /* ─────────────────────────────────────────────
    RECENT ACTIVITY TIMELINE
    ───────────────────────────────────────────── */
-export function ActivityTimeline({ rsvps, moments, guestPhotos, updates }: any) {
+export function ActivityTimeline({ rsvps, moments, guestPhotos, updates }: { rsvps: RSVP[]; moments: GuestMoment[]; guestPhotos: GuestPhoto[]; updates: WeddingUpdate[] }) {
   const items = useMemo(() => {
     const list: { ts: number; icon: any; text: string; sub: string }[] = [];
     rsvps.forEach((r: any) => {
@@ -377,7 +413,7 @@ export function ActivityTimeline({ rsvps, moments, guestPhotos, updates }: any) 
 /* ─────────────────────────────────────────────
    WEDDING INSIGHTS
    ───────────────────────────────────────────── */
-export function InsightsWidget({ wedding, rsvps, guestPhotos, moments }: any) {
+export function InsightsWidget({ wedding, rsvps, guestPhotos, moments }: { wedding: Wedding; rsvps: RSVP[]; guestPhotos: GuestPhoto[]; moments: GuestMoment[] }) {
   const totalInvited = rsvps.length;
   const responded = rsvps.filter((r: any) => r.attending === "confirmed" || r.attending === "declined").length;
   const responseRate = totalInvited > 0 ? Math.round((responded / totalInvited) * 100) : 0;
@@ -391,7 +427,7 @@ export function InsightsWidget({ wedding, rsvps, guestPhotos, moments }: any) {
   });
   const mostActive = Object.entries(guestCounts).sort((a, b) => b[1] - a[1])[0];
 
-  const views = Number(localStorage.getItem(`wb_viewed_${wedding.id}`) || 0);
+  const views = store.all("analytics").filter((r: Record<string, unknown>) => r.wedding_id === wedding.id && r.event_type === "page_view").length;
   const engagement = totalInvited > 0 ? Math.min(100, Math.round(((responded + moments.length + guestPhotos.length) / (totalInvited * 1.5)) * 100)) : 0;
 
   const insights = [
@@ -425,8 +461,20 @@ export function InsightsWidget({ wedding, rsvps, guestPhotos, moments }: any) {
    ───────────────────────────────────────────── */
 const NOTIF_READ_KEY = (wid: string) => `fv_notifs_read_${wid}`;
 
-export function buildNotifications(wedding: any, rsvps: any[], moments: any[], guestPhotos: any[]) {
-  const items: { id: string; type: string; text: string; ts: number; dataId?: string; tab?: string; icon?: any }[] = [];
+export interface PulseNotificationItem {
+  id: string;
+  type: string;
+  text: string;
+  ts: number;
+  dataId?: string;
+  tab?: string;
+  icon?: any;
+  isSystem?: boolean;
+  read?: boolean;
+}
+
+export function buildNotifications(wedding: Wedding, rsvps: RSVP[], moments: GuestMoment[], guestPhotos: GuestPhoto[]): PulseNotificationItem[] {
+  const items: PulseNotificationItem[] = [];
   rsvps.forEach((r: any) => items.push({
     id: `rsvp_${r.id}`,
     type: "rsvp",
@@ -451,22 +499,73 @@ export function buildNotifications(wedding: any, rsvps: any[], moments: any[], g
     tab: "guest_photos",
     icon: <Camera size={14} className="text-[#E8C97A]" />
   }));
-  const views = Number(localStorage.getItem(`wb_viewed_${wedding.id}`) || 0);
+  const views = store.all("analytics").filter((r: Record<string, unknown>) => r.wedding_id === wedding.id && r.event_type === "page_view").length;
   if (views >= 10) items.push({ id: `milestone_v_${Math.floor(views/10)*10}`, type: "milestone", text: `Celebration page hit ${Math.floor(views/10)*10} views`, ts: Date.now(), tab: "overview", icon: <Zap size={14} className="text-[#7A9E7E]" /> });
   return items.sort((a, b) => b.ts - a.ts);
 }
 
-export function NotificationCenter({ wedding, rsvps, moments, guestPhotos, open, onClose, onNavigate }: any) {
-  const all = buildNotifications(wedding, rsvps, moments, guestPhotos);
+export function NotificationCenter({ wedding, rsvps, moments, guestPhotos, open, onClose, onNavigate }: { wedding: Wedding; rsvps: RSVP[]; moments: GuestMoment[]; guestPhotos: GuestPhoto[]; open: boolean; onClose: () => void; onNavigate: (tab: any) => void }) {
+  const localAll = buildNotifications(wedding, rsvps, moments, guestPhotos);
   const [readIds, setReadIds] = useState<string[]>(() => {
     try { return JSON.parse(localStorage.getItem(NOTIF_READ_KEY(wedding.id)) || "[]"); } catch { return []; }
   });
+  const [systemNotifs, setSystemNotifs] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (!wedding?.id) return;
+    let isMounted = true;
+    NotificationService.findByWeddingId(wedding.id).then((res: { data: any[] }) => {
+      if (isMounted && res.data) {
+        setSystemNotifs(res.data);
+      }
+    });
+
+    const unsubscribe = CommunicationService.subscribeToNotifications(wedding.id, (newNotif: any) => {
+      if (isMounted) {
+        setSystemNotifs(prev => [newNotif, ...prev]);
+        toast.info(`🔔 New Alert: ${newNotif.title}`);
+      }
+    });
+
+    return () => {
+      isMounted = false;
+      unsubscribe();
+    };
+  }, [wedding?.id]);
+
+  const sysItems: PulseNotificationItem[] = useMemo(() => systemNotifs.map(sn => ({
+    id: sn.id,
+    type: sn.type || "system",
+    text: `${sn.title}: ${sn.message}`,
+    ts: new Date(sn.created_at).getTime(),
+    tab: "overview",
+    icon: <Bell size={14} className="text-[#EAB308]" />,
+    isSystem: true,
+    read: sn.read
+  })), [systemNotifs]);
+
+  const all: PulseNotificationItem[] = useMemo(() => [...sysItems, ...localAll].sort((a, b) => b.ts - a.ts), [sysItems, localAll]);
 
   const markAll = () => {
-    const ids = all.map(n => n.id);
+    const ids = localAll.map(n => n.id);
     setReadIds(ids);
     localStorage.setItem(NOTIF_READ_KEY(wedding.id), JSON.stringify(ids));
+    systemNotifs.filter(sn => !sn.read).forEach(sn => {
+      NotificationService.markAsRead(sn.id);
+    });
+    setSystemNotifs(prev => prev.map(sn => ({ ...sn, read: true })));
   };
+
+  const handleAction = (n: PulseNotificationItem) => {
+    if (n.isSystem && !n.read) {
+      NotificationService.markAsRead(n.id);
+      setSystemNotifs(prev => prev.map(sn => sn.id === n.id ? { ...sn, read: true } : sn));
+    }
+    if (n.tab) onNavigate(n.tab);
+    onClose();
+  };
+
+  const unreadCount = all.filter(n => n.isSystem ? !n.read : !readIds.includes(n.id)).length;
 
   if (!open) return null;
 
@@ -480,7 +579,7 @@ export function NotificationCenter({ wedding, rsvps, moments, guestPhotos, open,
         <div className="px-6 py-6 border-b border-white/[0.08] flex items-center justify-between">
           <div>
             <div className="wedding-label text-[#D4A853]">Celebration Pulse</div>
-            <div className="text-[13px] text-[#A8A29E] mt-0.5">{all.filter(n => !readIds.includes(n.id)).length} unread updates</div>
+            <div className="text-[13px] text-[#A8A29E] mt-0.5">{unreadCount} unread updates</div>
           </div>
           <button onClick={markAll} className="text-[12px] text-[#D4A853] hover:text-[#E8C97A] font-semibold underline underline-offset-4">Mark all read</button>
         </div>
@@ -495,7 +594,7 @@ export function NotificationCenter({ wedding, rsvps, moments, guestPhotos, open,
             </div>
           ) : (
             all.slice(0, 30).map(n => {
-              const unread = !readIds.includes(n.id);
+              const unread = n.isSystem ? !n.read : !readIds.includes(n.id);
               return (
                 <div
                   key={n.id}
@@ -508,7 +607,7 @@ export function NotificationCenter({ wedding, rsvps, moments, guestPhotos, open,
                   <div className="text-[11px] text-[#A8A29E] font-mono">{formatDistanceToNow(new Date(n.ts), { addSuffix: true })}</div>
                   <div className="mt-3 flex gap-2">
                     <button
-                      onClick={() => { if(n.tab) onNavigate(n.tab); onClose(); }}
+                      onClick={() => handleAction(n)}
                       className="flex-1 py-1.5 rounded-full bg-[#D4A853] text-[#0C0A09] text-[11px] font-bold"
                     >Take Action</button>
                   </div>
@@ -526,7 +625,7 @@ export function NotificationCenter({ wedding, rsvps, moments, guestPhotos, open,
   );
 }
 
-export function unreadCount(wedding: any, rsvps: any[], moments: any[], guestPhotos: any[]) {
+export function unreadCount(wedding: Wedding, rsvps: RSVP[], moments: GuestMoment[], guestPhotos: GuestPhoto[]) {
   const all = buildNotifications(wedding, rsvps, moments, guestPhotos);
   const read: string[] = (() => {
     try { return JSON.parse(localStorage.getItem(NOTIF_READ_KEY(wedding.id)) || "[]"); } catch { return []; }
@@ -537,7 +636,7 @@ export function unreadCount(wedding: any, rsvps: any[], moments: any[], guestPho
 /* ─────────────────────────────────────────────
    WORKSPACE SEARCH
    ───────────────────────────────────────────── */
-export function WorkspaceSearch({ wedding, onNavigate }: any) {
+export function WorkspaceSearch({ wedding, onNavigate }: { wedding: Wedding; onNavigate: (tab: any) => void }) {
   const [q, setQ] = useState("");
   const [open, setOpen] = useState(false);
 
@@ -618,13 +717,23 @@ function SearchIcon({ size, className }: { size?: number; className?: string }) 
   );
 }
 
-export function WelcomeHeader({ wedding }: { wedding: any }) {
+export function WelcomeHeader({ wedding, onOpenOnboarding }: { wedding: Wedding; onOpenOnboarding?: () => void }) {
   const hour = new Date().getHours();
   const greet = hour < 12 ? "Good Morning" : hour < 18 ? "Good Afternoon" : "Good Evening";
   return (
-    <GlassCard variant="obsidian" padding="md" className="border border-white/[0.08]">
-      <div className="wedding-label mb-1">{greet}</div>
-      <div className="display text-[26px] text-[#FAF7F2]">{wedding.couple_names}</div>
+    <GlassCard variant="obsidian" padding="md" className="border border-white/[0.08] flex items-center justify-between">
+      <div>
+        <div className="wedding-label mb-1">{greet}</div>
+        <div className="display text-[26px] text-[#FAF7F2]">{wedding.couple_names}</div>
+      </div>
+      {onOpenOnboarding && (
+        <button
+          onClick={onOpenOnboarding}
+          className="fv-btn-secondary !py-2 !px-3.5 text-[12px] flex items-center gap-2 border-[#D4A853]/40 hover:border-[#D4A853] text-[#D4A853]"
+        >
+          <Sparkles size={14} className="animate-pulse" /> Onboarding Tour
+        </button>
+      )}
     </GlassCard>
   );
 }

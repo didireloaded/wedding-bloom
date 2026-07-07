@@ -3,6 +3,10 @@ import { supabase } from "@/lib/supabase";
 export type DomainEventType =
   | "WeddingCreated"
   | "WeddingPublished"
+  | "WeddingDuplicated"
+  | "WeddingArchived"
+  | "WeddingDeleted"
+  | "BroadcastSent"
   | "GuestInvited"
   | "GuestAccepted"
   | "GuestDeclined"
@@ -67,7 +71,7 @@ class DomainEventBusService {
         }]);
       }
     } catch (err) {
-      console.error("[DomainEventBus] Audit log write failure:", err);
+      console.warn("[DomainEventBus] Audit log write failure:", err);
     }
 
     return event;

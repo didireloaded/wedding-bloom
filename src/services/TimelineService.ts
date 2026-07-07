@@ -1,18 +1,9 @@
-import { BaseRepository } from "./repository/BaseRepository";
+import { TimelineRepository } from "@/repositories";
 import { WeddingEvent, RunSheetItem } from "@/types/wedding";
-import { supabase } from "@/lib/supabase";
 
-class TimelineDomainService extends BaseRepository<WeddingEvent> {
+class TimelineDomainService extends TimelineRepository {
   constructor() {
-    super("events");
-  }
-
-  async getRunSheet(weddingId: string): Promise<RunSheetItem[]> {
-    const { data } = await supabase
-      .from("run_sheet")
-      .select("*")
-      .eq("wedding_id", weddingId);
-    return (data || []) as RunSheetItem[];
+    super();
   }
 }
 

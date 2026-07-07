@@ -1,30 +1,26 @@
-import { BaseRepository } from "./repository/BaseRepository";
+import { VenueMarkerRepository, AccommodationRepository, WeddingRepository } from "@/repositories";
 import { VenueMarker, Accommodation } from "@/types/wedding";
-import { supabase } from "@/lib/supabase";
 import { DomainEventBus } from "./events/DomainEventBus";
 
-class VenueDomainService extends BaseRepository<VenueMarker> {
+class VenueDomainService extends VenueMarkerRepository {
+  private accommodationRepo = new AccommodationRepository();
+  private weddingRepo = new WeddingRepository();
+
   constructor() {
-    super("venue_markers");
+    super();
   }
 
   async getAccommodations(weddingId: string): Promise<Accommodation[]> {
-    const { data } = await supabase
-      .from("accommodations")
-      .select("*")
-      .eq("wedding_id", weddingId);
-    return (data || []) as Accommodation[];
+    const res = await this.accommodationRepo.findByWeddingId(weddingId);
+    return res.data || [];
   }
 
   async updateVenueDetails(weddingId: string, details: { ceremony_venue?: string; venue_address?: string }): Promise<{ success: boolean }> {
-    const { error } = await supabase
-      .from("weddings")
-      .update(details)
-      .eq("id", weddingId);
-    if (!error) {
+    const res = await this.weddingRepo.update(weddingId, details);
+    if (!res.error) {
       await DomainEventBus.publish("VenueUpdated", weddingId, `Venue updated to ${details.ceremony_venue || details.venue_address}`);
     }
-    return { success: !error };
+    return { success: !res.error };
   }
 }
 

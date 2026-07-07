@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
-import { supabase } from "@/utils/supabase";
+import { WeddingService } from "@/services";
 import type { Wedding, WeddingEvent, GalleryItem, WeddingUpdate, Accommodation } from "@/types/wedding";
 
 /**
- * Pure Supabase read hook for the public guest wedding page.
- * No localStorage / no mock fallback — a missing slug returns wedding=null.
+ * Pure service read hook for the public guest wedding page.
+ * No localStorage / no mock fallback — delegates to WeddingService repository layer.
  */
 export function useWeddingData(slug: string | undefined) {
   const [wedding, setWedding] = useState<Wedding | null>(null);
@@ -20,23 +20,15 @@ export function useWeddingData(slug: string | undefined) {
     async function run() {
       if (!slug) { setLoading(false); return; }
       setLoading(true);
-      const { data: wData } = await supabase
-        .from("weddings").select("*").eq("slug", slug).maybeSingle();
+      
+      const res = await WeddingService.getPublicWeddingPayload(slug);
       if (cancelled) return;
-      if (!wData) { setWedding(null); setLoading(false); return; }
-      setWedding(wData as Wedding);
 
-      const [ev, gal, upd, acc] = await Promise.all([
-        supabase.from("events").select("*").eq("wedding_id", wData.id).order("sort_order"),
-        supabase.from("gallery").select("*").eq("wedding_id", wData.id),
-        supabase.from("wedding_updates").select("*").eq("wedding_id", wData.id).order("created_at", { ascending: false }),
-        supabase.from("accommodations").select("*").eq("wedding_id", wData.id),
-      ]);
-      if (cancelled) return;
-      setEvents((ev.data || []) as WeddingEvent[]);
-      setGallery((gal.data || []) as GalleryItem[]);
-      setUpdates((upd.data || []) as WeddingUpdate[]);
-      setAccommodations((acc.data || []) as Accommodation[]);
+      setWedding(res.wedding);
+      setEvents(res.events);
+      setGallery(res.gallery);
+      setUpdates(res.updates);
+      setAccommodations(res.accommodations);
       setMarkers([]);
       setLoading(false);
     }

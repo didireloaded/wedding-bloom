@@ -1,5 +1,4 @@
-import { BaseRepository } from "./repository/BaseRepository";
-import { supabase } from "@/lib/supabase";
+import { NotificationRepository } from "@/repositories";
 
 export interface SystemNotification {
   id: string;
@@ -11,9 +10,9 @@ export interface SystemNotification {
   created_at: string;
 }
 
-class NotificationDomainService extends BaseRepository<SystemNotification> {
+class NotificationDomainService extends NotificationRepository {
   constructor() {
-    super("notifications");
+    super();
   }
 
   async sendNotification(weddingId: string, title: string, message: string, type = "info"): Promise<SystemNotification | null> {
@@ -31,15 +30,6 @@ class NotificationDomainService extends BaseRepository<SystemNotification> {
   async markAsRead(notificationId: string): Promise<boolean> {
     const res = await this.update(notificationId, { read: true });
     return !!res.data;
-  }
-
-  async getUnreadCount(weddingId: string): Promise<number> {
-    const { count } = await supabase
-      .from("notifications")
-      .select("id", { count: "exact", head: true })
-      .eq("wedding_id", weddingId)
-      .eq("read", false);
-    return count || 0;
   }
 }
 

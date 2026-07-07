@@ -1,7 +1,16 @@
 import { createClient } from "@supabase/supabase-js";
 
-const supabaseUrl = (import.meta as any).env.VITE_SUPABASE_URL || "https://idrhnmjwypudnfckhpkr.supabase.co";
-const supabaseKey = (import.meta as any).env.VITE_SUPABASE_PUBLISHABLE_KEY || (import.meta as any).env.VITE_SUPABASE_ANON_KEY || "sb_publishable_qdA092c69PPWDPviCoU57w_dZDoHzjz";
+// ── Fail-fast: require env vars at startup ──
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string | undefined;
+const supabaseKey =
+  (import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string | undefined) ??
+  (import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined);
+
+if (!supabaseUrl || !supabaseKey) {
+  throw new Error(
+    "[ForeverVow] Missing required environment variables: VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY must be set in your .env file."
+  );
+}
 
 export const supabase = createClient(supabaseUrl, supabaseKey);
 
@@ -26,8 +35,9 @@ export async function submitRSVPToBackend(payload: RSVPPayload): Promise<{ succe
       return { success: false, error: error.message };
     }
     return { success: true };
-  } catch (err: any) {
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Network error";
     console.error("Supabase connection error:", err);
-    return { success: false, error: err?.message || "Network error" };
+    return { success: false, error: message };
   }
 }

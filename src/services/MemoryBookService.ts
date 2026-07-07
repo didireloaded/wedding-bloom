@@ -1,10 +1,10 @@
-import { BaseRepository } from "./repository/BaseRepository";
+import { MemoryBookRepository } from "@/repositories";
 import { GuestMoment } from "@/types/wedding";
 import { DomainEventBus } from "./events/DomainEventBus";
 
-class MemoryBookDomainService extends BaseRepository<GuestMoment> {
+class MemoryBookDomainService extends MemoryBookRepository {
   constructor() {
-    super("guest_moments");
+    super();
   }
 
   async addMoment(weddingId: string, guestName: string, message: string): Promise<{ data: GuestMoment | null; error: string | null }> {
@@ -22,7 +22,7 @@ class MemoryBookDomainService extends BaseRepository<GuestMoment> {
 
   async generateDigitalMemoryBook(weddingId: string): Promise<string> {
     await DomainEventBus.publish("MemoryBookGenerated", weddingId, "Digital keepsake memory book generated");
-    return `${window.location.origin}/memory-book/${weddingId}`;
+    return `${typeof window !== "undefined" ? window.location.origin : ""}/memory-book/${weddingId}`;
   }
 }
 

@@ -12,6 +12,8 @@ export type Wedding = {
   cover_image: string | null;
   hero_image: string | null;
   story: string | null;
+  story_image?: string | null;
+  rsvp_image?: string | null;
   dress_code: string | null;
   hashtag: string | null;
   published: boolean;
@@ -59,7 +61,9 @@ export type GalleryItem = {
   id: string;
   wedding_id: string;
   url: string;
+  image_url?: string;
   caption: string | null;
+  promoted_from_guest_photo_id?: string;
   created_at: string;
 };
 
@@ -77,6 +81,8 @@ export type GuestPhoto = {
   guest_name: string;
   photo_url: string;
   likes: number;
+  status?: "approved" | "pending" | "rejected" | "pinned";
+  is_promoted?: boolean;
   created_at: string;
 };
 
@@ -94,6 +100,7 @@ export type Checkin = {
   wedding_id: string;
   guest_name: string;
   message: string | null;
+  checkin_time?: string;
   created_at: string;
 };
 
@@ -106,6 +113,10 @@ export type RSVP = {
   attending: string;
   guest_count: number;
   dietary_preference: string | null;
+  dietary_requirements?: string | null;
+  vip_status?: boolean | null;
+  household?: string | null;
+  notes?: string | null;
   song_request?: string | null;
   message: string | null;
   table_id?: string | null;
@@ -173,6 +184,8 @@ export type TableItem = {
   assigned_guests: string[];
 };
 
+export type FloorTable = TableItem;
+
 export type RunSheetItem = {
   id: string;
   wedding_id: string;
@@ -193,3 +206,132 @@ export type BroadcastItem = {
   sent_at: string;
   recipient_count: number;
 };
+
+export type CoupleProfile = {
+  id: string;
+  user_id?: string | null;
+  wedding_id: string;
+  partner_a_name: string;
+  partner_b_name: string;
+  email?: string | null;
+  phone?: string | null;
+  created_at: string;
+  updated_at?: string;
+};
+
+export type Venue = {
+  id: string;
+  wedding_id: string;
+  name: string;
+  type: string;
+  address?: string | null;
+  city?: string | null;
+  country?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
+  contact_phone?: string | null;
+  website_url?: string | null;
+  created_at: string;
+};
+
+export type VenueMap = {
+  id: string;
+  wedding_id: string;
+  venue_id?: string | null;
+  title: string;
+  image_url: string;
+  width: number;
+  height: number;
+  config?: Record<string, unknown>;
+  created_at: string;
+};
+
+export type GuestUpload = {
+  id: string;
+  wedding_id: string;
+  guest_id?: string | null;
+  guest_name: string;
+  file_url: string;
+  file_type: string;
+  file_size_bytes?: number;
+  status: string;
+  created_at: string;
+};
+
+export type GuestbookEntry = {
+  id: string;
+  wedding_id: string;
+  guest_name: string;
+  email?: string | null;
+  message: string;
+  media_url?: string | null;
+  status: string;
+  created_at: string;
+};
+
+export type MemoryItem = {
+  id: string;
+  wedding_id: string;
+  title: string;
+  description?: string | null;
+  moment_date?: string | null;
+  photo_url?: string | null;
+  category: string;
+  created_at: string;
+};
+
+export type AnalyticsRecord = {
+  id: string;
+  wedding_id: string;
+  event_type: string;
+  path?: string | null;
+  visitor_id?: string | null;
+  user_agent?: string | null;
+  referrer?: string | null;
+  metadata?: Record<string, unknown>;
+  created_at: string;
+};
+
+export type ThemeConfig = {
+  id: string;
+  name: string;
+  slug: string;
+  palette: Record<string, string>;
+  typography: Record<string, string>;
+  layout_style: string;
+  is_default: boolean;
+  created_at: string;
+};
+
+export type TemplateItem = {
+  id: string;
+  name: string;
+  category: string;
+  thumbnail_url?: string | null;
+  config_schema?: Record<string, unknown>;
+  is_premium: boolean;
+  created_at: string;
+};
+
+export type QRCodeItem = {
+  id: string;
+  wedding_id: string;
+  label: string;
+  target_url: string;
+  code_data: string;
+  scan_count: number;
+  is_active: boolean;
+  created_at: string;
+};
+
+export type InvitationLink = {
+  id: string;
+  wedding_id: string;
+  guest_id?: string | null;
+  unique_token: string;
+  url: string;
+  open_count: number;
+  last_opened_at?: string | null;
+  created_at: string;
+};
+

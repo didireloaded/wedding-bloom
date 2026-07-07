@@ -1,5 +1,5 @@
-// @ts-nocheck
 import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
+import type { Wedding } from "@/types/wedding";
 import { Link, useNavigate } from "react-router-dom";
 import { format, formatDistanceToNow, isAfter, isBefore, differenceInDays } from "date-fns";
 import Papa from "papaparse";
@@ -18,6 +18,7 @@ import { GlassCard } from "@/components/ui/GlassCard";
 import { MobileBottomNav } from "@/components/nav/MobileBottomNav";
 import { QRCodeModal } from "@/components/wedding/QRCodeModal";
 import { supabase } from "@/utils/supabase";
+import { WeddingService } from "@/services";
 import { getStatusStyle } from "@/utils/designSystem";
 
 type StatusFilter = "all" | "draft" | "published" | "upcoming" | "completed" | "archived";
@@ -113,8 +114,9 @@ export default function AdminDashboard() {
     const active = weddings.filter(w => ["Published", "Wedding Week", "Live"].includes(getWeddingStage(w))).length;
     const upcoming = weddings.filter(w => w.wedding_date && isAfter(new Date(w.wedding_date), now)).length;
     const completed = weddings.filter(w => getWeddingStage(w) === "Completed").length;
-    const views = weddings.reduce((sum, w) => sum + Number(localStorage.getItem(`wb_viewed_${w.id}`) || 0), 0);
-    const qr = weddings.reduce((sum, w) => sum + Number(localStorage.getItem(`wb_qr_${w.id}`) || 0), 0);
+    const allAnalytics = store.all("analytics");
+    const views = allAnalytics.filter((r: Record<string, unknown>) => r.event_type === "page_view").length;
+    const qr = allAnalytics.filter((r: Record<string, unknown>) => r.event_type === "qr_scan").length;
     return {
       total: weddings.length,
       active,
@@ -170,61 +172,59 @@ export default function AdminDashboard() {
     return items.sort((a, b) => b.ts - a.ts).slice(0, 12);
   }, [weddings]);
 
-  const createWedding = (event: React.FormEvent) => {
+  const createWedding = async (event: React.FormEvent) => {
     event.preventDefault();
     if (!newCouple.trim()) return;
     const slug = (newSlug.trim() || newCouple.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")).slice(0, 60);
-    const code = generateCoupleCode(newCouple.trim());
     const selectedTemplate = templateLibrary.find(t => t.name === template) || templateLibrary[0];
-    const wedding = store.insert("weddings", {
+    
+    const { data: wedding, error } = await WeddingService.createWeddingWithDefaults({
       slug,
-      access_code: code,
       couple_names: newCouple.trim(),
       wedding_date: newDate || null,
       ceremony_time: "16:00",
       ceremony_venue: newVenue || null,
-      venue_address: null,
-      venue_map_url: null,
       cover_image: selectedTemplate.image,
       hero_image: selectedTemplate.image,
-      story: "Tell your story here.",
-      dress_code: "Garden formal",
-      hashtag: newCouple.replace(/[^a-zA-Z]/g, ""),
-      published: false,
-      legacy_mode: false,
-      soundtrack_url: null,
-      theme: { background: "38 35% 97%", foreground: "30 20% 15%", primary: "30 55% 42%", accent: "30 55% 52%", template },
-    });
-    toast.success(`Celebration created! Access Code: ${code}`);
+    }, template);
+
+    if (error || !wedding) {
+      toast.error(error || "Failed to create wedding");
+      return;
+    }
+
+    toast.success(`Celebration created! Access Code: ${wedding.access_code}`);
     setDetailWedding(wedding);
     setNewCouple(""); setNewSlug(""); setNewDate(""); setNewVenue(""); setShowCreate(false);
+    refresh();
   };
 
-  const duplicateWedding = (w: any) => {
-    const copySlug = `${w.slug}-copy-${Date.now().toString().slice(-4)}`;
+  const duplicateWedding = async (w: any) => {
     const copyNames = `${w.couple_names} Copy`;
-    const newWedding = store.insert("weddings", {
-      ...w,
-      id: undefined,
-      slug: copySlug,
-      access_code: generateCoupleCode(copyNames),
-      couple_names: copyNames,
-      published: false,
-      created_at: new Date().toISOString(),
-    });
+    const { data: newWedding, error } = await WeddingService.duplicateWedding(w.id, copyNames);
+    if (error || !newWedding) {
+      toast.error(error || "Failed to duplicate celebration");
+      return;
+    }
     toast.success(`Duplicated celebration: ${copyNames}`);
     setDetailWedding(newWedding);
+    refresh();
   };
 
-  const archiveWedding = (w: any) => {
-    store.update("weddings", w.id, { archived: true, published: false });
+  const archiveWedding = async (w: any) => {
+    await WeddingService.archiveWedding(w.id);
     toast.success(`${w.couple_names} archived`);
     refresh();
   };
 
-  const togglePublish = (w: any) => {
-    store.update("weddings", w.id, { published: !w.published, archived: false });
-    toast.success(w.published ? "Wedding unpublished" : "Wedding published");
+  const togglePublish = async (w: any) => {
+    if (w.published) {
+      await WeddingService.archiveWedding(w.id);
+      toast.success("Wedding unpublished");
+    } else {
+      await WeddingService.publishWedding(w.id);
+      toast.success("Wedding published");
+    }
     refresh();
   };
 
@@ -232,11 +232,12 @@ export default function AdminDashboard() {
     setDeleteWeddingConfirm(w);
   };
 
-  const performDeleteWedding = (w: any) => {
-    store.remove("weddings", w.id);
-    ["events", "gallery", "guest_photos", "rsvps", "guest_moments", "checkins", "updates", "accommodations", "venue_markers"].forEach(t => {
-      store.where(t as any, (row: any) => row.wedding_id === w.id).forEach((row: any) => store.remove(t as any, row.id));
-    });
+  const performDeleteWedding = async (w: any) => {
+    const { success, error } = await WeddingService.deleteWedding(w.id);
+    if (!success) {
+      toast.error(error || "Failed to delete wedding");
+      return;
+    }
     toast.success("Wedding deleted");
     refresh();
   };
@@ -442,7 +443,11 @@ export default function AdminDashboard() {
     { label: "Guest Messages", value: stats.messages, icon: <Bell size={16} />, filter: "all" as StatusFilter },
   ];
 
-  const mostViewed = weddings.slice().sort((a, b) => Number(localStorage.getItem(`wb_viewed_${b.id}`) || 0) - Number(localStorage.getItem(`wb_viewed_${a.id}`) || 0))[0];
+  const mostViewed = weddings.slice().sort((a, b) => {
+    const bViews = store.all("analytics").filter((r: Record<string, unknown>) => r.wedding_id === b.id && r.event_type === "page_view").length;
+    const aViews = store.all("analytics").filter((r: Record<string, unknown>) => r.wedding_id === a.id && r.event_type === "page_view").length;
+    return bViews - aViews;
+  })[0];
   const avgGuests = weddings.length ? Math.round(stats.guests / weddings.length) : 0;
   const avgRsvp = weddings.length ? Math.round(weddings.reduce((sum, w) => sum + rsvpProgress(w.id), 0) / weddings.length) : 0;
   const csvHistory = JSON.parse(localStorage.getItem("fv_csv_import_history") || "[]") as any[];
@@ -769,7 +774,7 @@ export default function AdminDashboard() {
               )}
 
               {/* Cards Grid View - Default strictly to cards on mobile viewports, or when viewMode is cards */}
-              {(viewMode === "cards" || (viewMode !== "cards" && typeof window !== "undefined")) && (
+              {(viewMode === "cards" || typeof window !== "undefined") && (
                 <div className={`p-4 sm:p-6 grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 ${viewMode !== "cards" ? "block md:hidden" : "block"}`}>
                   {filteredWeddings.map(w => {
                     const stage = getWeddingStage(w);

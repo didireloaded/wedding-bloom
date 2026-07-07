@@ -28,7 +28,7 @@ export class ErrorBoundary extends Component<Props, State> {
             <p className="text-[14px] text-[#78716C] leading-relaxed mb-8">
               We hit a snag. Please refresh the page to continue your wedding journey.
             </p>
-            {this.state.error && (
+            {import.meta.env.DEV && this.state.error && (
               <div className="glass-obsidian rounded-[16px] p-4 mb-6 text-left">
                 <code className="text-[12px] text-[#C97B7B] font-mono break-all">
                   {this.state.error.message}

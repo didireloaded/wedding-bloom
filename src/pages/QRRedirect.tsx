@@ -3,8 +3,8 @@ import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/utils/supabase";
 
 /**
- * Mirrors the repo's QRRedirect page.
- * Redirects to the wedding page.
+ * QR code redirect page — logs scan to Supabase activity_log (not localStorage),
+ * then redirects to the wedding invitation page.
  */
 export default function QRRedirect() {
   const { slug } = useParams();
@@ -15,9 +15,18 @@ export default function QRRedirect() {
       if (!slug) { navigate("/"); return; }
       const { data: wedding } = await supabase.from("weddings").select("id").eq("slug", slug).single();
       if (wedding?.id) {
-        const key = `wb_qr_${wedding.id}`;
-        const count = Number(localStorage.getItem(key) || 0) + 1;
-        localStorage.setItem(key, String(count));
+        // Log QR scan server-side for accurate analytics
+        try {
+          await supabase.from("activity_log").insert([{
+            wedding_id: wedding.id,
+            event_type: "qr_scan",
+            description: `QR code scanned for wedding invitation`,
+            metadata: { slug, scanned_at: new Date().toISOString() },
+            created_at: new Date().toISOString(),
+          }]);
+        } catch (err) {
+          console.warn("[QR] Failed to log scan:", err);
+        }
       }
       navigate(`/wedding/${slug}`, { replace: true });
     }

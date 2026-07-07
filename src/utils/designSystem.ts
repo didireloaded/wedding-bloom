@@ -1,27 +1,29 @@
 // ForeverVow 2.0 Design System Tokens & Constants
+// NOTE: CSS variables in index.css are the source of truth for rendered colors.
+// These JS tokens mirror those values for use in Framer Motion and JS logic.
 
 export const DESIGN_TOKENS = {
   colors: {
-    // Core
-    obsidian: "#0C0A09",
-    charcoal: "#1C1917",
-    stone: "#292524",
-    warmGray: "#78716C",
-    muted: "#A8A29E",
-    sand: "#D6D3D1",
-    cream: "#F5F0EB",
-    ivory: "#FAF7F2",
-    white: "#FEFCFA",
-    // Accents
-    gold: "#D4A853",
-    goldLight: "#E8C97A",
-    goldDark: "#B8872E",
-    rose: "#C97B7B",
-    roseLight: "#E4A5A5",
-    sage: "#7A9E7E",
-    sageLight: "#A8C4AB",
-    sky: "#7B9EB8",
-    plum: "#9B7BA8",
+    // Core — matches CSS vars in index.css
+    obsidian: "#09090B",
+    charcoal: "#121215",
+    stone: "#18181B",
+    warmGray: "#71717A",
+    muted: "#A1A1AA",
+    sand: "#E4E4E7",
+    cream: "#F4F4F5",
+    ivory: "#FAFAFA",
+    white: "#FFFFFF",
+    // Accents — matches CSS vars
+    gold: "#EAB308",
+    goldLight: "#FDE047",
+    goldDark: "#CA8A04",
+    rose: "#F43F5E",
+    roseLight: "#FB7185",
+    sage: "#10B981",
+    sageLight: "#34D399",
+    sky: "#0EA5E9",
+    plum: "#A855F7",
   },
   motion: {
     micro: 0.2,
@@ -56,6 +58,19 @@ export const DESIGN_TOKENS = {
     xl: "32px",
     xxl: "40px",
     full: "9999px",
+  },
+  shadows: {
+    sm: "0 4px 14px rgba(0, 0, 0, 0.3)",
+    md: "0 10px 30px -10px rgba(0, 0, 0, 0.5)",
+    lg: "0 20px 50px -12px rgba(0, 0, 0, 0.7)",
+    xl: "0 25px 60px -15px rgba(0, 0, 0, 0.8)",
+    goldGlow: "0 0 35px rgba(234, 179, 8, 0.35)",
+    roseGlow: "0 0 35px rgba(244, 63, 94, 0.35)",
+  },
+  gradients: {
+    aurora: "linear-gradient(135deg, rgba(234, 179, 8, 0.14) 0%, rgba(18, 18, 21, 0.88) 50%, rgba(168, 85, 247, 0.14) 100%)",
+    ember: "linear-gradient(135deg, rgba(244, 63, 94, 0.14) 0%, rgba(18, 18, 21, 0.88) 50%, rgba(234, 179, 8, 0.14) 100%)",
+    goldText: "linear-gradient(135deg, #FAFAFA 0%, #EAB308 50%, #CA8A04 100%)",
   },
 };
 

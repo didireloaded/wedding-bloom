@@ -2,7 +2,7 @@ import { BrowserRouter, Navigate, Routes, Route } from "react-router-dom";
 import { Toaster } from "sonner";
 import { lazy, Suspense } from "react";
 import { ErrorBoundary } from "@/components/ui/ErrorBoundary";
-import { ProtectedAdminRoute } from "@/components/auth/ProtectedAdminRoute";
+import { ProtectedAdminRoute, ProtectedCoupleRoute } from "@/middleware";
 
 const Index = lazy(() => import("@/pages/Index"));
 const WeddingPage = lazy(() => import("@/pages/WeddingPage"));
@@ -62,7 +62,7 @@ export default function App() {
             <Route path="/" element={<Index />} />
             <Route path="/wedding/:slug" element={<WeddingPage />} />
             <Route path="/couple/:slug" element={<CoupleSlugRedirect />} />
-            <Route path="/couple/:slug/dashboard" element={<CoupleDashboard />} />
+            <Route path="/couple/:slug/dashboard" element={<ProtectedCoupleRoute><CoupleDashboard /></ProtectedCoupleRoute>} />
             <Route path="/couple-login" element={<CoupleLogin />} />
             <Route path="/couple-dashboard" element={<LegacyCoupleDashboardRedirect />} />
             <Route path="/admin" element={<AdminLogin />} />

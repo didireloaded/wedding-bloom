@@ -1,5 +1,6 @@
-import { BaseRepository } from "./repository/BaseRepository";
+import { GuestRepository } from "@/repositories";
 import { DomainEventBus } from "./events/DomainEventBus";
+import { guestInvitationSchema } from "@/validators";
 
 export interface Guest {
   id?: string;
@@ -12,12 +13,19 @@ export interface Guest {
   created_at?: string;
 }
 
-class GuestDomainService extends BaseRepository<Guest> {
+class GuestDomainService extends GuestRepository {
   constructor() {
-    super("guests");
+    super();
   }
 
   async inviteGuest(weddingId: string, guest: Partial<Guest>): Promise<{ data: Guest | null; error: string | null }> {
+    try {
+      guestInvitationSchema.parse({ ...guest, wedding_id: weddingId, status: guest.status || "invited" });
+    } catch (err: any) {
+      const msg = err?.issues?.[0]?.message || err?.errors?.[0]?.message || err.message || "Invalid guest data";
+      return { data: null, error: msg };
+    }
+
     const res = await this.create({ ...guest, wedding_id: weddingId, status: "invited" });
     if (res.data) {
       await DomainEventBus.publish("GuestInvited", weddingId, `Invited guest ${res.data.name}`, { guestId: res.data.id });

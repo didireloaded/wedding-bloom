@@ -3,7 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ArrowLeft, KeyRound, Info, Sparkles, ShieldAlert } from "lucide-react";
 import { toast } from "sonner";
-import { supabase } from "@/utils/supabase";
+import { AuthService } from "@/services";
 import { GlassCard } from "@/components/ui/GlassCard";
 
 /**
@@ -106,13 +106,9 @@ export default function CoupleLogin() {
 
     setSubmitting(true);
     try {
-      const { data, error: dbError } = await supabase
-        .from("weddings")
-        .select("id, slug, couple_names, access_code")
-        .ilike("access_code", normalized)
-        .maybeSingle();
+      const { data, error: dbError } = await AuthService.verifyCoupleAccessCode(normalized);
 
-      if (dbError) {
+      if (dbError && dbError !== "Invalid access code") {
         setError("We couldn't reach the celebration server. Please try again in a moment.");
         setSubmitting(false);
         return;
@@ -132,15 +128,9 @@ export default function CoupleLogin() {
       }
 
       clearAttempts();
-      sessionStorage.setItem("couple_wedding_id", data.id);
-      sessionStorage.setItem("couple_wedding_slug", data.slug);
-      sessionStorage.setItem("couple_access_code", data.access_code);
-      localStorage.setItem("couple_wedding_id", data.id);
-      localStorage.setItem("couple_wedding_slug", data.slug);
-      localStorage.setItem("couple_access_code", data.access_code);
       toast.success(`Welcome, ${data.couple_names}!`);
       navigate(`/couple/${data.slug}/dashboard`);
-    } catch (err: any) {
+    } catch (_err: unknown) {
       setError("Something went wrong. Please try again.");
       setSubmitting(false);
     }
