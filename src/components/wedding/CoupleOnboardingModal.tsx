@@ -211,24 +211,24 @@ export function CoupleOnboardingModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-[#0e100f]/95 backdrop-blur-3xl flex items-center justify-center p-4 sm:p-6 overflow-y-auto animate-fade-in font-sans">
+    <div className="fixed inset-0 z-50 bg-[#0e100f]/95 backdrop-blur-3xl flex items-center justify-center p-3 sm:p-6 overflow-y-auto animate-fade-in font-sans">
       <div className="relative w-full max-w-4xl my-auto">
         {/* Soft Ambient 3D Wash in Discipline Hue */}
         <div 
-          className="absolute -top-12 -left-12 w-96 h-96 rounded-full blur-3xl opacity-20 pointer-events-none transition-all duration-700"
+          className="absolute -top-12 -left-12 w-64 sm:w-96 h-64 sm:h-96 rounded-full blur-3xl opacity-20 pointer-events-none transition-all duration-700"
           style={{ background: slide.disciplineColor }}
         />
         <div 
-          className="absolute -bottom-12 -right-12 w-96 h-96 rounded-full blur-3xl opacity-15 pointer-events-none transition-all duration-700"
+          className="absolute -bottom-12 -right-12 w-64 sm:w-96 h-64 sm:h-96 rounded-full blur-3xl opacity-15 pointer-events-none transition-all duration-700"
           style={{ background: slide.disciplineColor }}
         />
 
         {/* GSAP Dark Canvas Card: #191919 Off-Black surface with #42433d hairline border */}
-        <div className="relative rounded-[32px] border border-[#42433d] shadow-2xl overflow-hidden bg-[#191919] text-[#fffce1] transition-all duration-500">
+        <div className="relative rounded-[20px] sm:rounded-[32px] border border-[#42433d] shadow-2xl overflow-hidden bg-[#191919] text-[#fffce1] transition-all duration-500">
           
           {/* Top Header Section */}
-          <div className="p-6 sm:p-10 border-b border-[#42433d] flex items-start justify-between gap-6 relative">
-            <div className="flex flex-col sm:flex-row sm:items-center gap-6">
+          <div className="p-4 sm:p-10 border-b border-[#42433d] flex items-start justify-between gap-3 sm:gap-6 relative">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6 min-w-0">
               {/* Tool Accent Shape */}
               <div 
                 className="w-16 h-16 sm:w-20 sm:h-20 rounded-[24px] bg-[#0e100f] border border-[#42433d] flex items-center justify-center shadow-inner shrink-0 relative overflow-hidden group"
@@ -260,7 +260,7 @@ export function CoupleOnboardingModal({
                 </div>
 
                 {/* Massive Hero Display Typography */}
-                <h2 className="text-[28px] sm:text-[42px] font-bold text-[#fffce1] tracking-[-0.03em] leading-[0.95]">
+                <h2 className="text-[22px] sm:text-[42px] font-bold text-[#fffce1] tracking-[-0.03em] leading-[0.95]">
                   {slide.title}
                 </h2>
 
@@ -286,17 +286,17 @@ export function CoupleOnboardingModal({
           {/* Infinite Scrolling GSAP Discipline & Luxury Feature Marquee */}
           <div className="border-b border-[#42433d] bg-[#0e100f]/80 py-3 overflow-hidden">
             <Marquee pauseOnHover className="[--duration:35s] [--gap:1.5rem]">
-              <span className="text-[12px] font-mono tracking-widest uppercase text-[#fffce1] flex items-center gap-2 px-3.5 py-1 rounded-full border border-[#0ae448]/40 bg-[#0ae448]/10 shadow-sm"><Sparkles size={13} className="text-[#0ae448]" /> SANCTUARY • Zero Spreadsheets</span>
-              <span className="text-[12px] font-mono tracking-widest uppercase text-[#fffce1] flex items-center gap-2 px-3.5 py-1 rounded-full border border-[#ff8709]/40 bg-[#ff8709]/10 shadow-sm"><Users size={13} className="text-[#ff8709]" /> GUESTS • Live RSVP Verification</span>
-              <span className="text-[12px] font-mono tracking-widest uppercase text-[#fffce1] flex items-center gap-2 px-3.5 py-1 rounded-full border border-[#fec5fb]/40 bg-[#fec5fb]/10 shadow-sm"><Award size={13} className="text-[#fec5fb]" /> PLANNING • Vendor Vault & Budgets</span>
-              <span className="text-[12px] font-mono tracking-widest uppercase text-[#fffce1] flex items-center gap-2 px-3.5 py-1 rounded-full border border-[#9d95ff]/40 bg-[#9d95ff]/10 shadow-sm"><Radio size={13} className="text-[#9d95ff]" /> RADAR • 100m Geofence Arrival</span>
-              <span className="text-[12px] font-mono tracking-widest uppercase text-[#fffce1] flex items-center gap-2 px-3.5 py-1 rounded-full border border-[#00bae2]/40 bg-[#00bae2]/10 shadow-sm"><Clock size={13} className="text-[#00bae2]" /> COMMAND • Live Run-Sheet Sync</span>
-              <span className="text-[12px] font-mono tracking-widest uppercase text-[#fffce1] flex items-center gap-2 px-3.5 py-1 rounded-full border border-[#abff84]/40 bg-[#abff84]/10 shadow-sm"><ShieldCheck size={13} className="text-[#abff84]" /> PRIVACY • Bank-Grade Supabase RLS</span>
+              <span className="text-[11px] sm:text-[12px] font-mono tracking-widest uppercase text-[#fffce1] flex items-center gap-2 px-3 sm:px-3.5 py-1 rounded-full border border-[#0ae448]/40 bg-[#0ae448]/10 shadow-sm whitespace-nowrap"><Sparkles size={13} className="text-[#0ae448]" /> SANCTUARY • Zero Spreadsheets</span>
+              <span className="text-[11px] sm:text-[12px] font-mono tracking-widest uppercase text-[#fffce1] flex items-center gap-2 px-3 sm:px-3.5 py-1 rounded-full border border-[#ff8709]/40 bg-[#ff8709]/10 shadow-sm whitespace-nowrap"><Users size={13} className="text-[#ff8709]" /> GUESTS • Live RSVP Verification</span>
+              <span className="text-[11px] sm:text-[12px] font-mono tracking-widest uppercase text-[#fffce1] flex items-center gap-2 px-3 sm:px-3.5 py-1 rounded-full border border-[#fec5fb]/40 bg-[#fec5fb]/10 shadow-sm whitespace-nowrap"><Award size={13} className="text-[#fec5fb]" /> PLANNING • Vendor Vault & Budgets</span>
+              <span className="text-[11px] sm:text-[12px] font-mono tracking-widest uppercase text-[#fffce1] flex items-center gap-2 px-3 sm:px-3.5 py-1 rounded-full border border-[#9d95ff]/40 bg-[#9d95ff]/10 shadow-sm whitespace-nowrap"><Radio size={13} className="text-[#9d95ff]" /> RADAR • 100m Geofence Arrival</span>
+              <span className="text-[11px] sm:text-[12px] font-mono tracking-widest uppercase text-[#fffce1] flex items-center gap-2 px-3 sm:px-3.5 py-1 rounded-full border border-[#00bae2]/40 bg-[#00bae2]/10 shadow-sm whitespace-nowrap"><Clock size={13} className="text-[#00bae2]" /> COMMAND • Live Run-Sheet Sync</span>
+              <span className="text-[11px] sm:text-[12px] font-mono tracking-widest uppercase text-[#fffce1] flex items-center gap-2 px-3 sm:px-3.5 py-1 rounded-full border border-[#abff84]/40 bg-[#abff84]/10 shadow-sm whitespace-nowrap"><ShieldCheck size={13} className="text-[#abff84]" /> PRIVACY • Bank-Grade Supabase RLS</span>
             </Marquee>
           </div>
 
           {/* Slide Body */}
-          <div className="p-6 sm:p-10 space-y-8 min-h-[340px] flex flex-col justify-between bg-[#0e100f]/40">
+          <div className="p-4 sm:p-10 space-y-6 sm:space-y-8 min-h-[280px] sm:min-h-[340px] flex flex-col justify-between bg-[#0e100f]/40">
             <AnimatePresence mode="wait">
               <motion.div
                 key={slide.id}
@@ -307,7 +307,7 @@ export function CoupleOnboardingModal({
                 className="space-y-8"
               >
                 {/* Warm Cream Chalk Typography */}
-                <p className="text-[17px] sm:text-[20px] text-[#fffce1] leading-[1.35] tracking-[-0.01em] font-normal max-w-3xl">
+                <p className="text-[15px] sm:text-[20px] text-[#fffce1] leading-[1.4] sm:leading-[1.35] tracking-[-0.01em] font-normal max-w-3xl">
                   {slide.description}
                 </p>
 
@@ -315,11 +315,11 @@ export function CoupleOnboardingModal({
                 <div className="w-full h-px bg-[#42433d]" />
 
                 {/* Tool Feature Grid */}
-                <div className="grid sm:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
                   {slide.features.map((feat, idx) => (
                     <div
                       key={idx}
-                      className="p-5 rounded-[20px] bg-[#0e100f] border border-[#42433d] hover:border-[#fffce1]/40 transition-all duration-300 flex flex-col justify-between gap-3 group"
+                      className="p-4 sm:p-5 rounded-[16px] sm:rounded-[20px] bg-[#0e100f] border border-[#42433d] hover:border-[#fffce1]/40 transition-all duration-300 flex flex-col justify-between gap-2 sm:gap-3 group"
                     >
                       <div className="flex items-center gap-3">
                         <div 
@@ -332,7 +332,7 @@ export function CoupleOnboardingModal({
                           {feat.label}
                         </h4>
                       </div>
-                      <p className="text-[13.5px] text-[#7c7c6f] leading-relaxed font-normal">
+                      <p className="text-[12.5px] sm:text-[13.5px] text-[#7c7c6f] leading-relaxed font-normal">
                         {feat.detail}
                       </p>
                     </div>
@@ -342,9 +342,9 @@ export function CoupleOnboardingModal({
             </AnimatePresence>
 
             {/* Bottom Controls & Outlined Pill Buttons */}
-            <div className="pt-8 border-t border-[#42433d] flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+            <div className="pt-5 sm:pt-8 border-t border-[#42433d] flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-6">
               {/* Left: Step Pill Dots & Checkbox */}
-              <div className="flex flex-col sm:flex-row sm:items-center gap-6">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6">
                 <div className="flex items-center gap-2">
                   {slides.map((_, i) => (
                     <button
@@ -363,7 +363,7 @@ export function CoupleOnboardingModal({
                   ))}
                 </div>
 
-                <label className="flex items-center gap-2.5 cursor-pointer select-none text-[13px] text-[#7c7c6f] hover:text-[#fffce1] transition font-mono">
+                <label className="flex items-center gap-2.5 cursor-pointer select-none text-[11px] sm:text-[13px] text-[#7c7c6f] hover:text-[#fffce1] transition font-mono">
                   <input
                     type="checkbox"
                     checked={dontShowAgain}
@@ -379,7 +379,7 @@ export function CoupleOnboardingModal({
                 <button
                   onClick={prevSlide}
                   disabled={currentSlide === 0}
-                  className={`rounded-full border border-[#42433d] text-[#fffce1] hover:border-[#fffce1] px-5 py-2.5 text-[14px] font-medium transition flex items-center gap-2 ${
+                  className={`rounded-full border border-[#42433d] text-[#fffce1] hover:border-[#fffce1] px-4 sm:px-5 py-2 sm:py-2.5 text-[13px] sm:text-[14px] font-medium transition flex items-center gap-2 ${
                     currentSlide === 0 ? "opacity-25 cursor-not-allowed pointer-events-none" : ""
                   }`}
                 >
@@ -388,7 +388,7 @@ export function CoupleOnboardingModal({
 
                 <button
                   onClick={nextSlide}
-                  className={`rounded-full px-7 py-2.5 text-[15px] font-semibold tracking-[-0.01em] transition flex items-center gap-2.5 shadow-lg ${
+                  className={`rounded-full px-5 sm:px-7 py-2 sm:py-2.5 text-[13px] sm:text-[15px] font-semibold tracking-[-0.01em] transition flex items-center gap-2 sm:gap-2.5 shadow-lg ${
                     currentSlide === slides.length - 1
                       ? "border-2 border-[#0ae448] text-[#0e100f] bg-gradient-to-r from-[#0ae448] to-[#abff84] hover:opacity-90 font-bold"
                       : "border border-[#fffce1] text-[#fffce1] bg-transparent hover:bg-[#fffce1]/10"
