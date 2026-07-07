@@ -5,6 +5,7 @@ import {
   Share2, X, ArrowRight, ArrowLeft, ShieldCheck, FileText, Radio, QrCode,
   Check, Eye, Zap, Layers, Car, Gift, Clock
 } from "lucide-react";
+import { Marquee } from "@/components/ui/marquee";
 
 export interface CoupleOnboardingModalProps {
   open: boolean;
@@ -280,6 +281,18 @@ export function CoupleOnboardingModal({
             >
               <X size={18} />
             </button>
+          </div>
+
+          {/* Infinite Scrolling GSAP Discipline & Luxury Feature Marquee */}
+          <div className="border-b border-[#42433d] bg-[#0e100f]/80 py-3 overflow-hidden">
+            <Marquee pauseOnHover className="[--duration:35s] [--gap:1.5rem]">
+              <span className="text-[12px] font-mono tracking-widest uppercase text-[#fffce1] flex items-center gap-2 px-3.5 py-1 rounded-full border border-[#0ae448]/40 bg-[#0ae448]/10 shadow-sm"><Sparkles size={13} className="text-[#0ae448]" /> SANCTUARY • Zero Spreadsheets</span>
+              <span className="text-[12px] font-mono tracking-widest uppercase text-[#fffce1] flex items-center gap-2 px-3.5 py-1 rounded-full border border-[#ff8709]/40 bg-[#ff8709]/10 shadow-sm"><Users size={13} className="text-[#ff8709]" /> GUESTS • Live RSVP Verification</span>
+              <span className="text-[12px] font-mono tracking-widest uppercase text-[#fffce1] flex items-center gap-2 px-3.5 py-1 rounded-full border border-[#fec5fb]/40 bg-[#fec5fb]/10 shadow-sm"><Award size={13} className="text-[#fec5fb]" /> PLANNING • Vendor Vault & Budgets</span>
+              <span className="text-[12px] font-mono tracking-widest uppercase text-[#fffce1] flex items-center gap-2 px-3.5 py-1 rounded-full border border-[#9d95ff]/40 bg-[#9d95ff]/10 shadow-sm"><Radio size={13} className="text-[#9d95ff]" /> RADAR • 100m Geofence Arrival</span>
+              <span className="text-[12px] font-mono tracking-widest uppercase text-[#fffce1] flex items-center gap-2 px-3.5 py-1 rounded-full border border-[#00bae2]/40 bg-[#00bae2]/10 shadow-sm"><Clock size={13} className="text-[#00bae2]" /> COMMAND • Live Run-Sheet Sync</span>
+              <span className="text-[12px] font-mono tracking-widest uppercase text-[#fffce1] flex items-center gap-2 px-3.5 py-1 rounded-full border border-[#abff84]/40 bg-[#abff84]/10 shadow-sm"><ShieldCheck size={13} className="text-[#abff84]" /> PRIVACY • Bank-Grade Supabase RLS</span>
+            </Marquee>
           </div>
 
           {/* Slide Body */}
