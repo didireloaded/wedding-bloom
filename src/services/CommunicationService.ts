@@ -1,7 +1,8 @@
-import { BroadcastRepository } from "@/repositories";
+import { BroadcastRepository, RSVPRepository, WeddingRepository } from "@/repositories";
 import { NotificationService } from "./NotificationService";
 import { DomainEventBus } from "./events/DomainEventBus";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/utils/supabase";
+import { AuditService } from "./AuditService";
 import type { Wedding, RSVP, WeddingEvent, BroadcastItem } from "@/types/wedding";
 
 export interface CommunicationDeliveryResult {
@@ -254,17 +255,14 @@ class CommunicationDomainService {
 
     // Simulated / Offline Delivery Audit Log
     if (weddingId) {
-      try {
-        await supabase.from("activity_log").insert([{
-          wedding_id: weddingId,
-          event_type: "EmailDispatched",
-          description: `Email sent to ${to}: "${subject}"`,
-          metadata: { to, subject, channel: "email", simulated: !apiKey },
-          created_at: new Date().toISOString(),
-        }]);
-      } catch (logErr) {
-        console.warn("[CommunicationService] Audit log write failure:", logErr);
-      }
+      await AuditService.log({
+        who: "System",
+        what: "BROADCAST",
+        where: "CommunicationService:sendEmail",
+        entityType: "wedding",
+        entityId: weddingId,
+        metadata: { to, subject, channel: "email", simulated: !apiKey },
+      });
     }
 
     return { success: true, id: `sim-email-${Date.now()}`, channel: "email" };
@@ -304,17 +302,14 @@ class CommunicationDomainService {
 
     // Simulated / Offline Delivery Audit Log
     if (weddingId) {
-      try {
-        await supabase.from("activity_log").insert([{
-          wedding_id: weddingId,
-          event_type: "SMSDispatched",
-          description: `SMS sent to ${to}: "${message.slice(0, 50)}..."`,
-          metadata: { to, message, channel: "sms", simulated: !accountSid },
-          created_at: new Date().toISOString(),
-        }]);
-      } catch (logErr) {
-        console.warn("[CommunicationService] Audit log write failure:", logErr);
-      }
+      await AuditService.log({
+        who: "System",
+        what: "BROADCAST",
+        where: "CommunicationService:sendSMS",
+        entityType: "wedding",
+        entityId: weddingId,
+        metadata: { to, message, channel: "sms", simulated: !accountSid },
+      });
     }
 
     return { success: true, id: `sim-sms-${Date.now()}`, channel: "sms" };
@@ -331,14 +326,12 @@ class CommunicationDomainService {
     customMessage?: string
   ): Promise<{ data: BroadcastItem | null; recipientCount: number; error: string | null }> {
     try {
-      // 1. Query target recipients from rsvps table
-      const { data: allRsvps, error: rsvpErr } = await supabase
-        .from("rsvps")
-        .select("*")
-        .eq("wedding_id", weddingId);
+      // 1. Query target recipients from rsvps table via repository
+      const rsvpRepo = new RSVPRepository();
+      const { data: allRsvps, error: rsvpErr } = await rsvpRepo.findByWeddingId(weddingId);
 
       if (rsvpErr) {
-        return { data: null, recipientCount: 0, error: rsvpErr.message };
+        return { data: null, recipientCount: 0, error: rsvpErr };
       }
 
       const rsvps = (allRsvps || []) as RSVP[];
@@ -367,7 +360,8 @@ class CommunicationDomainService {
       }
 
       // 3. Dispatch across selected channels
-      const { data: weddingData } = await supabase.from("weddings").select("*").eq("id", weddingId).single();
+      const wedRepo = new WeddingRepository();
+      const { data: weddingData } = await wedRepo.findById(weddingId);
       const wedding: Partial<Wedding> = weddingData || { couple_names: "Eternal & Beloved" };
       const msgText = customMessage || `Important update regarding our wedding celebration: ${subject}. Please visit our website for details.`;
       const htmlPayload = this.renderDayOfBroadcastTemplate(wedding, subject, msgText);

@@ -1,7 +1,8 @@
 import { GalleryRepository } from "@/repositories";
 import { GuestPhoto, GalleryItem } from "@/types/wedding";
 import { DomainEventBus } from "./events/DomainEventBus";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/utils/supabase";
+import { JobQueue } from "./jobs/JobQueue";
 
 export interface CompressionOptions {
   maxDimension?: number;
@@ -217,13 +218,16 @@ class MediaDomainService {
         });
         await DomainEventBus.publish("PhotoUploaded", weddingId, `New photo uploaded to guest vault by ${guestName}`, { url: publicUrl });
       } else {
-        await supabase.from("gallery").insert([{
+        await this.galleryRepo.create({
           wedding_id: weddingId,
           url: publicUrl,
           caption: file.name.replace(/\.[^/.]+$/, ""),
           created_at: new Date().toISOString()
-        }]);
+        });
       }
+
+      // Enqueue background processing job for image derivatives / analytics
+      JobQueue.enqueue("IMAGE_PROCESS", { fileName: file.name, bucket, weddingId, url: publicUrl });
 
       return {
         url: publicUrl,

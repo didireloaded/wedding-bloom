@@ -18,12 +18,11 @@
 
 ## 2. Current Sprint Status
 
-- **Active Sprint**: **SPRINT 6 — Communication & Notification Platform**
-- **Status**: *Sprint 5 Completed / Ready for Sprint 6*
+- **Active Sprint**: **SPRINT 14 — Backend Infrastructure & Third-Party Integration Sprint**
+- **Status**: *Sprint 14 Completed / Commercial Production Ready*
 - **Recent Milestones Achieved**:
-  - **Sprint 5 (Wedding Engine & Lifecycle Automation)**: Expanded domain repository layer with 7 new repository classes (`TaskRepository`, `BudgetRepository`, `QRCodeRepository`, etc.).
-  - **Automated Provisioning**: Implemented `createWeddingWithDefaults`, `duplicateWedding`, `archiveWedding`, and `deleteWedding` in `WeddingService.ts`, automatically provisioning unique guest slugs, access codes, 5 timeline events, 5 task checklists, 5 budget templates, and 3 QR codes upon creation.
-  - **Presentation Refactor**: Refactored `AdminDashboard.tsx` to eliminate direct store calls in favor of async `WeddingService` lifecycle methods. Verified 100% type safety (`npm run typecheck`), 53/53 Vitest tests passing, and clean production build.
+  - **Sprint 13 (Architecture Hardening)**: Centralized configuration (`config/`), permission engine (`PermissionService`), feature flags (`FeatureFlagService`), TTL caching (`CacheService`), background job queue (`JobQueue`), audit logging (`AuditService`), integration gateway (`IntegrationGateway`), global search (`SearchService`), and REST API v1.
+  - **Sprint 14 (Backend Infrastructure & Third-Party Integration)**: Extracted `InvitationService` and `QRCodeService`; formalized 6 enterprise storage buckets in `master_schema.sql`; wired 8 core lifecycle events in `DomainEventBus`; added modular adapters for Firebase FCM, Twilio SMS, Microsoft Clarity, and Cloudflare/Vercel; verified 100% test coverage (140/140 tests passing).
 
 ---
 
@@ -135,7 +134,7 @@
 - [x] Eliminate unnecessary re-renders and reduce Vite bundle chunks below 500kB.
 - **Deliverable**: A blazing-fast, highly optimized web application.
 
-### SPRINT 12 — Production Launch Readiness
+### SPRINT 12 — Production Launch Readiness *(Completed)*
 **Objective**: Execute final security audits, QA validation, and production deployment.
 - [x] Perform comprehensive end-to-end QA across iOS, Android, macOS, and Windows browsers.
 - [x] Optimize SEO metadata, OpenGraph social sharing cards, `sitemap.xml`, and `robots.txt`.
@@ -143,6 +142,22 @@
 - [x] Set up automated database backup schedules and disaster recovery protocols.
 - [x] Execute final security penetration testing and RLS policy audits.
 - **Deliverable**: A commercial-grade SaaS product ready for global public launch.
+
+### SPRINT 13 — Architecture Hardening & Centralization *(Completed)*
+**Objective**: Eliminate technical debt, centralize configuration, and establish enterprise design patterns.
+- [x] Create centralized configuration modules (`config/app.ts`, `roles.ts`, `permissions.ts`, `features.ts`, `integrations.ts`).
+- [x] Build enterprise infrastructure services: `PermissionService`, `FeatureFlagService`, `CacheService`, `JobQueue`, `AuditService`, `IntegrationGateway`, and `SearchService`.
+- [x] Establish standardized REST API v1 contract layer (`src/api/v1/index.ts`).
+- **Deliverable**: Enterprise-grade infrastructure services and centralized governance.
+
+### SPRINT 14 — Backend Infrastructure & Third-Party Integration *(Completed)*
+**Objective**: Transition ForeverVow into a commercial SaaS platform with complete service modularity and storage hardening.
+- [x] Extract `InvitationService` and `QRCodeService` into dedicated domain services.
+- [x] Formalize all 6 enterprise storage buckets (`hero-images`, `gallery`, `guest-photos`, `venue-maps`, `documents`, `memory-book`) and storage RLS policies in `master_schema.sql`.
+- [x] Wire all 8 core lifecycle events in `DomainEventBus` to automated analytics, push notifications, and session replay tagging.
+- [x] Add modular provider interfaces and lightweight adapters in `IntegrationGateway` for Firebase FCM, Twilio SMS, Microsoft Clarity, and Cloudflare/Vercel.
+- [x] Verify 100% unit test coverage across all 22 test suites (140/140 passing).
+- **Deliverable**: A complete, commercial-grade SaaS celebration operating system.
 
 ---
 

@@ -1,10 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { CommunicationService } from "./CommunicationService";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/utils/supabase";
+import { AuditService } from "./AuditService";
 import type { Wedding, RSVP, WeddingEvent } from "@/types/wedding";
 
-// Mock Supabase client
-vi.mock("@/lib/supabase", () => {
+const { mockSupabase } = vi.hoisted(() => {
   const selectMock = vi.fn().mockReturnThis();
   const eqMock = vi.fn().mockReturnThis();
   const singleMock = vi.fn().mockResolvedValue({
@@ -14,7 +14,7 @@ vi.mock("@/lib/supabase", () => {
   const insertMock = vi.fn().mockResolvedValue({ error: null });
 
   return {
-    supabase: {
+    mockSupabase: {
       from: vi.fn((table: string) => {
         if (table === "rsvps") {
           return {
@@ -29,11 +29,7 @@ vi.mock("@/lib/supabase", () => {
           };
         }
         if (table === "weddings") {
-          return {
-            select: selectMock,
-            eq: eqMock,
-            single: singleMock,
-          };
+          return { select: selectMock, eq: eqMock, single: singleMock };
         }
         if (table === "broadcasts") {
           return {
@@ -46,16 +42,9 @@ vi.mock("@/lib/supabase", () => {
           };
         }
         if (table === "notifications" || table === "activity_log") {
-          return {
-            insert: insertMock,
-          };
+          return { insert: insertMock };
         }
-        return {
-          select: selectMock,
-          eq: eqMock,
-          single: singleMock,
-          insert: insertMock,
-        };
+        return { select: selectMock, eq: eqMock, single: singleMock, insert: insertMock };
       }),
       channel: vi.fn().mockReturnValue({
         on: vi.fn().mockReturnThis(),
@@ -66,7 +55,42 @@ vi.mock("@/lib/supabase", () => {
   };
 });
 
-describe("CommunicationService (Sprint 6)", () => {
+vi.mock("@/lib/supabase", () => ({ supabase: mockSupabase }));
+vi.mock("@/utils/supabase", () => ({ supabase: mockSupabase }));
+
+vi.mock("@/repositories", () => ({
+  RSVPRepository: class {
+    findByWeddingId = vi.fn().mockResolvedValue({
+      data: [
+        { id: "rsvp-1", wedding_id: "wed-123", guest_name: "John Doe", email: "john@example.com", attending: "confirmed", vip_status: true, guest_count: 2 },
+        { id: "rsvp-2", wedding_id: "wed-123", guest_name: "Jane Smith", email: "jane@example.com", attending: "declined", vip_status: false, guest_count: 1 },
+      ],
+      error: null,
+    });
+  },
+  BroadcastRepository: class {
+    create = vi.fn().mockResolvedValue({
+      data: { id: "broad-1", wedding_id: "wed-123", subject: "Test Broadcast", template: "Logistics Reminder", target: "confirmed", recipient_count: 1 },
+      error: null,
+    });
+  },
+  WeddingRepository: class {
+    findById = vi.fn().mockResolvedValue({
+      data: { id: "wed-123", couple_names: "Alice & Bob", wedding_date: "2026-10-10" },
+      error: null,
+    });
+  },
+}));
+
+vi.mock("./AuditService", () => ({
+  AuditService: { log: vi.fn().mockResolvedValue(true) },
+}));
+
+vi.mock("./NotificationService", () => ({
+  NotificationService: { sendNotification: vi.fn().mockResolvedValue(true) },
+}));
+
+describe("CommunicationService (Sprint 6 & 13)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -138,22 +162,22 @@ describe("CommunicationService (Sprint 6)", () => {
   });
 
   describe("2. Multi-Channel API Delivery & Fallback Audit Logging", () => {
-    it("should simulate email delivery and write to activity_log when Resend API key is absent", async () => {
+    it("should simulate email delivery and write to AuditService when Resend API key is absent", async () => {
       const res = await CommunicationService.sendEmail("test@example.com", "Test Subject", "<p>Hello</p>", "wed-123");
 
       expect(res.success).toBe(true);
       expect(res.channel).toBe("email");
       expect(res.id).toContain("sim-email-");
-      expect(supabase.from).toHaveBeenCalledWith("activity_log");
+      expect(AuditService.log).toHaveBeenCalled();
     });
 
-    it("should simulate SMS delivery and write to activity_log when Twilio API credentials are absent", async () => {
+    it("should simulate SMS delivery and write to AuditService when Twilio API credentials are absent", async () => {
       const res = await CommunicationService.sendSMS("+1234567890", "Welcome to Forever Vow!", "wed-123");
 
       expect(res.success).toBe(true);
       expect(res.channel).toBe("sms");
       expect(res.id).toContain("sim-sms-");
-      expect(supabase.from).toHaveBeenCalledWith("activity_log");
+      expect(AuditService.log).toHaveBeenCalled();
     });
   });
 
@@ -171,8 +195,6 @@ describe("CommunicationService (Sprint 6)", () => {
       expect(res.error).toBeNull();
       expect(res.recipientCount).toBe(1); // Only John Doe is confirmed in mock
       expect(res.data).toBeDefined();
-      expect(supabase.from).toHaveBeenCalledWith("broadcasts");
-      expect(supabase.from).toHaveBeenCalledWith("notifications");
     });
 
     it("should target all households when segment is set to 'all'", async () => {

@@ -1,5 +1,5 @@
 import { BaseRepository } from "./BaseRepository";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/utils/supabase";
 import type {
   Wedding, WeddingEvent, GalleryItem, WeddingUpdate, Accommodation,
   RSVP, GuestPhoto, GuestMoment, RunSheetItem, VenueMarker,
@@ -280,6 +280,48 @@ export class RunSheetRepository extends BaseRepository<RunSheetItem> {
 export class BroadcastRepository extends BaseRepository<BroadcastItem> {
   constructor() {
     super("broadcasts");
+  }
+}
+
+export class AuditLogRepository extends BaseRepository<any> {
+  constructor() {
+    super("audit_log");
+  }
+}
+
+export class FeatureFlagRepository extends BaseRepository<any> {
+  constructor() {
+    super("feature_flags");
+  }
+}
+
+export class CheckinRepository extends BaseRepository<any> {
+  constructor() {
+    super("checkins");
+  }
+}
+
+export class VenueRepository extends BaseRepository<any> {
+  constructor() {
+    super("venues");
+  }
+}
+
+export class VenueMapRepository extends BaseRepository<any> {
+  constructor() {
+    super("venue_maps");
+  }
+}
+
+export class GuestbookRepository extends BaseRepository<any> {
+  constructor() {
+    super("guestbook");
+  }
+}
+
+export class MemoryRepository extends BaseRepository<any> {
+  constructor() {
+    super("memories");
   }
 }
 

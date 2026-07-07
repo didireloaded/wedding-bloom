@@ -667,11 +667,83 @@ CREATE TRIGGER trg_couples_updated_at
   EXECUTE FUNCTION public.fn_handle_updated_at();
 
 -- ==============================================================================
--- 12. SUPABASE STORAGE BUCKETS SETUP (REFERENCE SQL)
+-- 11.5 SPRINT 13 ARCHITECTURE HARDENING TABLES
 -- ==============================================================================
--- To be executed in Supabase SQL Editor / Storage Dashboard:
--- INSERT INTO storage.buckets (id, name, public) VALUES ('gallery', 'gallery', true) ON CONFLICT DO NOTHING;
--- INSERT INTO storage.buckets (id, name, public) VALUES ('guest-photos', 'guest-photos', true) ON CONFLICT DO NOTHING;
--- INSERT INTO storage.buckets (id, name, public) VALUES ('mood-board', 'mood-board', true) ON CONFLICT DO NOTHING;
--- INSERT INTO storage.buckets (id, name, public) VALUES ('contracts', 'contracts', false) ON CONFLICT DO NOTHING;
+
+-- Feature Flags Table
+CREATE TABLE IF NOT EXISTS public.feature_flags (
+  key TEXT PRIMARY KEY,
+  enabled BOOLEAN DEFAULT false,
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- Seed Default Feature Flags
+INSERT INTO public.feature_flags (key, enabled) VALUES
+  ('LIVE_WEDDING', true),
+  ('AI_CSV_IMPORT', true),
+  ('GPS_JOURNEY', false),
+  ('PAYMENTS', false),
+  ('VENDOR_PORTAL', false),
+  ('MEMORY_BOOK_PDF', false)
+ON CONFLICT (key) DO NOTHING;
+
+-- Audit Log Table
+CREATE TABLE IF NOT EXISTS public.audit_log (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  who TEXT NOT NULL,
+  what TEXT NOT NULL,
+  when_timestamp TIMESTAMPTZ DEFAULT now(),
+  where_location TEXT,
+  entity_type TEXT NOT NULL,
+  entity_id TEXT NOT NULL,
+  before_state JSONB,
+  after_state JSONB,
+  metadata JSONB
+);
+
+CREATE INDEX IF NOT EXISTS idx_audit_log_entity ON public.audit_log(entity_type, entity_id);
+CREATE INDEX IF NOT EXISTS idx_audit_log_when ON public.audit_log(when_timestamp);
+
+ALTER TABLE public.feature_flags ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.audit_log ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Allow all access on feature_flags" ON public.feature_flags FOR ALL USING (true);
+CREATE POLICY "Allow all access on audit_log" ON public.audit_log FOR ALL USING (true);
+
+-- ==============================================================================
+-- 12. SUPABASE STORAGE BUCKETS & RLS POLICIES
+-- ==============================================================================
+-- Enterprise Storage Bucket Taxonomy
+INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types) VALUES
+  ('hero-images', 'hero-images', true, 10485760, ARRAY['image/jpeg', 'image/png', 'image/webp', 'image/avif']),
+  ('gallery', 'gallery', true, 20971520, ARRAY['image/jpeg', 'image/png', 'image/webp', 'image/avif', 'video/mp4']),
+  ('guest-photos', 'guest-photos', true, 20971520, ARRAY['image/jpeg', 'image/png', 'image/webp', 'video/mp4']),
+  ('venue-maps', 'venue-maps', true, 10485760, ARRAY['image/jpeg', 'image/png', 'image/webp', 'application/pdf']),
+  ('documents', 'documents', false, 20971520, ARRAY['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document']),
+  ('memory-book', 'memory-book', false, 52428800, ARRAY['application/pdf', 'image/png'])
+ON CONFLICT (id) DO UPDATE SET
+  public = EXCLUDED.public,
+  file_size_limit = EXCLUDED.file_size_limit,
+  allowed_mime_types = EXCLUDED.allowed_mime_types;
+
+-- Enable RLS on storage.objects
+ALTER TABLE storage.objects ENABLE ROW LEVEL SECURITY;
+
+-- Storage Policies
+CREATE POLICY "Public Read Access for Public Buckets"
+  ON storage.objects FOR SELECT
+  USING (bucket_id IN ('hero-images', 'gallery', 'guest-photos', 'venue-maps'));
+
+CREATE POLICY "Authenticated & Guest Uploads to Guest Photos"
+  ON storage.objects FOR INSERT
+  WITH CHECK (bucket_id = 'guest-photos');
+
+CREATE POLICY "Authenticated Couple & Admin Uploads"
+  ON storage.objects FOR INSERT
+  WITH CHECK (bucket_id IN ('hero-images', 'gallery', 'venue-maps', 'documents', 'memory-book'));
+
+CREATE POLICY "Authenticated Couple & Admin Deletes"
+  ON storage.objects FOR DELETE
+  USING (bucket_id IN ('hero-images', 'gallery', 'guest-photos', 'venue-maps', 'documents', 'memory-book'));
+
 

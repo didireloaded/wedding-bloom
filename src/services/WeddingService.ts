@@ -27,6 +27,8 @@ import {
 } from "@/types/wedding";
 import { DomainEventBus } from "./events/DomainEventBus";
 import { weddingProfileSchema } from "@/validators";
+import { CacheService } from "./CacheService";
+import { AuditService } from "./AuditService";
 
 class WeddingDomainService extends WeddingRepository {
   private eventRepo = new EventRepository();
@@ -52,6 +54,10 @@ class WeddingDomainService extends WeddingRepository {
     updates: WeddingUpdate[];
     accommodations: Accommodation[];
   }> {
+    const cacheKey = `wedding:payload:${slug}`;
+    const cached = CacheService.get<any>(cacheKey);
+    if (cached) return cached;
+
     const { data: wData } = await this.findBySlug(slug);
     if (!wData) {
       return { wedding: null, events: [], gallery: [], updates: [], accommodations: [] };
@@ -64,13 +70,16 @@ class WeddingDomainService extends WeddingRepository {
       this.accommodationRepo.findByWeddingId(wData.id),
     ]);
 
-    return {
+    const result = {
       wedding: wData,
       events,
       gallery: galleryRes.data || [],
       updates,
       accommodations: accommodationsRes.data || [],
     };
+
+    CacheService.set(cacheKey, result, 5 * 60 * 1000); // 5 min TTL
+    return result;
   }
 
   async createWedding(payload: Partial<Wedding>): Promise<{ data: Wedding | null; error: string | null }> {
@@ -84,6 +93,15 @@ class WeddingDomainService extends WeddingRepository {
 
     const res = await this.create(payload);
     if (res.data) {
+      CacheService.invalidatePattern("wedding:*");
+      await AuditService.log({
+        who: payload.couple_names || "System",
+        what: "CREATE",
+        where: "WeddingService",
+        entityType: "wedding",
+        entityId: res.data.id,
+        after: res.data as any,
+      });
       await DomainEventBus.publish("WeddingCreated", res.data.id, `Wedding created for ${res.data.couple_names}`, {
         slug: res.data.slug
       });
@@ -94,6 +112,15 @@ class WeddingDomainService extends WeddingRepository {
   async publishWedding(id: string): Promise<{ data: Wedding | null; error: string | null }> {
     const res = await this.update(id, { published: true });
     if (res.data) {
+      CacheService.invalidatePattern("wedding:*");
+      await AuditService.log({
+        who: res.data.couple_names || "System",
+        what: "PUBLISH",
+        where: "WeddingService",
+        entityType: "wedding",
+        entityId: id,
+        after: { published: true },
+      });
       await DomainEventBus.publish("WeddingPublished", res.data.id, `Invitation portal published live for ${res.data.couple_names}`, {
         slug: res.data.slug
       });
@@ -266,6 +293,16 @@ class WeddingDomainService extends WeddingRepository {
     // 5. Auto-generate QR Codes
     await this.generateQRCodesForWedding(wedding.id, wedding.slug);
 
+    CacheService.invalidatePattern("wedding:*");
+    await AuditService.log({
+      who: coupleNames || "System",
+      what: "CREATE",
+      where: "WeddingService:createWithDefaults",
+      entityType: "wedding",
+      entityId: wedding.id,
+      after: wedding as any,
+    });
+
     await DomainEventBus.publish("WeddingCreated", wedding.id, `Celebration provisioned for ${wedding.couple_names}`, {
       slug: wedding.slug,
       access_code: wedding.access_code,
@@ -331,6 +368,15 @@ class WeddingDomainService extends WeddingRepository {
   async archiveWedding(weddingId: string): Promise<{ data: Wedding | null; error: string | null }> {
     const res = await this.update(weddingId, { published: false } as any);
     if (res.data) {
+      CacheService.invalidatePattern("wedding:*");
+      await AuditService.log({
+        who: res.data.couple_names || "System",
+        what: "UPDATE",
+        where: "WeddingService:archive",
+        entityType: "wedding",
+        entityId: weddingId,
+        after: { published: false },
+      });
       await DomainEventBus.publish("WeddingArchived", res.data.id, `Celebration archived for ${res.data.couple_names}`, {
         slug: res.data.slug,
       });
@@ -343,7 +389,16 @@ class WeddingDomainService extends WeddingRepository {
     const res = await this.delete(weddingId);
     if (res.error) return { success: false, error: res.error };
 
+    CacheService.invalidatePattern("wedding:*");
     if (w) {
+      await AuditService.log({
+        who: w.couple_names || "System",
+        what: "DELETE",
+        where: "WeddingService",
+        entityType: "wedding",
+        entityId: weddingId,
+        before: w as any,
+      });
       await DomainEventBus.publish("WeddingDeleted", weddingId, `Celebration deleted: ${w.couple_names}`, {
         slug: w.slug,
       });

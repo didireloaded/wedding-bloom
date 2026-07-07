@@ -1,4 +1,5 @@
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/utils/supabase";
+import { IntegrationGateway } from "../integrations/IntegrationGateway";
 
 export type DomainEventType =
   | "WeddingCreated"
@@ -10,7 +11,10 @@ export type DomainEventType =
   | "GuestInvited"
   | "GuestAccepted"
   | "GuestDeclined"
+  | "GuestRSVPSubmitted"
   | "PhotoUploaded"
+  | "GuestPhotoUploaded"
+  | "AnnouncementPosted"
   | "MomentCreated"
   | "VenueUpdated"
   | "WeddingCompleted"
@@ -58,7 +62,10 @@ class DomainEventBusService {
       try { cb(event); } catch (e) { console.error(`[DomainEventBus] Wildcard listener error:`, e); }
     });
 
-    // 2. Persist audit trail in activity_log table
+    // 2. Automatically trigger third-party integrations or analytics based on core lifecycle events
+    this.triggerLifecycleIntegrations(event);
+
+    // 3. Persist audit trail in activity_log table
     try {
       if (weddingId) {
         await supabase.from("activity_log").insert([{
@@ -75,6 +82,60 @@ class DomainEventBusService {
     }
 
     return event;
+  }
+
+  /**
+   * Event-Driven Lifecycle Triggers: Automatically dispatches analytics, push notifications, and session tagging.
+   */
+  private triggerLifecycleIntegrations(event: DomainEvent): void {
+    try {
+      // Analytics tracking for all domain events
+      IntegrationGateway.analytics.trackEvent(event.type, {
+        wedding_id: event.weddingId,
+        description: event.description,
+        ...event.payload,
+      });
+
+      // Specific lifecycle integrations
+      switch (event.type) {
+        case "WeddingCreated":
+        case "WeddingPublished":
+          IntegrationGateway.sessionReplay.tagSession("wedding_status", event.type);
+          break;
+        case "GuestRSVPSubmitted":
+        case "GuestAccepted":
+        case "GuestDeclined":
+          void IntegrationGateway.push.sendTopicPushNotification(
+            `wedding_${event.weddingId}`,
+            "New RSVP Update",
+            event.description,
+            event.payload
+          );
+          break;
+        case "GuestPhotoUploaded":
+        case "PhotoUploaded":
+          void IntegrationGateway.push.sendTopicPushNotification(
+            `wedding_${event.weddingId}_photos`,
+            "New Photo Uploaded",
+            event.description,
+            event.payload
+          );
+          break;
+        case "AnnouncementPosted":
+          void IntegrationGateway.push.sendTopicPushNotification(
+            `wedding_${event.weddingId}_all`,
+            "Important Wedding Announcement",
+            event.description,
+            event.payload
+          );
+          break;
+        case "MemoryBookGenerated":
+          IntegrationGateway.monitoring.captureMessage(`Memory book generated for wedding ${event.weddingId}`, "info");
+          break;
+      }
+    } catch (err) {
+      console.warn("[DomainEventBus] Lifecycle integration trigger error:", err);
+    }
   }
 }
 

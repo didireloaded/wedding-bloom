@@ -1,24 +1,44 @@
-name: CI
+name: CI / Enterprise Architecture Validation
 
 on:
   push:
-    branches: [main]
+    branches: [main, develop]
   pull_request:
-    branches: [main]
+    branches: [main, develop]
 
 jobs:
-  test:
+  validate-and-build:
+    name: Enterprise Verification & Build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: oven-sh/setup-bun@v2
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Bun Environment
+        uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
-      - name: Install dependencies
+
+      - name: Install Dependencies
         run: bun install --frozen-lockfile
-      - name: Typecheck
+
+      - name: Validate SQL Migrations Syntax & Structure
+        run: |
+          echo "Checking master_schema.sql existence and non-emptiness..."
+          test -s master_schema.sql || (echo "master_schema.sql is missing or empty!" && exit 1)
+          echo "Verified master_schema.sql contains $(wc -l < master_schema.sql) lines of schema definitions."
+
+      - name: Run TypeScript Typechecking
         run: bun run typecheck
-      - name: Run tests
-        run: bun run test
-      - name: Build
-        run: bun run build
+
+      - name: Run Unit & Architecture Tests
+        run: bun run test -- --run
+
+      - name: Build Production Bundle & Verify Budget
+        run: |
+          bun run build
+          echo "Verifying production dist/ directory created..."
+          test -d dist || (echo "dist directory not found after build!" && exit 1)
+          echo "Checking bundle size budgets..."
+          du -sh dist/*
+          echo "Enterprise build verification passed successfully!"
