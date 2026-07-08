@@ -97,8 +97,12 @@ export type GuestMoment = {
   guest_name: string;
   message: string;
   status?: string;
+  is_approved?: boolean;
   created_at: string;
 };
+
+export type Moment = GuestMoment;
+
 
 export type Checkin = {
   id: string;

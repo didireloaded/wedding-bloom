@@ -36,10 +36,30 @@ import {
 } from "@/features/couple/planningSuite";
 import { CoupleOnboardingModal } from "@/components/wedding/CoupleOnboardingModal";
 import { CoupleWorkspaceShell, type TabId } from "@/components/nav/CoupleWorkspaceShell";
-import { WeddingHomeView } from "@/features/couple/views/WeddingHomeView";
-import { PlanningDashboardView } from "@/features/couple/views/PlanningDashboardView";
-import { VendorManagerView } from "@/features/couple/views/VendorManagerView";
-import { SeatingAndTablesView } from "@/features/couple/views/SeatingAndTablesView";
+import {
+  WeddingHomeView,
+  PlanningDashboardView,
+  VendorManagerView,
+  SeatingAndTablesView,
+  TimelineEventsView,
+  AnnouncementsView,
+  QRAndSharePortalView,
+  VisionMoodBoardView,
+  ThankYouTrackerView,
+  RunSheetView,
+  DelegationBoardView,
+  LiveArrivalsRadarView,
+  InteractiveMapView,
+  AccommodationsView,
+  RSVPManagerView,
+  GuestCrmView,
+  BatchCommunicationsView,
+  DayOfCheckinsView,
+  CuratedPortfolioView,
+  GuestPhotoVaultView,
+  MemoryWallView
+} from "@/features/couple/views";
+
 
 export default function CoupleDashboard() {
   const navigate = useNavigate();
@@ -370,548 +390,225 @@ export default function CoupleDashboard() {
             </GlassCard>
           )}
 
-          {tab !== "workspace" && tab !== "overview" && tab !== "budget" && tab !== "tables" && (
-            <div className="mb-6 flex items-center justify-between">
-              <div>
-                <div className="wedding-label text-[#D4A853]">Module Workspace</div>
-                <h2 className="display text-[32px] text-[#FAF7F2] capitalize">
-                  {tab === "arrivals" ? "Live Guest & Vendor Arrivals" : tab === "rsvp" ? "Guest RSVPs" : tab === "guest_photos" ? "Guest Vault" : tab === "map" ? "Interactive Venue Map" : tab === "share" ? "QR & Share Portal" : tab.replace("_", " ")}
-                </h2>
+          {tab !== "workspace" && (
+            <div className="mb-4 flex items-center justify-between bg-white/[0.02] border border-white/[0.08] p-3.5 rounded-2xl">
+              <div className="flex items-center gap-2 text-xs font-mono text-ivory/70">
+                <span className="text-primary-container">⚡ Suite Mode</span>
+                <span>•</span>
+                <span className="capitalize text-ivory font-bold">{tab === "guest_photos" ? "Guest Photo Vault" : tab.replace("_", " ")}</span>
               </div>
-              <button onClick={() => setTab("workspace")} className="fv-btn-ghost !py-2 !px-4 text-[12px]">
-                Back to Cockpit
+              <button onClick={() => setTab("workspace")} className="fv-btn-ghost !py-1.5 !px-3.5 text-xs">
+                ← Back to Cockpit
               </button>
             </div>
           )}
 
           {/* Overview Tab */}
           {tab === "overview" && (
-            <div className="space-y-8">
-              <PlanningDashboardView
-                wedding={wedding}
-                tasks={tasks}
-                vendors={vendors}
-                budgets={budgets}
-                rsvps={rsvps}
-                onNavigate={(t: TabId) => setTab(t)}
-              />
-            </div>
+            <PlanningDashboardView
+              wedding={wedding}
+              tasks={tasks}
+              vendors={vendors}
+              budgets={budgets}
+              rsvps={rsvps}
+              onNavigate={(t: TabId) => setTab(t)}
+            />
           )}
 
           {/* RSVP Tab */}
           {tab === "rsvp" && (
-            <GlassCard variant="obsidian" padding="none" className="border border-white/[0.1] overflow-hidden">
-              <div className="overflow-x-auto">
-                <table className="w-full text-[13px] text-left">
-                  <thead className="bg-white/[0.03] border-b border-white/[0.08] text-[11px] uppercase tracking-[0.16em] text-[#78716C]">
-                    <tr>
-                      <th className="p-4">Guest Identity</th>
-                      <th className="p-4">Status</th>
-                      <th className="p-4">Party Size</th>
-                      <th className="p-4">Dietary</th>
-                      <th className="p-4">Song Request</th>
-                      <th className="p-4">Logged At</th>
-                      <th className="p-4 text-right">Action</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-white/[0.04]">
-                    {rsvps.map(r => (
-                      <tr key={r.id} className="hover:bg-white/[0.03] transition">
-                        <td className="p-4">
-                          <div className="font-semibold text-[#FAF7F2]">{r.guest_name}</div>
-                          {r.email && <div className="text-[11px] font-mono text-[#A8A29E]">{r.email}</div>}
-                        </td>
-                        <td className="p-4">
-                          <span className={`px-2.5 py-1 rounded-full text-[10px] font-semibold uppercase ${r.attending === 'confirmed' ? "bg-[#7A9E7E]/20 text-[#7A9E7E]" : r.attending === 'declined' ? "bg-[#C97B7B]/20 text-[#C97B7B]" : "bg-[#D4A853]/20 text-[#D4A853]"}`}>
-                            {r.attending === 'confirmed' ? "Going" : r.attending === 'declined' ? "Declined" : "Pending"}
-                          </span>
-                        </td>
-                        <td className="p-4 font-mono text-[#FAF7F2]">{r.guest_count}</td>
-                        <td className="p-4 text-[#A8A29E]">{r.dietary_preference || "—"}</td>
-                        <td className="p-4 text-[#A8A29E] max-w-[180px] truncate">{r.song_request || "—"}</td>
-                        <td className="p-4 text-[12px] font-mono text-[#78716C]">{format(new Date(r.submitted_at), "MMM d")}</td>
-                        <td className="p-4 text-right">
-                          <button onClick={() => { store.remove("rsvps", r.id); refresh(); toast.success("RSVP removed"); }} className="p-2 rounded-lg text-[#E4A5A5] hover:bg-[#C97B7B]/20">
-                            <Trash2 size={14}/>
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                    {rsvps.length === 0 && (
-                      <tr><td colSpan={7} className="text-center py-12 text-[#78716C]">No RSVPs recorded yet</td></tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </GlassCard>
+            <RSVPManagerView
+              wedding={wedding}
+              rsvps={rsvps}
+              onRemoveRSVP={(id) => {
+                store.remove("rsvps", id);
+                refresh(); toast.success("RSVP entry removed");
+              }}
+            />
           )}
 
           {/* Timeline Events Tab */}
           {tab === "events" && (
-            <div className="space-y-6">
-              <div className="flex justify-end">
-                <button onClick={() => setShowEventForm(!showEventForm)} className="fv-btn-primary !py-2.5 !px-5 text-[12px]">
-                  <Plus size={15}/> Add Timeline Event
-                </button>
-              </div>
-
-              {showEventForm && (
-                <GlassCard variant="obsidian" padding="lg" className="border border-[#D4A853]/40">
-                  <form onSubmit={addEvent} className="grid md:grid-cols-2 gap-4">
-                    <input required placeholder="Event Title (e.g. Champagne Reception)" value={newEvent.title} onChange={e => setNewEvent({...newEvent, title: e.target.value})} className="md:col-span-2 fv-input" />
-                    <input placeholder="Location / Room" value={newEvent.location} onChange={e => setNewEvent({...newEvent, location: e.target.value})} className="fv-input" />
-                    <input type="date" value={newEvent.event_date} onChange={e => setNewEvent({...newEvent, event_date: e.target.value})} className="fv-input" />
-                    <input type="time" value={newEvent.event_time} onChange={e => setNewEvent({...newEvent, event_time: e.target.value})} className="fv-input" />
-                    <input placeholder="Short Description..." value={newEvent.description} onChange={e => setNewEvent({...newEvent, description: e.target.value})} className="fv-input" />
-                    <div className="md:col-span-2 flex justify-end gap-3 pt-2">
-                      <button type="button" onClick={() => setShowEventForm(false)} className="fv-btn-ghost !py-2 !px-4 text-[12px]">Cancel</button>
-                      <button type="submit" className="fv-btn-primary !py-2 !px-5 text-[12px]">Save Event</button>
-                    </div>
-                  </form>
-                </GlassCard>
-              )}
-
-              <div className="grid md:grid-cols-2 gap-5">
-                {events.map(ev => (
-                  <GlassCard key={ev.id} variant="obsidian" padding="lg" className="border border-white/[0.1] flex flex-col justify-between">
-                    <div>
-                      <div className="flex items-start justify-between mb-2">
-                        <div className="wedding-label text-[#D4A853]">
-                          {ev.event_date && format(new Date(ev.event_date), "EEE • d MMM")}{ev.event_time && ` • ${ev.event_time}`}
-                        </div>
-                        <button onClick={() => { store.remove("events", ev.id); refresh(); toast.success("Event deleted"); }} className="text-[#E4A5A5] hover:text-[#C97B7B]">
-                          <Trash2 size={15}/>
-                        </button>
-                      </div>
-                      <h3 className="display text-[26px] text-[#FAF7F2]">{ev.title}</h3>
-                      {ev.location && <div className="text-[13px] text-[#E8C97A] mt-1 flex items-center gap-1.5"><MapPin size={13}/>{ev.location}</div>}
-                    </div>
-                    {ev.description && <div className="text-[13.5px] text-[#A8A29E] mt-4 pt-3 border-t border-white/[0.06]">{ev.description}</div>}
-                  </GlassCard>
-                ))}
-              </div>
-            </div>
+            <TimelineEventsView
+              wedding={wedding}
+              events={events}
+              onAddEvent={(data) => {
+                store.insert("events", { wedding_id: weddingId, ...data });
+                refresh(); toast.success("Event added");
+              }}
+              onRemoveEvent={(id) => {
+                store.remove("events", id);
+                refresh(); toast.success("Event deleted");
+              }}
+            />
           )}
 
           {/* Gallery Tab */}
           {tab === "gallery" && (
-            <div className="space-y-6">
-              <GlassCard variant="obsidian" padding="md" className="border border-white/[0.1]">
-                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-                  <div className="flex-1 flex items-center gap-2">
-                    <input value={galleryUrl} onChange={e => setGalleryUrl(e.target.value)} placeholder="High-Res Image URL or upload file →" className="flex-1 fv-input" />
-                    <input value={galleryCap} onChange={e => setGalleryCap(e.target.value)} placeholder="Caption" className="flex-1 fv-input" />
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => {
-                        if (!galleryUrl.trim()) { toast.error("URL required"); return; }
-                        store.insert("gallery", { wedding_id: weddingId, url: galleryUrl.trim(), caption: galleryCap.trim() || null });
-                        setGalleryUrl(""); setGalleryCap(""); toast.success("Photo added to gallery");
-                      }}
-                      className="fv-btn-primary !py-3 !px-5 text-[12px] shrink-0"
-                    >Add URL</button>
-                    <label className="fv-btn-secondary !py-3 !px-4 text-[12px] shrink-0 cursor-pointer flex items-center gap-1.5 border border-white/[0.15] bg-white/[0.05] hover:bg-white/[0.1] rounded-xl text-white transition">
-                      <UploadCloud size={15} className="text-[#D4A853]" />
-                      <span>{uploadingMedia ? "Compressing..." : "Upload File"}</span>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        disabled={uploadingMedia}
-                        onChange={async (e) => {
-                          const file = e.target.files?.[0];
-                          if (!file) return;
-                          setUploadingMedia(true);
-                          setUploadStats(null);
-                          toast.info("Compressing & optimizing image...");
-                          const res = await MediaService.uploadAsset(file, "gallery", weddingId || "");
-                          setUploadingMedia(false);
-                          if (res.error) {
-                            toast.error(res.error);
-                          } else {
-                            store.insert("gallery", { wedding_id: weddingId, url: res.url, caption: file.name.replace(/\.[^/.]+$/, "") });
-                            setUploadStats(`Compressed: ${(res.compressedSize / 1024).toFixed(1)} KB (${res.reductionPercentage}% smaller, WebP)`);
-                            toast.success(`Uploaded & compressed (${res.reductionPercentage}% smaller)!`);
-                            refresh();
-                          }
-                        }}
-                      />
-                    </label>
-                  </div>
-                </div>
-                {uploadStats && (
-                  <div className="mt-3 text-[12px] text-[#A8A29E] bg-white/[0.03] p-2.5 rounded-lg border border-white/[0.08] flex items-center gap-2">
-                    <Sparkles size={14} className="text-[#D4A853]" />
-                    <span>{uploadStats}</span>
-                  </div>
-                )}
-              </GlassCard>
-
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                {gallery.map(g => (
-                  <GlassCard key={g.id} variant="obsidian" padding="none" className="group relative overflow-hidden border border-white/[0.1] aspect-square">
-                    <img
-                      src={g.url}
-                      srcSet={MediaService.generateResponsiveSrcset(g.url)}
-                      sizes="(max-width: 640px) 50vw, 25vw"
-                      alt={g.caption || ""}
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                    />
-                    {g.caption && (
-                      <div className="absolute inset-x-0 bottom-0 p-3 bg-gradient-to-t from-black/80 to-transparent text-[12px] text-white font-medium">
-                        {g.caption}
-                      </div>
-                    )}
-                    <button onClick={() => { store.remove("gallery", g.id); refresh(); toast.success("Photo deleted"); }} className="absolute top-3 right-3 w-8 h-8 rounded-full bg-black/60 text-white opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
-                      <Trash2 size={13}/>
-                    </button>
-                  </GlassCard>
-                ))}
-              </div>
-            </div>
+            <CuratedPortfolioView
+              wedding={wedding}
+              gallery={gallery}
+              onAddGalleryItem={(data) => {
+                store.insert("gallery", { wedding_id: weddingId, ...data });
+                refresh(); toast.success("Photo added to portfolio");
+              }}
+              onRemoveGalleryItem={(id) => {
+                store.remove("gallery", id);
+                refresh(); toast.success("Photo removed from portfolio");
+              }}
+            />
           )}
 
           {/* Accommodations Tab */}
           {tab === "accommodations" && (
-            <GlassCard variant="obsidian" padding="lg" className="border border-white/[0.1] space-y-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="wedding-label">Travel & Hospitality</div>
-                  <p className="text-[14px] text-[#A8A29E] mt-1">Manage partner hotels and guest stay recommendations.</p>
-                </div>
-                <button onClick={() => setHotelPromptOpen(true)} className="fv-btn-primary !py-2.5 !px-5 text-[12px]">Add Hotel</button>
-              </div>
-
-              <div className="space-y-3">
-                {accommodations.map((acc: any) => (
-                  <div key={acc.id} className="p-4 rounded-[18px] bg-white/[0.03] border border-white/[0.08] flex items-center justify-between">
-                    <div>
-                      <div className="text-[16px] text-[#FAF7F2] font-semibold">{acc.name}</div>
-                      <div className="text-[12px] text-[#A8A29E] font-mono mt-0.5">{acc.price || "Rates on request"} • {acc.distance || "Near venue"}</div>
-                    </div>
-                    <button onClick={() => { store.remove("accommodations", acc.id); refresh(); }} className="p-2 text-[#E4A5A5] hover:bg-[#C97B7B]/20 rounded-lg">
-                      <Trash2 size={16}/>
-                    </button>
-                  </div>
-                ))}
-                {accommodations.length === 0 && <div className="text-center py-10 text-[#78716C] text-[13px]">No hotels configured yet.</div>}
-              </div>
-            </GlassCard>
+            <AccommodationsView
+              wedding={wedding}
+              accommodations={accommodations}
+              onAddAccommodation={(data) => {
+                store.insert("accommodations", { wedding_id: weddingId, ...data });
+                refresh(); toast.success("Hotel option added");
+              }}
+              onRemoveAccommodation={(id) => {
+                store.remove("accommodations", id);
+                refresh(); toast.success("Hotel option removed");
+              }}
+            />
           )}
 
           {/* Map Tab */}
           {tab === "map" && (
-            <GlassCard variant="obsidian" padding="lg" className="border border-white/[0.1] space-y-6">
-              <div>
-                <div className="wedding-label">Interactive Floor & Venue Plan</div>
-                <p className="text-[14px] text-[#A8A29E] mt-1">Upload an image and click directly on the canvas to place custom guest markers.</p>
-              </div>
-
-              <div>
-                <label className="block wedding-label mb-2">Map Blueprint URL</label>
-                <input
-                  value={wedding.venue_map_url || ""}
-                  onChange={e => saveWeddingEdits({ venue_map_url: e.target.value })}
-                  placeholder="https://images.pexels.com/..."
-                  className="fv-input"
-                />
-              </div>
-
-              {wedding.venue_map_url ? (
-                <div className="relative border border-white/[0.15] rounded-[24px] overflow-hidden bg-white/[0.02]">
-                  <img
-                    src={wedding.venue_map_url}
-                    alt="Venue Blueprint"
-                    className="w-full h-auto cursor-crosshair"
-                    onClick={(e) => {
-                      const rect = e.currentTarget.getBoundingClientRect();
-                      const x = ((e.clientX - rect.left) / rect.width) * 100;
-                      const y = ((e.clientY - rect.top) / rect.height) * 100;
-                      setMarkerCoords({ x, y });
-                      setMarkerPromptOpen(true);
-                    }}
-                  />
-                  {markers.map((m: any) => (
-                    <div
-                      key={m.id}
-                      className="absolute w-8 h-8 -ml-4 -mt-4 bg-[#D4A853] text-[#0C0A09] rounded-full flex items-center justify-center shadow-lg cursor-pointer hover:scale-125 transition group"
-                      style={{ left: `${m.x}%`, top: `${m.y}%` }}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setDeleteMarker({ id: m.id, title: m.title });
-                      }}
-                    >
-                      <MapPin size={16} />
-                      <div className="absolute bottom-10 w-max px-3 py-1.5 bg-[#0C0A09] text-white text-[11px] rounded-lg border border-white/[0.2] opacity-0 group-hover:opacity-100 pointer-events-none z-20 shadow-xl">
-                        {m.title} (Click to remove)
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="aspect-video bg-white/[0.03] rounded-[24px] border border-dashed border-white/[0.15] flex items-center justify-center text-[#78716C]">
-                  <MapPin size={24} className="mr-2 text-[#D4A853]"/> Supply a valid map URL above to activate interactive tagging
-                </div>
-              )}
-            </GlassCard>
+            <InteractiveMapView
+              wedding={wedding}
+              markers={markers}
+              onAddMarker={(data) => {
+                store.insert("venue_markers", { wedding_id: weddingId, ...data });
+                refresh(); toast.success("Pin added to estate blueprint");
+              }}
+              onRemoveMarker={(id) => {
+                store.remove("venue_markers", id);
+                refresh(); toast.success("Pin removed");
+              }}
+            />
           )}
 
           {/* Live Updates Tab */}
           {tab === "updates" && (
-            <GlassCard variant="obsidian" padding="lg" className="border border-white/[0.1] space-y-6">
-              <div>
-                <div className="wedding-label">Live Broadcasts</div>
-                <p className="text-[14px] text-[#A8A29E] mt-1">Push instantaneous alerts to all active guest screens.</p>
-              </div>
-
-              <form onSubmit={(e) => {
-                e.preventDefault();
-                if(!updateTitle || !updateMsg) return;
-                store.insert("updates", { wedding_id: weddingId, title: updateTitle, message: updateMsg });
-                refresh(); toast.success("Broadcast published");
-                setUpdateTitle(""); setUpdateMsg("");
-              }} className="space-y-3 p-5 rounded-[22px] bg-white/[0.03] border border-white/[0.08]">
-                <input value={updateTitle} onChange={e => setUpdateTitle(e.target.value)} required placeholder="Alert Headline (e.g. Ceremony starting in 10 mins)" className="fv-input" />
-                <textarea value={updateMsg} onChange={e => setUpdateMsg(e.target.value)} required rows={2} placeholder="Broadcast details..." className="fv-input resize-none" />
-                <div className="flex justify-end pt-2">
-                  <button type="submit" className="fv-btn-primary !py-2.5 !px-6 text-[12px]">Broadcast Alert</button>
-                </div>
-              </form>
-
-              <div className="space-y-3">
-                {updates.slice().reverse().map((u: any) => (
-                  <div key={u.id} className="p-4 rounded-[18px] bg-white/[0.02] border border-white/[0.06] flex justify-between items-start">
-                    <div>
-                      <div className="text-[16px] text-[#FAF7F2] font-semibold">{u.title}</div>
-                      <div className="text-[13.5px] text-[#A8A29E] mt-1">{u.message}</div>
-                      <div className="text-[11px] font-mono text-[#78716C] mt-2">{format(new Date(u.created_at), "HH:mm • d MMM yyyy")}</div>
-                    </div>
-                    <button onClick={() => { store.remove("updates", u.id); refresh(); }} className="p-2 text-[#E4A5A5] hover:bg-[#C97B7B]/20 rounded-lg">
-                      <Trash2 size={15}/>
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </GlassCard>
+            <AnnouncementsView
+              wedding={wedding}
+              updates={updates}
+              onAddUpdate={(data: any) => {
+                store.insert("updates", { wedding_id: weddingId, ...data });
+                refresh(); toast.success("Announcement published");
+              }}
+              onRemoveUpdate={(id: any) => {
+                store.remove("updates", id);
+                refresh(); toast.success("Announcement deleted");
+              }}
+            />
           )}
 
           {/* Guest Photo Vault Tab */}
           {tab === "guest_photos" && (
-            <GlassCard variant="obsidian" padding="lg" className="border border-white/[0.1] space-y-6">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                <div>
-                  <div className="wedding-label flex items-center gap-2">
-                    <span>Guest Photo Vault ({guestPhotos.length})</span>
-                    <span className="text-[11px] px-2 py-0.5 rounded-full bg-[#D4A853]/20 text-[#D4A853] font-normal">Moderation Enabled</span>
-                  </div>
-                  <p className="text-[13px] text-[#A8A29E] mt-0.5">Review guest moments, pin highlights, or promote favorites directly to your Curated Portfolio.</p>
-                </div>
-
-                <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
-                  <a
-                    href={`/memory-book/${wedding?.slug || weddingId}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="fv-btn-secondary !py-2.5 !px-3.5 text-[12px] flex items-center gap-1.5 bg-[#D4A853]/20 border border-[#D4A853]/40 text-[#D4A853] hover:bg-[#D4A853] hover:text-black transition shrink-0"
-                  >
-                    <Sparkles size={14} />
-                    <span>View Memory Book</span>
-                  </a>
-                  <div className="flex items-center bg-black/40 p-1 rounded-xl border border-white/[0.08]">
-                    {["all", "approved", "pinned", "pending"].map((f) => (
-                      <button
-                        key={f}
-                        onClick={() => setVaultFilter(f)}
-                        className={`px-3 py-1.5 rounded-lg text-[12px] font-medium capitalize transition ${
-                          vaultFilter === f ? "bg-[#D4A853] text-black" : "text-[#A8A29E] hover:text-white"
-                        }`}
-                      >
-                        {f === "all" ? `All (${guestPhotos.length})` : f}
-                      </button>
-                    ))}
-                  </div>
-
-                  <label className="fv-btn-primary !py-2.5 !px-4 text-[12px] cursor-pointer flex items-center gap-1.5 shrink-0">
-                    <UploadCloud size={15} />
-                    <span>{uploadingMedia ? "Compressing..." : "Upload Photo"}</span>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      disabled={uploadingMedia}
-                      onChange={async (e) => {
-                        const file = e.target.files?.[0];
-                        if (!file) return;
-                        setUploadingMedia(true);
-                        toast.info("Compressing & optimizing photo...");
-                        const res = await MediaService.uploadAsset(file, "guest-vault", weddingId || "", "Couple Admin");
-                        setUploadingMedia(false);
-                        if (res.error) {
-                          toast.error(res.error);
-                        } else {
-                          toast.success(`Uploaded to Vault (${res.reductionPercentage}% smaller, WebP)!`);
-                          refresh();
-                        }
-                      }}
-                    />
-                  </label>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 gap-4">
-                {guestPhotos
-                  .filter((p) => {
-                    if (vaultFilter === "approved") return p.status === "approved" || !p.status;
-                    if (vaultFilter === "pinned") return p.status === "pinned";
-                    if (vaultFilter === "pending") return p.status === "pending";
-                    return p.status !== "rejected";
-                  })
-                  .slice()
-                  .reverse()
-                  .map((p: any) => (
-                    <div key={p.id} className="relative aspect-square rounded-[18px] overflow-hidden border border-white/[0.1] group shadow-md bg-black/40 flex flex-col justify-end">
-                      <img
-                        src={p.photo_url}
-                        srcSet={MediaService.generateResponsiveSrcset(p.photo_url)}
-                        sizes="(max-width: 640px) 50vw, 20vw"
-                        alt=""
-                        className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                      />
-                      <div className="absolute inset-x-0 top-0 p-2.5 bg-gradient-to-b from-black/80 via-black/40 to-transparent flex items-center justify-between opacity-90 group-hover:opacity-100 transition">
-                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-black/60 border border-white/[0.15] text-white backdrop-blur-md font-medium capitalize">
-                          {p.status || "approved"}
-                        </span>
-                        {p.is_promoted && (
-                          <span title="Promoted to Gallery" className="text-[10px] px-2 py-0.5 rounded-full bg-[#D4A853] text-black font-semibold flex items-center gap-1 shadow-sm">
-                            <Sparkles size={10} /> Promoted
-                          </span>
-                        )}
-                      </div>
-
-                      <div className="absolute inset-x-0 bottom-0 p-3 bg-gradient-to-t from-black/95 via-black/70 to-transparent flex flex-col gap-2 translate-y-2 group-hover:translate-y-0 transition-transform">
-                        <div className="text-[11px] text-white font-medium truncate">{p.guest_name}</div>
-                        <div className="flex items-center justify-between gap-1 opacity-0 group-hover:opacity-100 transition-opacity pt-1 border-t border-white/[0.1]">
-                          <button
-                            title="Promote to Curated Gallery"
-                            onClick={async () => {
-                              toast.info("Promoting to Curated Portfolio...");
-                              const res = await MediaService.promoteToCuratedGallery(weddingId || "", p);
-                              if (res.error) toast.error(res.error);
-                              else {
-                                toast.success("✨ Promoted to Curated Portfolio!");
-                                refresh();
-                              }
-                            }}
-                            className="p-1.5 rounded-lg bg-[#D4A853]/20 hover:bg-[#D4A853] text-[#D4A853] hover:text-black transition"
-                          >
-                            <Sparkles size={13} />
-                          </button>
-                          <button
-                            title={p.status === "pinned" ? "Unpin" : "Pin to Top"}
-                            onClick={async () => {
-                              await MediaService.moderatePhoto(p.id, p.status === "pinned" ? "approve" : "pin");
-                              toast.success(p.status === "pinned" ? "Unpinned photo" : "Pinned photo to top");
-                              refresh();
-                            }}
-                            className={`p-1.5 rounded-lg transition ${
-                              p.status === "pinned" ? "bg-[#D4A853] text-black" : "bg-white/[0.1] hover:bg-white/[0.2] text-white"
-                            }`}
-                          >
-                            <Pin size={13} />
-                          </button>
-                          <button
-                            title="Reject / Remove Photo"
-                            onClick={() => {
-                              store.remove("guest_photos", p.id);
-                              MediaService.moderatePhoto(p.id, "reject");
-                              refresh();
-                              toast.success("Photo removed");
-                            }}
-                            className="p-1.5 rounded-lg bg-red-500/20 hover:bg-red-500 text-red-400 hover:text-white transition"
-                          >
-                            <Trash2 size={13} />
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                {guestPhotos.length === 0 && (
-                  <div className="col-span-full text-center py-12 text-[13px] text-[#78716C] border border-dashed border-white/[0.15] rounded-[20px]">
-                    No guest photos uploaded yet.
-                  </div>
-                )}
-              </div>
-            </GlassCard>
+            <GuestPhotoVaultView
+              wedding={wedding}
+              guestPhotos={guestPhotos}
+              onModeratePhoto={async (id, action) => {
+                if (action === "promote") {
+                  const p = guestPhotos.find(gp => gp.id === id);
+                  if (p) {
+                    await MediaService.promoteToCuratedGallery(weddingId || "", p);
+                    toast.success("✨ Promoted to Curated Portfolio!");
+                  }
+                } else {
+                  await MediaService.moderatePhoto(id, action === "approve" ? "approve" : "reject");
+                  toast.success(action === "approve" ? "Approved photo" : "Rejected photo");
+                }
+                refresh();
+              }}
+              onRemovePhoto={(id) => {
+                store.remove("guest_photos", id);
+                MediaService.moderatePhoto(id, "reject");
+                refresh(); toast.success("Photo deleted");
+              }}
+            />
           )}
 
           {/* Moments / Memory Wall Tab */}
           {tab === "moments" && (
-            <div className="grid md:grid-cols-2 gap-5">
-              {moments.slice().reverse().map((m: any) => (
-                <GlassCard key={m.id} variant="obsidian" padding="lg" className="border border-white/[0.1] flex flex-col justify-between">
-                  <div className="text-[15px] text-[#FAF7F2] leading-relaxed italic">"{m.message}"</div>
-                  <div className="flex items-center justify-between mt-6 pt-4 border-t border-white/[0.06]">
-                    <div className="text-[13px] text-[#D4A853] font-semibold">— {m.guest_name}</div>
-                    <button onClick={() => { store.remove("guest_moments", m.id); refresh(); toast.success("Note removed"); }} className="text-[#E4A5A5] hover:text-[#C97B7B]">
-                      <Trash2 size={14}/>
-                    </button>
-                  </div>
-                </GlassCard>
-              ))}
-            </div>
+            <MemoryWallView
+              wedding={wedding}
+              moments={moments}
+              onModerateMoment={(id, isApproved) => {
+                store.update("guest_moments", id, { is_approved: isApproved });
+                refresh(); toast.success(isApproved ? "Approved for memory wall" : "Unpublished from wall");
+              }}
+              onRemoveMoment={(id) => {
+                store.remove("guest_moments", id);
+                refresh(); toast.success("Entry deleted");
+              }}
+            />
           )}
 
           {/* Check-ins Tab */}
           {tab === "checkins" && (
-            <GlassCard variant="obsidian" padding="lg" className="border border-white/[0.1] space-y-4">
-              <div className="wedding-label mb-3">Live Venue Check-ins</div>
-              <div className="space-y-2">
-                {checkins.slice().reverse().map(c => (
-                  <div key={c.id} className="flex items-center justify-between p-3.5 rounded-[16px] bg-white/[0.02] border border-white/[0.06]">
-                    <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-full bg-[#7A9E7E]/20 text-[#7A9E7E] flex items-center justify-center"><CheckCircle2 size={16}/></div>
-                      <div>
-                        <div className="text-[14.5px] text-[#FAF7F2] font-semibold">{c.guest_name}</div>
-                        <div className="text-[11px] font-mono text-[#A8A29E]">{format(new Date(c.checkin_time || c.created_at || Date.now()), "HH:mm • d MMM")}</div>
-                      </div>
-                    </div>
-                    <button onClick={() => { store.remove("checkins", c.id); refresh(); }} className="text-[#E4A5A5] hover:bg-[#C97B7B]/20 p-2 rounded-lg">
-                      <Trash2 size={14}/>
-                    </button>
-                  </div>
-                ))}
-                {checkins.length === 0 && <div className="text-[13px] text-[#78716C] text-center py-12">No self check-ins recorded yet.</div>}
-              </div>
-            </GlassCard>
+            <DayOfCheckinsView
+              wedding={wedding}
+              checkins={checkins}
+              onRemoveCheckin={(id) => {
+                store.remove("checkins", id);
+                refresh(); toast.success("Check-in record cleared");
+              }}
+            />
           )}
 
           {/* Share / QR Tab */}
           {tab === "share" && (
-            <div className="grid md:grid-cols-2 gap-6">
-              <GlassCard variant="obsidian" padding="lg" className="border border-white/[0.1] space-y-4">
-                <div className="wedding-label">Guest Portal URL</div>
-                <div className="display text-[26px] text-[#FAF7F2]">Direct Invitation Link</div>
-                <div className="flex items-center gap-2 p-3 rounded-[16px] bg-white/[0.04] border border-white/[0.08]">
-                  <span className="flex-1 font-mono text-[13px] text-[#E8C97A] truncate">{weddingUrl}</span>
-                  <button onClick={copyLink} className="fv-btn-primary !py-2 !px-4 text-[11px]">Copy</button>
-                </div>
-                <p className="text-[12.5px] text-[#A8A29E]">Distribute via WhatsApp, SMS, or embed in physical wedding cards.</p>
-              </GlassCard>
+            <QRAndSharePortalView
+              wedding={wedding}
+              guestLinkUrl={weddingUrl}
+              onCopyLink={copyLink}
+            />
+          )}
 
-              <GlassCard variant="obsidian" padding="lg" className="border border-white/[0.1] space-y-4 flex flex-col items-center text-center">
-                <div className="wedding-label">QR Entry Code</div>
-                <div className="display text-[26px] text-[#FAF7F2]">Instant Check-in Code</div>
-                <div className="p-6 rounded-[24px] bg-white border border-white/[0.2] shadow-xl">
-                  <QRCodeSVG value={weddingUrl} size={180} level="H" fgColor="#0C0A09" />
-                </div>
-              </GlassCard>
+          {/* Arrivals Tab */}
+          {tab === "arrivals" && (
+            <div className="space-y-12">
+              <LiveArrivalsRadarView
+                wedding={wedding}
+                checkins={checkins}
+                onRemoveCheckin={(id) => {
+                  store.remove("checkins", id);
+                  refresh(); toast.success("Arrival entry cleared");
+                }}
+              />
+              <div className="pt-8 border-t border-white/[0.1]">
+                <GuestArrivalsModule wedding={wedding} rsvps={rsvps} />
+              </div>
             </div>
           )}
 
-          {/* New Advanced Execution Logistics & Guest Intelligence Modules */}
-          {tab === "arrivals" && <GuestArrivalsModule wedding={wedding} rsvps={rsvps} />}
-          {tab === "run_sheet" && <RunSheetModule wedding={wedding} runSheet={runSheet} refresh={refresh} />}
+          {/* Run Sheet Tab */}
+          {tab === "run_sheet" && (
+            <div className="space-y-12">
+              <RunSheetView
+                wedding={wedding}
+                runSheetItems={runSheet}
+                onAddRunSheetItem={(data) => {
+                  store.insert("run_sheet", { wedding_id: weddingId, ...data });
+                  refresh(); toast.success("Choreography step added");
+                }}
+                onRemoveRunSheetItem={(id) => {
+                  store.remove("run_sheet", id);
+                  refresh(); toast.success("Step removed");
+                }}
+              />
+              <div className="pt-8 border-t border-white/[0.1]">
+                <RunSheetModule wedding={wedding} runSheet={runSheet} refresh={refresh} />
+              </div>
+            </div>
+          )}
+
+          {/* Seating and Tables Tab */}
           {tab === "tables" && (
             <div className="space-y-12">
               <SeatingAndTablesView
@@ -925,11 +622,75 @@ export default function CoupleDashboard() {
               </div>
             </div>
           )}
-          {tab === "tasks" && <TaskBoardModule wedding={wedding} tasks={tasks} refresh={refresh} />}
-          {tab === "crm" && <GuestCrmModule wedding={wedding} rsvps={rsvps} tablesList={tablesList} refresh={refresh} />}
-          {tab === "broadcasts" && <BroadcastHubModule wedding={wedding} broadcasts={broadcasts} rsvps={rsvps} refresh={refresh} />}
 
-          {/* New Interactive Treasury, Vision & Gratitude Modules */}
+          {/* Tasks Tab */}
+          {tab === "tasks" && (
+            <div className="space-y-12">
+              <DelegationBoardView
+                wedding={wedding}
+                tasks={tasks}
+                onAddTask={(data) => {
+                  store.insert("tasks", { wedding_id: weddingId, ...data });
+                  refresh(); toast.success("Task created");
+                }}
+                onUpdateTaskStatus={(id, status) => {
+                  store.update("tasks", id, { status });
+                  refresh(); toast.success("Task updated");
+                }}
+                onRemoveTask={(id) => {
+                  store.remove("tasks", id);
+                  refresh(); toast.success("Task removed");
+                }}
+              />
+              <div className="pt-8 border-t border-white/[0.1]">
+                <TaskBoardModule wedding={wedding} tasks={tasks} refresh={refresh} />
+              </div>
+            </div>
+          )}
+
+          {/* Guest CRM Tab */}
+          {tab === "crm" && (
+            <div className="space-y-12">
+              <GuestCrmView
+                wedding={wedding}
+                rsvps={rsvps}
+                onAddGuest={(data) => {
+                  store.insert("rsvps", { wedding_id: weddingId, ...data });
+                  refresh(); toast.success("Guest record added to CRM");
+                }}
+                onRemoveGuest={(id) => {
+                  store.remove("rsvps", id);
+                  refresh(); toast.success("Guest record removed");
+                }}
+              />
+              <div className="pt-8 border-t border-white/[0.1]">
+                <GuestCrmModule wedding={wedding} rsvps={rsvps} tablesList={tablesList} refresh={refresh} />
+              </div>
+            </div>
+          )}
+
+          {/* Broadcasts Tab */}
+          {tab === "broadcasts" && (
+            <div className="space-y-12">
+              <BatchCommunicationsView
+                wedding={wedding}
+                broadcasts={broadcasts}
+                onAddBroadcast={(data) => {
+                  store.insert("broadcasts", { wedding_id: weddingId, ...data });
+                  refresh(); toast.success("Campaign dispatched");
+                }}
+                onRemoveBroadcast={(id) => {
+                  store.remove("broadcasts", id);
+                  refresh(); toast.success("Dispatch log cleared");
+                }}
+              />
+              <div className="pt-8 border-t border-white/[0.1]">
+                <BroadcastHubModule wedding={wedding} broadcasts={broadcasts} rsvps={rsvps} refresh={refresh} />
+              </div>
+            </div>
+          )}
+
+          {/* Budget Tab */}
           {tab === "budget" && (
             <div className="space-y-12">
               <VendorManagerView
@@ -944,8 +705,52 @@ export default function CoupleDashboard() {
               </div>
             </div>
           )}
-          {tab === "mood_board" && <MoodBoardModule wedding={wedding} moodItems={moodItems} refresh={refresh} />}
-          {tab === "gifts" && <ThankYouTrackerModule wedding={wedding} gifts={gifts} rsvps={rsvps} refresh={refresh} />}
+
+          {/* Mood Board Tab */}
+          {tab === "mood_board" && (
+            <div className="space-y-12">
+              <VisionMoodBoardView
+                wedding={wedding}
+                moodItems={moodItems}
+                onAddMoodItem={(data: any) => {
+                  store.insert("mood_items", { wedding_id: weddingId, ...data });
+                  refresh(); toast.success("Item added to mood board");
+                }}
+                onRemoveMoodItem={(id: any) => {
+                  store.remove("mood_items", id);
+                  refresh(); toast.success("Item removed");
+                }}
+              />
+              <div className="pt-8 border-t border-white/[0.1]">
+                <MoodBoardModule wedding={wedding} moodItems={moodItems} refresh={refresh} />
+              </div>
+            </div>
+          )}
+
+          {/* Gifts Tab */}
+          {tab === "gifts" && (
+            <div className="space-y-12">
+              <ThankYouTrackerView
+                wedding={wedding}
+                gifts={gifts}
+                onAddGift={(data: any) => {
+                  store.insert("gifts", { wedding_id: weddingId, ...data });
+                  refresh(); toast.success("Gift logged");
+                }}
+                onUpdateGiftStatus={(id: any, status: any) => {
+                  store.update("gifts", id, { status });
+                  refresh(); toast.success("Thank-you status updated");
+                }}
+                onRemoveGift={(id: any) => {
+                  store.remove("gifts", id);
+                  refresh(); toast.success("Gift removed");
+                }}
+              />
+              <div className="pt-8 border-t border-white/[0.1]">
+                <ThankYouTrackerModule wedding={wedding} gifts={gifts} rsvps={rsvps} refresh={refresh} />
+              </div>
+            </div>
+          )}
         </div>
       </CoupleWorkspaceShell>
 
