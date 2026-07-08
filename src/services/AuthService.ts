@@ -154,6 +154,53 @@ class AuthDomainService {
       return false;
     }
   }
+
+  // ── ARCHITECTURAL SAFETY: TIMEOUT-PROTECTED METHODS ──
+  // Prevents infinite loading screens when network or Supabase latency occurs.
+
+  async getSessionWithTimeout(timeoutMs = 2500): Promise<Session | null> {
+    try {
+      return await Promise.race([
+        supabase.auth.getSession().then(({ data }) => data.session),
+        new Promise<null>((resolve) => setTimeout(() => resolve(null), timeoutMs))
+      ]);
+    } catch {
+      return null;
+    }
+  }
+
+  async getUserWithTimeout(timeoutMs = 2500): Promise<User | null> {
+    try {
+      return await Promise.race([
+        supabase.auth.getUser().then(({ data }) => data.user),
+        new Promise<null>((resolve) => setTimeout(() => resolve(null), timeoutMs))
+      ]);
+    } catch {
+      return null;
+    }
+  }
+
+  async checkUserRoleWithTimeout(userId: string, role: UserRole, timeoutMs = 2500): Promise<boolean> {
+    try {
+      return await Promise.race([
+        this.checkUserRole(userId, role),
+        new Promise<boolean>((resolve) => setTimeout(() => resolve(false), timeoutMs))
+      ]);
+    } catch {
+      return false;
+    }
+  }
+
+  async verifyCoupleSessionForSlugWithTimeout(slug: string, timeoutMs = 2500): Promise<boolean> {
+    try {
+      return await Promise.race([
+        this.verifyCoupleSessionForSlug(slug),
+        new Promise<boolean>((resolve) => setTimeout(() => resolve(false), timeoutMs))
+      ]);
+    } catch {
+      return false;
+    }
+  }
 }
 
 export const AuthService = new AuthDomainService();

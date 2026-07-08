@@ -153,6 +153,10 @@ export function CommandCenter({ wedding, rsvps, moments, guestPhotos, onOpenOnbo
             <div className="text-[16px] font-medium leading-relaxed text-[#FAFAFA]">{stageInfo.recommendation}</div>
             <button
               onClick={() => {
+                if (stageInfo.stageNumber === 6) {
+                  window.open(`/memory-book/${wedding.slug || wedding.id}`, "_blank");
+                  return;
+                }
                 const el = document.getElementById("mission-actions");
                 if (el) el.scrollIntoView({ behavior: "smooth" });
               }}

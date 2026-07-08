@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Wedding Bloom - Vendor Manager</title>
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&amp;family=Inter:wght@400;600&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "tertiary-fixed-dim": "#debfc2",
+                        "surface-container-lowest": "#ffffff",
+                        "on-primary": "#ffffff",
+                        "surface-container-high": "#ebe7e8",
+                        "surface-variant": "#e5e1e3",
+                        "on-background": "#1c1b1c",
+                        "on-secondary": "#ffffff",
+                        "primary": "#5c5d6e",
+                        "outline": "#77767d",
+                        "surface-container-low": "#f6f3f4",
+                        "secondary-container": "#e8e0ba",
+                        "on-tertiary": "#ffffff",
+                        "on-primary-fixed-variant": "#444655",
+                        "secondary-fixed": "#eae3bc",
+                        "secondary-fixed-dim": "#cec7a2",
+                        "on-tertiary-fixed-variant": "#574144",
+                        "on-primary-fixed": "#191b29",
+                        "tertiary-container": "#ffe0e3",
+                        "on-surface": "#1c1b1c",
+                        "inverse-on-surface": "#f3f0f1",
+                        "on-tertiary-fixed": "#281719",
+                        "surface-container": "#f1edee",
+                        "inverse-primary": "#c5c5d8",
+                        "primary-fixed-dim": "#c5c5d8",
+                        "on-secondary-container": "#686344",
+                        "on-surface-variant": "#46464c",
+                        "surface-dim": "#dcd9da",
+                        "error-container": "#ffdad6",
+                        "surface-container-highest": "#e5e1e3",
+                        "tertiary": "#70585b",
+                        "error": "#ba1a1a",
+                        "on-error-container": "#93000a",
+                        "outline-variant": "#c7c5cc",
+                        "surface-bright": "#fcf8fa",
+                        "on-tertiary-container": "#7a6164",
+                        "on-secondary-fixed": "#1f1c04",
+                        "primary-container": "#e6e6fa",
+                        "surface-tint": "#5c5d6e",
+                        "on-secondary-fixed-variant": "#4b472b",
+                        "on-primary-container": "#656677",
+                        "secondary": "#635f40",
+                        "inverse-surface": "#313031",
+                        "on-error": "#ffffff",
+                        "primary-fixed": "#e1e1f5",
+                        "background": "#fcf8fa",
+                        "surface": "#fcf8fa",
+                        "tertiary-fixed": "#fbdbde"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "stack-lg": "32px",
+                        "gutter": "16px",
+                        "stack-sm": "8px",
+                        "container-padding": "24px",
+                        "stack-md": "16px",
+                        "unit": "4px"
+                    },
+                    "fontFamily": {
+                        "headline-lg": ["Playfair Display"],
+                        "label-caps": ["Inter"],
+                        "body-sm": ["Inter"],
+                        "body-md": ["Inter"],
+                        "headline-md": ["Playfair Display"],
+                        "body-lg": ["Inter"],
+                        "headline-lg-mobile": ["Playfair Display"],
+                        "headline-xl": ["Playfair Display"]
+                    },
+                    "fontSize": {
+                        "headline-lg": ["32px", {"lineHeight": "40px", "fontWeight": "600"}],
+                        "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                        "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                        "headline-lg-mobile": ["28px", {"lineHeight": "36px", "fontWeight": "600"}],
+                        "headline-xl": ["40px", {"lineHeight": "48px", "letterSpacing": "-0.02em", "fontWeight": "700"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            line-height: 1;
+            text-transform: none;
+            letter-spacing: normal;
+            word-wrap: normal;
+            white-space: nowrap;
+            direction: ltr;
+        }
+        .editorial-card-shadow {
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+        }
+        .lavender-glow:active {
+            box-shadow: 0 0 15px rgba(230, 230, 250, 0.6);
+        }
+        .safe-bottom {
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-surface font-body-md min-h-screen pb-32">
+<!-- TopAppBar -->
+<header class="flex justify-between items-center px-container-padding h-16 w-full bg-surface sticky top-0 z-50">
+<button class="hover:opacity-80 transition-opacity duration-200">
+<span class="material-symbols-outlined text-primary" data-icon="arrow_back">arrow_back</span>
+</button>
+<h1 class="font-headline-md text-headline-md-mobile text-primary">Vendor Manager</h1>
+<button class="hover:opacity-80 transition-opacity duration-200">
+<span class="material-symbols-outlined text-primary" data-icon="more_horiz">more_horiz</span>
+</button>
+</header>
+<main class="px-container-padding pt-stack-md">
+<!-- Progress Summary -->
+<section class="mb-stack-lg">
+<div class="flex justify-between items-end mb-stack-sm">
+<div>
+<p class="font-label-caps text-label-caps text-outline uppercase">Planning Journey</p>
+<h2 class="font-headline-md text-headline-md text-on-surface">5 Vendors Secured</h2>
+</div>
+<span class="text-primary font-bold">62%</span>
+</div>
+<div class="w-full h-1 bg-surface-container-high rounded-full overflow-hidden">
+<div class="h-full bg-secondary w-[62%] transition-all duration-1000 ease-out"></div>
+</div>
+</section>
+<!-- Search Bar -->
+<div class="relative mb-stack-lg">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline" data-icon="search">search</span>
+<input class="w-full pl-12 pr-4 py-4 bg-surface border-none editorial-card-shadow rounded-xl focus:ring-1 focus:ring-primary-container transition-all placeholder:text-outline-variant" placeholder="Search vendors or categories..." type="text"/>
+</div>
+<!-- Vendor Categories Bento-ish Grid -->
+<div class="grid grid-cols-1 gap-stack-md">
+<!-- Category Card: Venue (Featured/Large) -->
+<div class="editorial-card-shadow bg-surface-container-lowest rounded-xl overflow-hidden flex flex-col group cursor-pointer transition-transform hover:scale-[1.01]">
+<div class="h-48 w-full relative overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="A breathtaking, sun-drenched luxury wedding venue with tall arched windows, ivory floral arrangements draped over marble pillars, and a serene, light-filled atmosphere echoing high-end minimalist design. The lighting is soft and golden, creating a sense of effortless elegance and premium service in a modern wedding setting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBWw1EhjTSB1cISsLgcN2Fxq25VfX0zO7-jwXZMM7-o57cXZhCX8T30dbNsRYFpQRYpUd3v28QJzppaF7GRKjboNchb-1kY3kwDS-50mipmajPetXZ8xXuIhpYbPFVIqI4L9WYe4MnB-GxD33t0N6Zbryh8vtus1xjyJBxb14c6YT44igmKmGyd7HjoekZ_nvOak8qbJ0UUOX2rwP13vpBfM4Qw0wzmib0Z2QYWS99kiKYhQ6oB9oi1"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
+<div class="absolute bottom-4 left-4 text-white">
+<span class="bg-secondary-container/90 text-on-secondary-container px-3 py-1 rounded-full text-xs font-bold mb-2 inline-block">1/1 BOOKED</span>
+<h3 class="font-headline-md text-headline-md">Venue</h3>
+</div>
+</div>
+<div class="p-container-padding flex justify-between items-center">
+<div>
+<p class="font-body-md text-on-surface">The Grand Ballroom</p>
+<p class="font-body-sm text-outline">Confirmed for June 21, 2025</p>
+</div>
+<span class="material-symbols-outlined text-secondary" data-icon="check_circle" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+</div>
+<!-- Category Grid: Secondary Items -->
+<div class="grid grid-cols-2 gap-stack-md">
+<!-- Catering -->
+<div class="editorial-card-shadow bg-surface-container-lowest rounded-xl p-stack-md flex flex-col space-y-stack-md hover:bg-surface-container-low transition-colors cursor-pointer">
+<div class="w-12 h-12 rounded-full bg-primary-container flex items-center justify-center">
+<span class="material-symbols-outlined text-on-primary-container" data-icon="restaurant">restaurant</span>
+</div>
+<div>
+<h3 class="font-headline-md text-[18px]">Catering</h3>
+<p class="font-body-sm text-outline mt-1">1/3 Booked</p>
+</div>
+<div class="pt-2 border-t border-outline-variant/30 flex items-center text-primary">
+<span class="text-xs font-bold uppercase tracking-wider">Manage</span>
+<span class="material-symbols-outlined text-sm ml-1" data-icon="chevron_right">chevron_right</span>
+</div>
+</div>
+<!-- Photography -->
+<div class="editorial-card-shadow bg-surface-container-lowest rounded-xl p-stack-md flex flex-col space-y-stack-md hover:bg-surface-container-low transition-colors cursor-pointer border-l-4 border-tertiary-fixed-dim">
+<div class="w-12 h-12 rounded-full bg-tertiary-container flex items-center justify-center">
+<span class="material-symbols-outlined text-on-tertiary-container" data-icon="photo_camera">photo_camera</span>
+</div>
+<div>
+<h3 class="font-headline-md text-[18px]">Photography</h3>
+<p class="font-body-sm text-outline mt-1">1/2 Booked</p>
+</div>
+<div class="pt-2 border-t border-outline-variant/30 flex items-center text-primary">
+<span class="text-xs font-bold uppercase tracking-wider">Manage</span>
+<span class="material-symbols-outlined text-sm ml-1" data-icon="chevron_right">chevron_right</span>
+</div>
+</div>
+<!-- Florist -->
+<div class="editorial-card-shadow bg-surface-container-lowest rounded-xl p-stack-md flex flex-col space-y-stack-md hover:bg-surface-container-low transition-colors cursor-pointer">
+<div class="w-12 h-12 rounded-full bg-secondary-container flex items-center justify-center">
+<span class="material-symbols-outlined text-on-secondary-container" data-icon="local_flower_shop">local_florist</span>
+</div>
+<div>
+<h3 class="font-headline-md text-[18px]">Florist</h3>
+<p class="font-body-sm text-outline mt-1">1/1 Booked</p>
+</div>
+<div class="pt-2 border-t border-outline-variant/30 flex items-center text-primary">
+<span class="text-xs font-bold uppercase tracking-wider">Manage</span>
+<span class="material-symbols-outlined text-sm ml-1" data-icon="chevron_right">chevron_right</span>
+</div>
+</div>
+<!-- Music -->
+<div class="editorial-card-shadow bg-surface-container-lowest rounded-xl p-stack-md flex flex-col space-y-stack-md hover:bg-surface-container-low transition-colors cursor-pointer">
+<div class="w-12 h-12 rounded-full bg-primary-container/40 flex items-center justify-center">
+<span class="material-symbols-outlined text-primary" data-icon="music_note">music_note</span>
+</div>
+<div>
+<h3 class="font-headline-md text-[18px]">Music</h3>
+<p class="font-body-sm text-outline mt-1">0/2 Booked</p>
+</div>
+<div class="pt-2 border-t border-outline-variant/30 flex items-center text-primary">
+<span class="text-xs font-bold uppercase tracking-wider">Add Vendor</span>
+<span class="material-symbols-outlined text-sm ml-1" data-icon="add">add</span>
+</div>
+</div>
+</div>
+<!-- New Vendor Quick Draft Card -->
+<div class="mt-stack-md border-2 border-dashed border-outline-variant rounded-xl p-container-padding flex flex-col items-center justify-center space-y-4 hover:border-primary/50 transition-colors cursor-pointer">
+<span class="material-symbols-outlined text-4xl text-outline-variant" data-icon="inventory_2">inventory_2</span>
+<p class="font-headline-md text-[20px] text-outline text-center">Missing a category?<br/><span class="font-body-sm">Add a custom vendor type</span></p>
+</div>
+</div>
+</main>
+<!-- Floating Action Button -->
+<button class="fixed right-6 bottom-24 w-16 h-16 bg-primary text-on-primary rounded-full shadow-lg flex items-center justify-center lavender-glow transition-all active:scale-95 z-40">
+<span class="material-symbols-outlined text-3xl" data-icon="add">add</span>
+</button>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full bg-surface shadow-sm flex justify-around items-center py-stack-sm pb-safe z-50">
+<a class="flex flex-col items-center justify-center text-outline hover:text-primary-container scale-95 active:scale-90 transition-transform" href="#">
+<span class="material-symbols-outlined" data-icon="local_flower_shop">local_florist</span>
+<span class="font-label-caps text-label-caps mt-1">Dashboard</span>
+</a>
+<a class="flex flex-col items-center justify-center text-primary font-bold hover:text-primary-container scale-95 active:scale-90 transition-transform" href="#">
+<span class="material-symbols-outlined" data-icon="calendar_month" style="font-variation-settings: 'FILL' 1;">calendar_month</span>
+<span class="font-label-caps text-label-caps mt-1">Planning</span>
+</a>
+<a class="flex flex-col items-center justify-center text-outline hover:text-primary-container scale-95 active:scale-90 transition-transform" href="#">
+<span class="material-symbols-outlined" data-icon="payments">payments</span>
+<span class="font-label-caps text-label-caps mt-1">Budget</span>
+</a>
+<a class="flex flex-col items-center justify-center text-outline hover:text-primary-container scale-95 active:scale-90 transition-transform" href="#">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="font-label-caps text-label-caps mt-1">Profile</span>
+</a>
+</nav>
+<script>
+        // Micro-interactions for category cards
+        document.querySelectorAll('.editorial-card-shadow').forEach(card => {
+            card.addEventListener('touchstart', function() {
+                this.style.transform = 'scale(0.98)';
+                this.style.transition = 'transform 0.1s ease';
+            });
+            card.addEventListener('touchend', function() {
+                this.style.transform = 'scale(1)';
+            });
+        });
+    </script>
+</body></html>

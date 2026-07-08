@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Forever Vow - Guest Management</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Playfair+Display:ital,wght@0,600;0,700;1,600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-dim": "#dcd9d9",
+                        "surface-container": "#f0eded",
+                        "primary-fixed": "#ffe088",
+                        "on-primary-container": "#554300",
+                        "inverse-on-surface": "#f3f0ef",
+                        "primary-container": "#d4af37",
+                        "on-secondary-fixed-variant": "#584142",
+                        "surface-container-highest": "#e5e2e1",
+                        "error-container": "#ffdad6",
+                        "tertiary-container": "#a2b9a2",
+                        "inverse-surface": "#303030",
+                        "on-surface-variant": "#4d4635",
+                        "surface-variant": "#e5e2e1",
+                        "surface": "#fcf9f8",
+                        "on-secondary-container": "#755d5d",
+                        "on-secondary": "#ffffff",
+                        "on-error": "#ffffff",
+                        "error": "#ba1a1a",
+                        "secondary-fixed-dim": "#dfbfbf",
+                        "on-primary-fixed-variant": "#574500",
+                        "background": "#fcf9f8",
+                        "on-background": "#1b1c1c",
+                        "primary": "#735c00",
+                        "outline": "#7f7663",
+                        "surface-container-high": "#eae7e7",
+                        "on-error-container": "#93000a",
+                        "on-tertiary-fixed": "#0c1f11",
+                        "on-tertiary-fixed-variant": "#374c3a",
+                        "tertiary-fixed-dim": "#b5cdb5",
+                        "tertiary-fixed": "#d1e9d0",
+                        "secondary-container": "#f9d8d8",
+                        "tertiary": "#4f6450",
+                        "primary-fixed-dim": "#e9c349",
+                        "secondary": "#715859",
+                        "outline-variant": "#d0c5af",
+                        "on-tertiary": "#ffffff",
+                        "surface-tint": "#735c00",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-bright": "#fcf9f8",
+                        "on-primary-fixed": "#241a00",
+                        "on-primary": "#ffffff",
+                        "surface-container-low": "#f6f3f2",
+                        "on-surface": "#1b1c1c",
+                        "inverse-primary": "#e9c349",
+                        "secondary-fixed": "#fcdbdb",
+                        "on-tertiary-container": "#364a38",
+                        "on-secondary-fixed": "#281717"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "1rem",
+                        "lg": "2rem",
+                        "xl": "3rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "unit": "8px",
+                        "stack-lg": "48px",
+                        "gutter": "24px",
+                        "margin-mobile": "20px",
+                        "stack-sm": "12px",
+                        "margin-desktop": "64px",
+                        "stack-md": "24px",
+                        "container-max": "1280px"
+                    },
+                    "fontFamily": {
+                        "label-sm": ["Inter"],
+                        "headline-sm": ["Playfair Display"],
+                        "headline-md": ["Playfair Display"],
+                        "display-lg-mobile": ["Playfair Display"],
+                        "body-md": ["Inter"],
+                        "label-md": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "display-lg": ["Playfair Display"]
+                    },
+                    "fontSize": {
+                        "label-sm": ["12px", { "lineHeight": "1.2", "fontWeight": "500" }],
+                        "headline-sm": ["24px", { "lineHeight": "1.4", "fontWeight": "600" }],
+                        "headline-md": ["32px", { "lineHeight": "1.3", "fontWeight": "600" }],
+                        "display-lg-mobile": ["36px", { "lineHeight": "1.2", "fontWeight": "700" }],
+                        "body-md": ["16px", { "lineHeight": "1.5", "fontWeight": "400" }],
+                        "label-md": ["14px", { "lineHeight": "1.2", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "body-lg": ["18px", { "lineHeight": "1.6", "letterSpacing": "-0.01em", "fontWeight": "400" }],
+                        "display-lg": ["48px", { "lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "700" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body {
+            background-color: #FAF7F2; /* Base Ivory */
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+        .luxury-shadow {
+            box-shadow: 0 20px 40px rgba(34, 34, 34, 0.05);
+        }
+        .card-border {
+            border: 1px solid #F0EBE0;
+        }
+        /* Custom scrollbar for webkit */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #d0c5af;
+            border-radius: 10px;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="font-body-md text-on-background min-h-screen flex flex-col antialiased selection:bg-primary-container selection:text-on-primary-container pb-24 md:pb-0 pt-16 md:pt-0">
+<!-- TopAppBar (Mobile & Web) -->
+<header class="bg-surface/80 dark:bg-surface/80 backdrop-blur-xl fixed top-0 w-full z-50 border-b border-outline-variant/20 shadow-sm transition-transform duration-300" id="top-app-bar">
+<div class="flex items-center justify-between px-margin-mobile h-16 w-full max-w-container-max mx-auto">
+<button class="text-primary dark:text-primary-fixed hover:opacity-80 transition-opacity p-2 -ml-2 rounded-full focus:outline-none focus:ring-2 focus:ring-primary-container">
+<span class="material-symbols-outlined" data-icon="menu">menu</span>
+</button>
+<h1 class="font-headline-md text-headline-md-mobile text-primary dark:text-primary-fixed italic absolute left-1/2 -translate-x-1/2 whitespace-nowrap">
+                Forever Vow
+            </h1>
+<div class="flex items-center gap-4">
+<!-- Web Navigation embedded in TopAppBar for md+ -->
+<nav class="hidden md:flex items-center gap-6 mr-4">
+<a class="text-on-surface-variant font-label-md text-label-md hover:opacity-80 transition-opacity uppercase tracking-wider" href="#">Plan</a>
+<a class="text-on-surface-variant font-label-md text-label-md hover:opacity-80 transition-opacity uppercase tracking-wider" href="#">Vendors</a>
+<a class="text-primary font-semibold font-label-md text-label-md hover:opacity-80 transition-opacity uppercase tracking-wider relative after:content-[''] after:absolute after:-bottom-1 after:left-0 after:w-full after:h-0.5 after:bg-primary" href="#">Guests</a>
+<a class="text-on-surface-variant font-label-md text-label-md hover:opacity-80 transition-opacity uppercase tracking-wider" href="#">Registry</a>
+</nav>
+<button class="w-8 h-8 rounded-full overflow-hidden hover:opacity-80 transition-opacity border border-outline-variant/50 focus:outline-none focus:ring-2 focus:ring-primary-container">
+<img alt="User profile photo" class="w-full h-full object-cover" data-alt="A close up, high quality, soft-focus portrait of a sophisticated couple smiling warmly, dressed in elegant modern minimalist attire. The lighting is bright, airy, and high-key, complementing a luxurious wedding aesthetic. The background is a blurred ivory wall." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBOiKPBi2WZ_MqX6SfLjghLXR5R5cuMqjcjAyxp5nyMEMaHbNhm1FdsyQpIor0FdlD7NOYvFT4sMpSbKnne5CrRYk9LygS4QFky_frDpEF07x038O_HCu8gwLawkA2IcTIFAZphNX-NPJMqPVyIUjso9P_vHircsdgY1OxU9VhVQ25_KTj_-8mGwSYKRAKv6B7oinX8DUhb821Zp4pfM9N1rZzlYl8GmjqpreP45Dsjc7EhKbpCenK2"/>
+</button>
+</div>
+</div>
+</header>
+<!-- Main Layout -->
+<div class="flex-1 flex max-w-container-max mx-auto w-full">
+<!-- NavigationDrawer (Web only, >md) -->
+<aside class="hidden lg:flex flex-col h-[calc(100vh-64px)] w-80 rounded-r-lg shadow-2xl bg-surface dark:bg-surface-container divide-y divide-outline-variant/10 fixed top-16 left-0 z-40 overflow-y-auto pt-6">
+<div class="p-stack-md flex items-center gap-4">
+<div class="w-14 h-14 rounded-full overflow-hidden border-2 border-primary/20 shrink-0">
+<img alt="Wedding Couple Profile" class="w-full h-full object-cover" data-alt="A close up, high quality, soft-focus portrait of a sophisticated couple smiling warmly, dressed in elegant modern minimalist attire. The lighting is bright, airy, and high-key, complementing a luxurious wedding aesthetic. The background is a blurred ivory wall." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDgGo4YPM7rbAnxl0SJBg9Znf-TZPt1TnqhD4gbGSSpDf0YIz1aMDIdOUGVFuvFkERH8ZBkRFkZTnm4psHRZFx_uzEWtSusOExBQdvq17WCKBoE4fXKndRVY7yB3P5eYCQWaB1UWNnuK0EotQfyCFXZnIH8W7o8wTIN3in972ugv99tWBwjyBdvnsg3leOgueAOQGZqWCeuFVXOer7C0pqVnA3eRRJmQ-1yapsJtYpkDdLg77i_Ada3"/>
+</div>
+<div>
+<h2 class="font-headline-sm text-primary">Alex &amp; Jordan</h2>
+<p class="font-body-md text-body-md text-on-surface-variant">October 24, 2025</p>
+<p class="font-label-sm text-label-sm text-primary/70 uppercase tracking-widest mt-1">245 days to go</p>
+</div>
+</div>
+<nav class="p-stack-md flex flex-col gap-2 flex-1">
+<a class="flex items-center gap-3 px-4 py-3 rounded-r-full text-on-surface-variant hover:bg-surface-container-high transition-all font-body-lg text-body-lg" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+                    Dashboard
+                </a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-r-full text-on-surface-variant hover:bg-surface-container-high transition-all font-body-lg text-body-lg" href="#">
+<span class="material-symbols-outlined" data-icon="history_toggle_off">history_toggle_off</span>
+                    Timeline
+                </a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-r-full text-on-surface-variant hover:bg-surface-container-high transition-all font-body-lg text-body-lg" href="#">
+<span class="material-symbols-outlined" data-icon="payments">payments</span>
+                    Budgeter
+                </a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-r-full text-on-surface-variant hover:bg-surface-container-high transition-all font-body-lg text-body-lg" href="#">
+<span class="material-symbols-outlined" data-icon="fact_check">fact_check</span>
+                    Checklist
+                </a>
+<!-- Guest Management specific sub-nav for context -->
+<div class="mt-6 mb-2 px-4">
+<p class="font-label-sm text-label-sm text-outline uppercase tracking-widest">Guest List</p>
+</div>
+<a class="flex items-center gap-3 px-4 py-3 rounded-r-full text-primary font-bold bg-primary-container/20 transition-all font-body-lg text-body-lg" href="#">
+<span class="material-symbols-outlined" data-icon="group" data-weight="fill" style="font-variation-settings: 'FILL' 1;">group</span>
+                    Directory
+                </a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-r-full text-on-surface-variant hover:bg-surface-container-high transition-all font-body-lg text-body-lg" href="#">
+<span class="material-symbols-outlined" data-icon="mail">mail</span>
+                    Invitations
+                </a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-r-full text-on-surface-variant hover:bg-surface-container-high transition-all font-body-lg text-body-lg" href="#">
+<span class="material-symbols-outlined" data-icon="restaurant">restaurant</span>
+                    Seating Chart
+                </a>
+</nav>
+</aside>
+<!-- Main Content Canvas -->
+<main class="flex-1 lg:ml-80 w-full px-margin-mobile md:px-margin-desktop py-stack-md md:py-stack-lg max-w-5xl mx-auto">
+<!-- Page Header & Search -->
+<div class="mb-stack-lg animate-fade-in-up">
+<div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-8">
+<div>
+<h2 class="font-display-lg-mobile md:font-display-lg text-display-lg-mobile md:text-display-lg text-on-surface mb-2">Guest Directory</h2>
+<p class="font-body-lg text-body-lg text-on-surface-variant">Manage RSVPs, meal preferences, and contact details for your 150 invited guests.</p>
+</div>
+<div class="w-full md:w-72">
+<div class="relative">
+<span class="material-symbols-outlined absolute left-0 bottom-3 text-on-surface-variant/50" data-icon="search">search</span>
+<input class="w-full bg-transparent border-0 border-b border-on-surface-variant/20 pl-8 pb-3 focus:ring-0 focus:border-on-surface-variant transition-colors font-body-md text-body-md placeholder:text-on-surface-variant/50" placeholder="Search guests..." type="text"/>
+</div>
+</div>
+</div>
+<!-- Filters -->
+<div class="flex flex-wrap gap-3">
+<button class="px-6 py-2 rounded-full border border-primary-container bg-primary-container text-on-primary-container font-label-md text-label-md uppercase tracking-wider transition-all shadow-sm">All (150)</button>
+<button class="px-6 py-2 rounded-full border border-outline-variant text-on-surface-variant hover:bg-surface-container-lowest font-label-md text-label-md uppercase tracking-wider transition-all">Confirmed (85)</button>
+<button class="px-6 py-2 rounded-full border border-outline-variant text-on-surface-variant hover:bg-surface-container-lowest font-label-md text-label-md uppercase tracking-wider transition-all">Pending (60)</button>
+<button class="px-6 py-2 rounded-full border border-outline-variant text-on-surface-variant hover:bg-surface-container-lowest font-label-md text-label-md uppercase tracking-wider transition-all">Declined (5)</button>
+</div>
+</div>
+<!-- Guest List Bento Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 animate-fade-in-up" style="animation-delay: 0.1s;">
+<!-- Guest Card 1: Confirmed -->
+<div class="bg-white rounded-[24px] p-6 card-border luxury-shadow hover:shadow-lg transition-shadow duration-300 group flex flex-col relative overflow-hidden">
+<div class="absolute top-0 right-0 w-24 h-24 bg-tertiary-container/10 rounded-bl-full -z-10 transition-transform group-hover:scale-110"></div>
+<div class="flex justify-between items-start mb-4">
+<div class="w-12 h-12 rounded-full bg-surface-container-high flex items-center justify-center text-on-surface-variant font-headline-sm">
+                            EH
+                        </div>
+<!-- Status Chip (Sage Green for confirmed based on prompt logic, mapping to tertiary-container) -->
+<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-tertiary-fixed text-on-tertiary-fixed-variant font-label-sm text-label-sm">
+<span class="w-1.5 h-1.5 rounded-full bg-on-tertiary-fixed-variant"></span>
+                            Confirmed
+                        </span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface mb-1">Eleanor Hensley</h3>
+<p class="font-body-md text-body-md text-on-surface-variant mb-6">Bride's Family • Table 4</p>
+<div class="mt-auto space-y-3 pt-4 border-t border-outline-variant/20">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-outline uppercase tracking-wider">Meal</span>
+<span class="font-body-md text-body-md text-on-surface flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px]" data-icon="set_meal">set_meal</span>
+                                Salmon
+                            </span>
+</div>
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-outline uppercase tracking-wider">Plus One</span>
+<span class="font-body-md text-body-md text-on-surface">None</span>
+</div>
+</div>
+</div>
+<!-- Guest Card 2: Pending -->
+<div class="bg-white rounded-[24px] p-6 card-border luxury-shadow hover:shadow-lg transition-shadow duration-300 group flex flex-col relative overflow-hidden">
+<div class="absolute top-0 right-0 w-24 h-24 bg-surface-variant/20 rounded-bl-full -z-10 transition-transform group-hover:scale-110"></div>
+<div class="flex justify-between items-start mb-4">
+<div class="w-12 h-12 rounded-full bg-surface-container-high flex items-center justify-center text-on-surface-variant font-headline-sm">
+                            JD
+                        </div>
+<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface-variant text-on-surface-variant font-label-sm text-label-sm">
+<span class="w-1.5 h-1.5 rounded-full bg-outline"></span>
+                            Pending
+                        </span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface mb-1">Jonathan Davis</h3>
+<p class="font-body-md text-body-md text-on-surface-variant mb-6">Groom's Friends • Unassigned</p>
+<div class="mt-auto space-y-3 pt-4 border-t border-outline-variant/20 opacity-60">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-outline uppercase tracking-wider">Meal</span>
+<span class="font-body-md text-body-md text-on-surface italic">Awaiting RSVP</span>
+</div>
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-outline uppercase tracking-wider">Plus One</span>
+<span class="font-body-md text-body-md text-on-surface">Yes (Unknown)</span>
+</div>
+</div>
+</div>
+<!-- Guest Card 3: Declined -->
+<div class="bg-white rounded-[24px] p-6 card-border luxury-shadow hover:shadow-lg transition-shadow duration-300 group flex flex-col relative overflow-hidden">
+<!-- Dusty Rose for declined, mapping to secondary-container -->
+<div class="absolute top-0 right-0 w-24 h-24 bg-secondary-container/20 rounded-bl-full -z-10 transition-transform group-hover:scale-110"></div>
+<div class="flex justify-between items-start mb-4">
+<img alt="Margaret Smith" class="w-12 h-12 rounded-full object-cover border border-outline-variant/30" data-alt="A small, soft-focus circular portrait of an elegant older woman smiling gracefully, suitable for a high-end digital directory avatar. Bright, natural lighting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAin6rUHDBEfUU5w0galchhmSOPz7Ms3LONosx_2CCWROhQVEVaVJmJ3GCxeeB2HAy5Ow-kfYuxREyirfCSPJDu_dP9Psupg9e9QDoqpXY1jhihZkhFZIG3kRiJ_OlZC_NZ3QxtZpW8o9ZeCJjrjWwkawEqljOvs0YYaV-vW6UJePThRgQws2T-ICGv9yxLIS5CiPiqh-TOUvoTOzZz-JxXsFxJXbOn5WHrmL1Y0FmcI08ytjqKGscb"/>
+<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-secondary-container text-on-secondary-container font-label-sm text-label-sm">
+<span class="w-1.5 h-1.5 rounded-full bg-on-secondary-container"></span>
+                            Declined
+                        </span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface mb-1 opacity-70">Margaret Smith</h3>
+<p class="font-body-md text-body-md text-on-surface-variant mb-6 opacity-70">Bride's Family • Extended</p>
+<div class="mt-auto pt-4 border-t border-outline-variant/20">
+<p class="font-body-md text-body-md text-secondary italic text-sm">"Sending our love from afar. We'll be there in spirit."</p>
+</div>
+</div>
+<!-- Guest Card 4: Confirmed with Plus One -->
+<div class="bg-white rounded-[24px] p-6 card-border luxury-shadow hover:shadow-lg transition-shadow duration-300 group flex flex-col relative overflow-hidden">
+<div class="absolute top-0 right-0 w-24 h-24 bg-tertiary-container/10 rounded-bl-full -z-10 transition-transform group-hover:scale-110"></div>
+<div class="flex justify-between items-start mb-4">
+<div class="w-12 h-12 rounded-full bg-surface-container-high flex items-center justify-center text-on-surface-variant font-headline-sm">
+                            SL
+                        </div>
+<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-tertiary-fixed text-on-tertiary-fixed-variant font-label-sm text-label-sm">
+<span class="w-1.5 h-1.5 rounded-full bg-on-tertiary-fixed-variant"></span>
+                            Confirmed
+                        </span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface mb-1">Sarah Lin &amp; Guest</h3>
+<p class="font-body-md text-body-md text-on-surface-variant mb-6">Mutual Friends • Table 8</p>
+<div class="mt-auto space-y-3 pt-4 border-t border-outline-variant/20">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-outline uppercase tracking-wider">Meal (Sarah)</span>
+<span class="font-body-md text-body-md text-on-surface flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px]" data-icon="cruelty_free">cruelty_free</span>
+                                Vegan
+                            </span>
+</div>
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-outline uppercase tracking-wider">Meal (Guest)</span>
+<span class="font-body-md text-body-md text-on-surface flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px]" data-icon="restaurant_menu">restaurant_menu</span>
+                                Steak
+                            </span>
+</div>
+</div>
+</div>
+<!-- Add New Guest Placeholder Card -->
+<button class="bg-transparent border border-dashed border-outline-variant rounded-[24px] p-6 flex flex-col items-center justify-center text-on-surface-variant hover:text-primary hover:border-primary hover:bg-surface-container-lowest transition-all duration-300 min-h-[280px] group focus:outline-none focus:ring-2 focus:ring-primary-container">
+<div class="w-16 h-16 rounded-full bg-surface-container-highest flex items-center justify-center mb-4 group-hover:bg-primary-container/20 group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-3xl" data-icon="person_add">person_add</span>
+</div>
+<span class="font-headline-sm text-headline-sm">Add New Guest</span>
+<span class="font-body-md text-body-md mt-2 text-center opacity-70">Manually enter details or import from contacts.</span>
+</button>
+</div>
+<!-- Spacing for FAB -->
+<div class="h-32 w-full"></div>
+</main>
+</div>
+<!-- Floating Action Button (FAB) -->
+<button class="fixed bottom-24 md:bottom-12 right-6 md:right-12 z-40 flex items-center gap-3 px-6 py-4 rounded-full bg-primary-container text-on-primary-container shadow-xl hover:scale-105 hover:shadow-2xl transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-primary-container/50 font-label-md text-label-md uppercase tracking-wider group">
+<span class="material-symbols-outlined group-hover:rotate-12 transition-transform" data-icon="mail">mail</span>
+        Invite Guest
+        <!-- Subtle Glow Effect -->
+<div class="absolute inset-0 rounded-full bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity blur-md -z-10"></div>
+</button>
+<!-- BottomNavBar (Mobile Only) -->
+<nav class="md:hidden bg-surface/80 dark:bg-surface/80 backdrop-blur-xl fixed bottom-0 w-full z-50 rounded-t-lg border-t border-outline-variant/20 shadow-[0_-10px_30px_rgba(34,34,34,0.03)]">
+<div class="flex justify-around items-center h-20 px-4 pb-safe">
+<a class="flex flex-col items-center justify-center text-outline hover:text-primary transition-colors focus:outline-none" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="event_upcoming">event_upcoming</span>
+<span class="font-label-sm text-label-sm">Plan</span>
+</a>
+<a class="flex flex-col items-center justify-center text-outline hover:text-primary transition-colors focus:outline-none" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="auto_awesome">auto_awesome</span>
+<span class="font-label-sm text-label-sm">Vendors</span>
+</a>
+<!-- Active State -->
+<a class="flex flex-col items-center justify-center text-primary bg-primary-container/30 rounded-full px-4 py-1 scale-110 duration-300 ease-out focus:outline-none" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="group" data-weight="fill" style="font-variation-settings: 'FILL' 1;">group</span>
+<span class="font-label-sm text-label-sm">Guests</span>
+</a>
+<a class="flex flex-col items-center justify-center text-outline hover:text-primary transition-colors focus:outline-none" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="card_giftcard">card_giftcard</span>
+<span class="font-label-sm text-label-sm">Registry</span>
+</a>
+<a class="flex flex-col items-center justify-center text-outline hover:text-primary transition-colors focus:outline-none" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="settings">settings</span>
+<span class="font-label-sm text-label-sm">Settings</span>
+</a>
+</div>
+</nav>
+<script>
+        // Simple scroll effect for TopAppBar shadow
+        window.addEventListener('scroll', () => {
+            const header = document.getElementById('top-app-bar');
+            if (window.scrollY > 10) {
+                header.classList.add('shadow-md');
+                header.classList.remove('shadow-sm');
+            } else {
+                header.classList.add('shadow-sm');
+                header.classList.remove('shadow-md');
+            }
+        });
+
+        // Add safe area padding for mobile browsers (iOS Safari)
+        document.documentElement.style.setProperty('--safe-area-inset-bottom', 'env(safe-area-inset-bottom)');
+    </script>
+</body></html>

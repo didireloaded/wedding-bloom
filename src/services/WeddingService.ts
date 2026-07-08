@@ -58,7 +58,7 @@ class WeddingDomainService extends WeddingRepository {
     const cached = CacheService.get<any>(cacheKey);
     if (cached) return cached;
 
-    const { data: wData } = await this.findBySlug(slug);
+    const { data: wData } = await this.findBySlugOrId(slug);
     if (!wData) {
       return { wedding: null, events: [], gallery: [], updates: [], accommodations: [] };
     }

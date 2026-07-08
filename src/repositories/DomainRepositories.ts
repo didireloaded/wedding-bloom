@@ -25,6 +25,19 @@ export class WeddingRepository extends BaseRepository<Wedding> {
     }
   }
 
+  async findBySlugOrId(slugOrId: string): Promise<{ data: Wedding | null; error: string | null }> {
+    try {
+      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(slugOrId);
+      if (isUuid) {
+        const byId = await this.findById(slugOrId);
+        if (byId.data) return byId;
+      }
+      return await this.findBySlug(slugOrId);
+    } catch (err: any) {
+      return { data: null, error: err?.message || "Failed to query wedding by slug or id" };
+    }
+  }
+
   async findByAccessCode(accessCode: string): Promise<{ data: Wedding | null; error: string | null }> {
     try {
       const normalized = accessCode.trim().toUpperCase();
@@ -239,11 +252,33 @@ export class QRCodeRepository extends BaseRepository<QRCodeItem> {
   constructor() {
     super("qr_codes");
   }
+
+  async incrementScans(id: string) {
+    const { data: qr } = await this.findById(id);
+    if (qr) {
+      const scans = (qr.scans || qr.scan_count || 0) + 1;
+      return this.update(id, { scans, scan_count: scans });
+    }
+    return { data: null, error: "Not found" };
+  }
 }
 
 export class InvitationLinkRepository extends BaseRepository<InvitationLink> {
   constructor() {
     super("invitation_links");
+  }
+
+  async findByToken(token: string) {
+    return this.findOne("token", token);
+  }
+
+  async incrementClicks(id: string) {
+    const { data: link } = await this.findById(id);
+    if (link) {
+      const clicks = (link.clicks || link.open_count || 0) + 1;
+      return this.update(id, { clicks, open_count: clicks });
+    }
+    return { data: null, error: "Not found" };
   }
 }
 

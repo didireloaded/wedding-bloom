@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Forever Vow - Import Guests</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Playfair+Display:wght@600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "tertiary-fixed": "#d1e9d0",
+                        "secondary-container": "#f9d8d8",
+                        "outline": "#7f7663",
+                        "on-secondary": "#ffffff",
+                        "tertiary": "#4f6450",
+                        "surface-container-highest": "#e5e2e1",
+                        "on-tertiary": "#ffffff",
+                        "inverse-surface": "#303030",
+                        "primary-fixed": "#ffe088",
+                        "primary-container": "#d4af37",
+                        "on-primary": "#ffffff",
+                        "surface-dim": "#dcd9d9",
+                        "on-primary-container": "#554300",
+                        "surface-container-high": "#eae7e7",
+                        "inverse-primary": "#e9c349",
+                        "surface": "#fcf9f8",
+                        "surface-container-lowest": "#ffffff",
+                        "on-secondary-fixed-variant": "#584142",
+                        "surface-tint": "#735c00",
+                        "on-tertiary-container": "#364a38",
+                        "on-surface": "#1b1c1c",
+                        "on-primary-fixed": "#241a00",
+                        "on-background": "#1b1c1c",
+                        "secondary": "#715859",
+                        "surface-container-low": "#f6f3f2",
+                        "primary-fixed-dim": "#e9c349",
+                        "outline-variant": "#d0c5af",
+                        "secondary-fixed": "#fcdbdb",
+                        "secondary-fixed-dim": "#dfbfbf",
+                        "on-secondary-container": "#755d5d",
+                        "tertiary-fixed-dim": "#b5cdb5",
+                        "on-tertiary-fixed": "#0c1f11",
+                        "on-surface-variant": "#4d4635",
+                        "background": "#fcf9f8",
+                        "error-container": "#ffdad6",
+                        "on-primary-fixed-variant": "#574500",
+                        "on-error": "#ffffff",
+                        "on-tertiary-fixed-variant": "#374c3a",
+                        "on-secondary-fixed": "#281717",
+                        "error": "#ba1a1a",
+                        "inverse-on-surface": "#f3f0ef",
+                        "tertiary-container": "#a2b9a2",
+                        "surface-variant": "#e5e2e1",
+                        "primary": "#735c00",
+                        "surface-bright": "#fcf9f8",
+                        "on-error-container": "#93000a",
+                        "surface-container": "#f0eded"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "1rem",
+                        "lg": "2rem",
+                        "xl": "3rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "margin-desktop": "64px",
+                        "gutter": "24px",
+                        "unit": "8px",
+                        "stack-sm": "12px",
+                        "margin-mobile": "20px",
+                        "stack-md": "24px",
+                        "stack-lg": "48px",
+                        "container-max": "1280px"
+                    },
+                    "fontFamily": {
+                        "headline-sm": ["Playfair Display"],
+                        "display-lg": ["Playfair Display"],
+                        "label-md": ["Inter"],
+                        "headline-md": ["Playfair Display"],
+                        "display-lg-mobile": ["Playfair Display"],
+                        "body-lg": ["Inter"],
+                        "label-sm": ["Inter"],
+                        "body-md": ["Inter"]
+                    },
+                    "fontSize": {
+                        "headline-sm": ["24px", {"lineHeight": "1.4", "fontWeight": "600"}],
+                        "display-lg": ["48px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "label-md": ["14px", {"lineHeight": "1.2", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                        "headline-md": ["32px", {"lineHeight": "1.3", "fontWeight": "600"}],
+                        "display-lg-mobile": ["36px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                        "body-lg": ["18px", {"lineHeight": "1.6", "letterSpacing": "-0.01em", "fontWeight": "400"}],
+                        "label-sm": ["12px", {"lineHeight": "1.2", "fontWeight": "500"}],
+                        "body-md": ["16px", {"lineHeight": "1.5", "fontWeight": "400"}]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+        
+        .ambient-shadow {
+            box-shadow: 0 20px 40px rgba(34, 34, 34, 0.05);
+        }
+
+        .champagne-btn {
+            background-color: #d4af37; /* Primary container as fallback, using utility classes where possible */
+            color: #1b1c1c; /* on-surface */
+            transition: all 0.2s ease-in-out;
+        }
+        .champagne-btn:hover {
+            transform: scale(1.02);
+            box-shadow: 0 0 15px rgba(212, 175, 55, 0.3);
+        }
+        
+        .ghost-input {
+            background: transparent;
+            border: none;
+            border-bottom: 1px solid rgba(27, 28, 28, 0.2);
+            border-radius: 0;
+            padding: 4px 0;
+            transition: border-color 0.2s ease;
+        }
+        .ghost-input:focus {
+            outline: none;
+            box-shadow: none;
+            border-bottom: 1px solid rgba(27, 28, 28, 1);
+        }
+        
+        /* Custom scrollbar for the table */
+        .table-scroll::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .table-scroll::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .table-scroll::-webkit-scrollbar-thumb {
+            background: rgba(77, 70, 53, 0.2);
+            border-radius: 10px;
+        }
+        .table-scroll::-webkit-scrollbar-thumb:hover {
+            background: rgba(77, 70, 53, 0.4);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background min-h-screen font-body-md overflow-x-hidden pt-20 pb-32 md:pb-24">
+<!-- TopAppBar -->
+<header class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-margin-mobile md:px-margin-desktop h-16 bg-white/70 backdrop-blur-xl shadow-[0_20_40px_rgba(34,34,34,0.05)] border-none">
+<button class="text-on-surface-variant hover:opacity-80 transition-opacity flex items-center justify-center p-2 rounded-full hover:bg-surface-variant/50">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">arrow_back</span>
+</button>
+<h1 class="font-headline-sm text-headline-sm-mobile md:text-headline-sm text-primary tracking-tight">Forever Vow</h1>
+<div class="w-10 h-10 rounded-full overflow-hidden bg-surface-variant flex items-center justify-center">
+<span class="material-symbols-outlined text-on-surface-variant">person</span>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="max-w-[1280px] mx-auto px-margin-mobile md:px-margin-desktop w-full flex flex-col gap-stack-lg">
+<!-- Header Section -->
+<section class="flex flex-col md:flex-row justify-between items-start md:items-end gap-stack-sm pt-stack-md">
+<div>
+<p class="font-label-md text-label-md text-on-surface-variant uppercase tracking-widest mb-2">Step 2 of 3</p>
+<h2 class="font-display-lg-mobile md:font-display-lg text-display-lg-mobile md:text-display-lg text-on-surface">Review Import</h2>
+<p class="font-body-lg text-body-lg text-on-surface-variant mt-4 max-w-2xl">Please review the extracted guest information before finalizing. We've highlighted any potential issues.</p>
+</div>
+<!-- Controls: Search & Filter -->
+<div class="flex flex-col sm:flex-row gap-4 w-full md:w-auto mt-6 md:mt-0">
+<div class="relative flex-1 sm:w-64">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant/50 text-sm">search</span>
+<input class="w-full pl-10 pr-4 py-3 bg-white border border-outline-variant/30 rounded-full font-body-md text-body-md focus:outline-none focus:border-outline focus:ring-1 focus:ring-outline transition-all shadow-sm" placeholder="Search guests..." type="text"/>
+</div>
+<div class="flex gap-2">
+<button class="px-6 py-2 rounded-full bg-surface-variant text-on-surface-variant font-label-md text-label-md hover:bg-outline-variant/30 transition-colors flex items-center gap-2">
+<span>All</span>
+</button>
+<button class="px-6 py-2 rounded-full bg-error-container/30 text-error font-label-md text-label-md hover:bg-error-container/50 transition-colors flex items-center gap-2 border border-error/20">
+<span class="material-symbols-outlined text-[16px]">warning</span>
+<span>Errors (2)</span>
+</button>
+</div>
+</div>
+</section>
+<!-- Spreadsheet Canvas -->
+<section class="w-full bg-surface-container-lowest rounded-xl border border-outline-variant/20 ambient-shadow overflow-hidden flex flex-col">
+<!-- Table Header -->
+<div class="grid grid-cols-[minmax(200px,2fr)_minmax(200px,2fr)_minmax(150px,1.5fr)_minmax(120px,1fr)_minmax(100px,1fr)] gap-4 px-6 py-4 bg-surface-container-low border-b border-outline-variant/20 font-label-md text-label-md text-on-surface-variant">
+<div>Name</div>
+<div>Email</div>
+<div>Phone</div>
+<div>Tag</div>
+<div class="text-right">Status</div>
+</div>
+<!-- Table Body -->
+<div class="table-scroll overflow-y-auto max-h-[530px]">
+<!-- Row 1: Valid -->
+<div class="grid grid-cols-[minmax(200px,2fr)_minmax(200px,2fr)_minmax(150px,1.5fr)_minmax(120px,1fr)_minmax(100px,1fr)] gap-4 px-6 py-4 border-b border-outline-variant/10 hover:bg-surface-container-low/50 transition-colors group items-center">
+<div>
+<input class="ghost-input w-full font-body-md text-body-md text-on-surface" type="text" value="Eleanor Vance"/>
+</div>
+<div>
+<input class="ghost-input w-full font-body-md text-body-md text-on-surface-variant" type="email" value="eleanor.v@example.com"/>
+</div>
+<div>
+<input class="ghost-input w-full font-body-md text-body-md text-on-surface-variant" type="tel" value="+1 (555) 019-2834"/>
+</div>
+<div>
+<span class="inline-flex items-center px-3 py-1 rounded-full bg-tertiary-fixed/40 text-on-tertiary-container font-label-sm text-label-sm">Family</span>
+</div>
+<div class="text-right flex justify-end">
+<span class="material-symbols-outlined text-tertiary">check_circle</span>
+</div>
+</div>
+<!-- Row 2: Duplicate Warning -->
+<div class="grid grid-cols-[minmax(200px,2fr)_minmax(200px,2fr)_minmax(150px,1.5fr)_minmax(120px,1fr)_minmax(100px,1fr)] gap-4 px-6 py-4 border-b border-outline-variant/10 hover:bg-surface-container-low/50 transition-colors group items-center bg-secondary-container/10">
+<div>
+<input class="ghost-input w-full font-body-md text-body-md text-on-surface" type="text" value="Theodore Crain"/>
+</div>
+<div>
+<input class="ghost-input w-full font-body-md text-body-md text-on-surface-variant text-secondary" type="email" value="tcrain@publishing.com"/>
+</div>
+<div>
+<input class="ghost-input w-full font-body-md text-body-md text-on-surface-variant" type="tel" value="+1 (555) 837-1192"/>
+</div>
+<div>
+<span class="inline-flex items-center px-3 py-1 rounded-full bg-surface-variant text-on-surface-variant font-label-sm text-label-sm">Friend</span>
+</div>
+<div class="text-right flex justify-end items-center gap-2">
+<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider bg-secondary-container text-on-secondary-container border border-secondary/20">Duplicate</span>
+<span class="material-symbols-outlined text-secondary text-[20px]">warning</span>
+</div>
+</div>
+<!-- Row 3: Valid -->
+<div class="grid grid-cols-[minmax(200px,2fr)_minmax(200px,2fr)_minmax(150px,1.5fr)_minmax(120px,1fr)_minmax(100px,1fr)] gap-4 px-6 py-4 border-b border-outline-variant/10 hover:bg-surface-container-low/50 transition-colors group items-center">
+<div>
+<input class="ghost-input w-full font-body-md text-body-md text-on-surface" type="text" value="Shirley Crain"/>
+</div>
+<div>
+<input class="ghost-input w-full font-body-md text-body-md text-on-surface-variant" type="email" value="shirley@crainmortuary.com"/>
+</div>
+<div>
+<input class="ghost-input w-full font-body-md text-body-md text-on-surface-variant" type="tel" value="+1 (555) 443-9281"/>
+</div>
+<div>
+<span class="inline-flex items-center px-3 py-1 rounded-full bg-tertiary-fixed/40 text-on-tertiary-container font-label-sm text-label-sm">Family</span>
+</div>
+<div class="text-right flex justify-end">
+<span class="material-symbols-outlined text-tertiary">check_circle</span>
+</div>
+</div>
+<!-- Row 4: Duplicate Warning -->
+<div class="grid grid-cols-[minmax(200px,2fr)_minmax(200px,2fr)_minmax(150px,1.5fr)_minmax(120px,1fr)_minmax(100px,1fr)] gap-4 px-6 py-4 border-b border-outline-variant/10 hover:bg-surface-container-low/50 transition-colors group items-center bg-secondary-container/10">
+<div>
+<input class="ghost-input w-full font-body-md text-body-md text-on-surface" type="text" value="Steven Crain"/>
+</div>
+<div>
+<input class="ghost-input w-full font-body-md text-body-md text-on-surface-variant" type="email" value="steven@author.com"/>
+</div>
+<div>
+<input class="ghost-input w-full font-body-md text-body-md text-on-surface-variant text-secondary" type="tel" value="+1 (555) 837-1192"/>
+</div>
+<div>
+<span class="inline-flex items-center px-3 py-1 rounded-full bg-surface-variant text-on-surface-variant font-label-sm text-label-sm">Family</span>
+</div>
+<div class="text-right flex justify-end items-center gap-2">
+<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider bg-secondary-container text-on-secondary-container border border-secondary/20">Duplicate Phone</span>
+<span class="material-symbols-outlined text-secondary text-[20px]">warning</span>
+</div>
+</div>
+<!-- Row 5: Valid -->
+<div class="grid grid-cols-[minmax(200px,2fr)_minmax(200px,2fr)_minmax(150px,1.5fr)_minmax(120px,1fr)_minmax(100px,1fr)] gap-4 px-6 py-4 border-b border-outline-variant/10 hover:bg-surface-container-low/50 transition-colors group items-center">
+<div>
+<input class="ghost-input w-full font-body-md text-body-md text-on-surface" type="text" value="Luke Crain"/>
+</div>
+<div>
+<input class="ghost-input w-full font-body-md text-body-md text-on-surface-variant placeholder:text-error/50" placeholder="Missing email" type="email" value=""/>
+</div>
+<div>
+<input class="ghost-input w-full font-body-md text-body-md text-on-surface-variant" type="tel" value="+1 (555) 112-3344"/>
+</div>
+<div>
+<span class="inline-flex items-center px-3 py-1 rounded-full bg-tertiary-fixed/40 text-on-tertiary-container font-label-sm text-label-sm">Family</span>
+</div>
+<div class="text-right flex justify-end">
+<span class="material-symbols-outlined text-outline">help</span>
+</div>
+</div>
+</div>
+<!-- Summary Footer -->
+<div class="bg-surface-container-low px-6 py-4 border-t border-outline-variant/20 flex flex-col sm:flex-row justify-between items-center gap-4">
+<div class="flex items-center gap-4">
+<span class="font-body-md text-body-md text-on-surface-variant">145 Guests Found</span>
+<div class="h-4 w-px bg-outline-variant"></div>
+<span class="font-body-md text-body-md text-secondary flex items-center gap-1">
+<span class="material-symbols-outlined text-[18px]">error</span>
+                        2 Duplicates
+                    </span>
+</div>
+<div class="flex gap-4 w-full sm:w-auto">
+<button class="flex-1 sm:flex-none px-6 py-3 rounded-full border border-outline-variant text-on-surface font-label-md text-label-md hover:bg-surface-variant transition-colors">
+                        Cancel
+                    </button>
+<button class="flex-1 sm:flex-none px-8 py-3 rounded-full champagne-btn font-label-md text-label-md flex items-center justify-center gap-2 bg-primary-container text-on-primary-container shadow-[0_4px_14px_rgba(212,175,55,0.2)]">
+<span>Confirm Import</span>
+<span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+</button>
+</div>
+</div>
+</section>
+</main>
+<!-- BottomNavBar (Hidden on desktop, shown on mobile if it were a top-level destination, but suppressed here due to transactional flow) -->
+<!-- Suppressed navigation shell as per rules for transactional/task-focused pages -->
+</body></html>

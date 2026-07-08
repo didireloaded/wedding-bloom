@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Guest RSVP - Forever Vow</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Playfair+Display:ital,wght@0,600;0,700;1,600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "surface-dim": "#dcd9d9",
+                      "surface-container": "#f0eded",
+                      "primary-fixed": "#ffe088",
+                      "on-primary-container": "#554300",
+                      "inverse-on-surface": "#f3f0ef",
+                      "primary-container": "#d4af37",
+                      "on-secondary-fixed-variant": "#584142",
+                      "surface-container-highest": "#e5e2e1",
+                      "error-container": "#ffdad6",
+                      "tertiary-container": "#a2b9a2",
+                      "inverse-surface": "#303030",
+                      "on-surface-variant": "#4d4635",
+                      "surface-variant": "#e5e2e1",
+                      "surface": "#fcf9f8",
+                      "on-secondary-container": "#755d5d",
+                      "on-secondary": "#ffffff",
+                      "on-error": "#ffffff",
+                      "error": "#ba1a1a",
+                      "secondary-fixed-dim": "#dfbfbf",
+                      "on-primary-fixed-variant": "#574500",
+                      "background": "#fcf9f8",
+                      "on-background": "#1b1c1c",
+                      "primary": "#735c00",
+                      "outline": "#7f7663",
+                      "surface-container-high": "#eae7e7",
+                      "on-error-container": "#93000a",
+                      "on-tertiary-fixed": "#0c1f11",
+                      "on-tertiary-fixed-variant": "#374c3a",
+                      "tertiary-fixed-dim": "#b5cdb5",
+                      "tertiary-fixed": "#d1e9d0",
+                      "secondary-container": "#f9d8d8",
+                      "tertiary": "#4f6450",
+                      "primary-fixed-dim": "#e9c349",
+                      "secondary": "#715859",
+                      "outline-variant": "#d0c5af",
+                      "on-tertiary": "#ffffff",
+                      "surface-tint": "#735c00",
+                      "surface-container-lowest": "#ffffff",
+                      "surface-bright": "#fcf9f8",
+                      "on-primary-fixed": "#241a00",
+                      "on-primary": "#ffffff",
+                      "surface-container-low": "#f6f3f2",
+                      "on-surface": "#1b1c1c",
+                      "inverse-primary": "#e9c349",
+                      "secondary-fixed": "#fcdbdb",
+                      "on-tertiary-container": "#364a38",
+                      "on-secondary-fixed": "#281717"
+              },
+              "borderRadius": {
+                      "DEFAULT": "1rem",
+                      "lg": "2rem",
+                      "xl": "3rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "unit": "8px",
+                      "stack-lg": "48px",
+                      "gutter": "24px",
+                      "margin-mobile": "20px",
+                      "stack-sm": "12px",
+                      "margin-desktop": "64px",
+                      "stack-md": "24px",
+                      "container-max": "1280px"
+              },
+              "fontFamily": {
+                      "label-sm": ["Inter"],
+                      "headline-sm": ["Playfair Display"],
+                      "headline-md": ["Playfair Display"],
+                      "display-lg-mobile": ["Playfair Display"],
+                      "body-md": ["Inter"],
+                      "label-md": ["Inter"],
+                      "body-lg": ["Inter"],
+                      "display-lg": ["Playfair Display"]
+              },
+              "fontSize": {
+                      "label-sm": ["12px", {"lineHeight": "1.2", "fontWeight": "500"}],
+                      "headline-sm": ["24px", {"lineHeight": "1.4", "fontWeight": "600"}],
+                      "headline-md": ["32px", {"lineHeight": "1.3", "fontWeight": "600"}],
+                      "display-lg-mobile": ["36px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                      "body-md": ["16px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                      "label-md": ["14px", {"lineHeight": "1.2", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                      "body-lg": ["18px", {"lineHeight": "1.6", "letterSpacing": "-0.01em", "fontWeight": "400"}],
+                      "display-lg": ["48px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "700"}]
+              }
+            }
+          }
+        }
+    </script>
+<style>
+        body {
+            background-color: #FAF7F2;
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid #F0EBE0;
+            box-shadow: 0 20px 40px rgba(34, 34, 34, 0.05);
+        }
+        .custom-radio:checked + div {
+            border-color: #d4af37;
+            background-color: rgba(212, 175, 55, 0.1);
+        }
+        .custom-radio:checked + div .radio-inner {
+            background-color: #d4af37;
+            transform: scale(1);
+        }
+        .ghost-input {
+            background: transparent;
+            border: none;
+            border-bottom: 1px solid rgba(77, 70, 53, 0.2);
+            transition: border-color 0.3s ease;
+        }
+        .ghost-input:focus {
+            outline: none;
+            border-bottom-color: rgba(77, 70, 53, 1);
+            box-shadow: none;
+        }
+        .glow-btn {
+            box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
+            transition: all 0.3s ease;
+        }
+        .glow-btn:hover {
+            transform: scale(1.02);
+            box-shadow: 0 8px 25px rgba(212, 175, 55, 0.5);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="text-on-surface min-h-screen flex flex-col relative pb-32 md:pb-0">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-surface/80 dark:bg-surface/80 backdrop-blur-xl border-b border-outline-variant/20 shadow-sm transition-all duration-300">
+<div class="flex items-center justify-between px-margin-mobile h-16 w-full max-w-container-max mx-auto">
+<button class="text-on-surface-variant hover:opacity-80 transition-opacity active:scale-95 duration-200">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">close</span>
+</button>
+<h1 class="font-headline-sm text-headline-sm-mobile md:text-headline-sm text-primary dark:text-primary-fixed italic text-center">Forever Vow</h1>
+<div class="w-6 h-6"></div> <!-- Spacer for centering -->
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="flex-grow pt-24 px-margin-mobile md:px-margin-desktop max-w-2xl mx-auto w-full flex flex-col gap-stack-lg">
+<!-- Header Image & Intro -->
+<section class="flex flex-col gap-stack-md text-center items-center">
+<div class="w-32 h-32 rounded-full overflow-hidden mb-4 border-4 border-white shadow-lg relative">
+<img class="w-full h-full object-cover" data-alt="A close-up, soft-focus photograph of an elegant wedding invitation envelope with a delicate wax seal resting on a textured linen surface. The lighting is bright and ethereal, perfectly matching the cinematic romance aesthetic. The colors are muted ivory, soft champagne gold, and warm charcoal." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDRgv-TOilrCom44tJVNvPCDCrKdosZ5QBWRyq_Q51GEJHSMalHCmn1ZMqQw5LLtxjfWLsTXpQqt7YCMpM4CdvKbbuFdYe7bE-H_ZeJ-piz-0OOs4yQGL06Xi3OXAwwZYV7N_BJVYL2l3RAW0IN9-nX7riW8hK54g3ydUrjDbbazuj38Rbrc-EzqjZv52xKzde0Ao6UduC95JRqIbb0oLzd7nqzXbQF_LpIfkUY0Ndg87N7u7yH4g67"/>
+</div>
+<h2 class="font-display-lg-mobile md:font-display-lg text-primary">Your Presence is Requested</h2>
+<p class="font-body-lg text-body-lg text-on-surface-variant max-w-md mx-auto">
+                We joyfully invite you to share in our special day. Please let us know if you'll be able to join us.
+            </p>
+</section>
+<!-- RSVP Form Flow -->
+<form class="flex flex-col gap-stack-lg relative z-10">
+<!-- Step 1: Attendance -->
+<div class="glass-panel rounded-lg p-stack-md flex flex-col gap-stack-md animate-fade-in-up">
+<div class="flex items-center gap-3 border-b border-outline-variant/20 pb-4">
+<span class="material-symbols-outlined text-primary-container" style="font-variation-settings: 'FILL' 1;">mail</span>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Will you attend?</h3>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2">
+<label class="relative cursor-pointer group">
+<input checked="" class="custom-radio sr-only" name="attendance" type="radio" value="yes"/>
+<div class="border border-outline-variant rounded-full py-4 px-6 flex items-center justify-between transition-all duration-300 hover:bg-surface-container-low">
+<span class="font-body-md text-body-md text-on-surface">Joyfully Accepts</span>
+<div class="w-5 h-5 rounded-full border border-outline flex items-center justify-center">
+<div class="radio-inner w-3 h-3 rounded-full bg-transparent transform scale-0 transition-all duration-200"></div>
+</div>
+</div>
+</label>
+<label class="relative cursor-pointer group">
+<input class="custom-radio sr-only" name="attendance" type="radio" value="no"/>
+<div class="border border-outline-variant rounded-full py-4 px-6 flex items-center justify-between transition-all duration-300 hover:bg-surface-container-low">
+<span class="font-body-md text-body-md text-on-surface">Regretfully Declines</span>
+<div class="w-5 h-5 rounded-full border border-outline flex items-center justify-center">
+<div class="radio-inner w-3 h-3 rounded-full bg-transparent transform scale-0 transition-all duration-200"></div>
+</div>
+</div>
+</label>
+</div>
+</div>
+<!-- Step 2: Meal Selection -->
+<div class="glass-panel rounded-lg p-stack-md flex flex-col gap-stack-md">
+<div class="flex items-center gap-3 border-b border-outline-variant/20 pb-4">
+<span class="material-symbols-outlined text-primary-container" style="font-variation-settings: 'FILL' 1;">restaurant_menu</span>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Meal Selection</h3>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant">Please select an entrée for your primary meal.</p>
+<div class="flex flex-col gap-3 mt-2">
+<label class="relative cursor-pointer">
+<input checked="" class="custom-radio sr-only" name="meal" type="radio" value="beef"/>
+<div class="border border-outline-variant rounded-lg p-4 flex items-center gap-4 transition-all duration-300">
+<div class="w-5 h-5 rounded-full border border-outline flex items-center justify-center flex-shrink-0">
+<div class="radio-inner w-3 h-3 rounded-full bg-transparent transform scale-0 transition-all duration-200"></div>
+</div>
+<div class="flex-grow flex justify-between items-center">
+<div>
+<span class="font-label-md text-label-md text-on-surface block">Filet Mignon</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant block mt-1">With roasted root vegetables and a red wine reduction.</span>
+</div>
+</div>
+</div>
+</label>
+<label class="relative cursor-pointer">
+<input class="custom-radio sr-only" name="meal" type="radio" value="salmon"/>
+<div class="border border-outline-variant rounded-lg p-4 flex items-center gap-4 transition-all duration-300">
+<div class="w-5 h-5 rounded-full border border-outline flex items-center justify-center flex-shrink-0">
+<div class="radio-inner w-3 h-3 rounded-full bg-transparent transform scale-0 transition-all duration-200"></div>
+</div>
+<div class="flex-grow flex justify-between items-center">
+<div>
+<span class="font-label-md text-label-md text-on-surface block">Herb-Crusted Salmon</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant block mt-1">Served over wild rice pilaf with lemon butter sauce.</span>
+</div>
+</div>
+</div>
+</label>
+<label class="relative cursor-pointer">
+<input class="custom-radio sr-only" name="meal" type="radio" value="vegetarian"/>
+<div class="border border-outline-variant rounded-lg p-4 flex items-center gap-4 transition-all duration-300">
+<div class="w-5 h-5 rounded-full border border-outline flex items-center justify-center flex-shrink-0">
+<div class="radio-inner w-3 h-3 rounded-full bg-transparent transform scale-0 transition-all duration-200"></div>
+</div>
+<div class="flex-grow flex justify-between items-center">
+<div>
+<span class="font-label-md text-label-md text-on-surface block">Roasted Eggplant Tart</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant block mt-1">With goat cheese, heirloom tomatoes, and balsamic glaze. (V)</span>
+</div>
+</div>
+</div>
+</label>
+</div>
+</div>
+<!-- Step 3: Dietary Restrictions -->
+<div class="glass-panel rounded-lg p-stack-md flex flex-col gap-stack-md">
+<div class="flex items-center gap-3 border-b border-outline-variant/20 pb-4">
+<span class="material-symbols-outlined text-primary-container" style="font-variation-settings: 'FILL' 1;">info</span>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Dietary Restrictions</h3>
+</div>
+<div class="flex flex-col gap-2">
+<label class="font-label-md text-label-md text-on-surface-variant" for="dietary">Do you have any allergies or dietary requirements we should know about?</label>
+<input class="ghost-input w-full font-body-md text-body-md text-on-surface py-3 px-1 mt-2 focus:ring-0" id="dietary" name="dietary" placeholder="e.g., Gluten-free, Nut allergy" type="text"/>
+</div>
+</div>
+<!-- Submission Area -->
+<div class="pt-8 pb-16 flex flex-col items-center">
+<button class="w-full sm:w-auto min-w-[240px] glow-btn bg-primary-container text-on-primary-container font-label-md text-label-md py-4 px-8 rounded-full flex items-center justify-center gap-2" type="button">
+                    Submit RSVP
+                    <span class="material-symbols-outlined" style="font-size: 20px;">send</span>
+</button>
+<p class="font-label-sm text-label-sm text-on-surface-variant mt-4 text-center">
+                    Please respond by September 1st, 2025.
+                </p>
+</div>
+</form>
+</main>
+<!-- Bottom Navigation suppressed as per instructions for linear/task-focused flows (RSVP is a specific journey) -->
+<script>
+        // Simple logic to show/hide meal selection based on attendance
+        document.querySelectorAll('input[name="attendance"]').forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                const mealSection = document.querySelectorAll('.glass-panel')[1];
+                const dietSection = document.querySelectorAll('.glass-panel')[2];
+                if(e.target.value === 'no') {
+                    mealSection.style.opacity = '0.3';
+                    mealSection.style.pointerEvents = 'none';
+                    dietSection.style.opacity = '0.3';
+                    dietSection.style.pointerEvents = 'none';
+                } else {
+                    mealSection.style.opacity = '1';
+                    mealSection.style.pointerEvents = 'auto';
+                    dietSection.style.opacity = '1';
+                    dietSection.style.pointerEvents = 'auto';
+                }
+            });
+        });
+    </script>
+</body></html>

@@ -12,6 +12,8 @@ const AdminLogin = lazy(() => import("@/pages/AdminLogin"));
 const AdminDashboard = lazy(() => import("@/pages/AdminDashboard"));
 const WeddingCheckin = lazy(() => import("@/pages/WeddingCheckin"));
 const QRRedirect = lazy(() => import("@/pages/QRRedirect"));
+const LiveWeddingModePage = lazy(() => import("@/pages/LiveWeddingModePage"));
+const MemoryBookPage = lazy(() => import("@/pages/MemoryBookPage"));
 const NotFound = lazy(() => import("@/pages/NotFound"));
 
 function LegacyCoupleDashboardRedirect() {
@@ -61,6 +63,9 @@ export default function App() {
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/wedding/:slug" element={<WeddingPage />} />
+            <Route path="/live/:slug" element={<LiveWeddingModePage />} />
+            <Route path="/memory-book/:slug" element={<MemoryBookPage />} />
+            <Route path="/wedding/:slug/memory-book" element={<MemoryBookPage />} />
             <Route path="/couple/:slug" element={<CoupleSlugRedirect />} />
             <Route path="/couple/:slug/dashboard" element={<ProtectedCoupleRoute><CoupleDashboard /></ProtectedCoupleRoute>} />
             <Route path="/couple-login" element={<CoupleLogin />} />

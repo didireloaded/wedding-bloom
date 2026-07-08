@@ -78,6 +78,15 @@ export const LiveCockpitModule: React.FC<LiveCockpitProps> = ({
         </div>
 
         <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
+          <a
+            href={`/live/${wedding.slug || wedding.id}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="fv-btn-secondary !py-2.5 !px-4 text-[13px] flex items-center gap-1.5 bg-[#D4A853]/20 border border-[#D4A853]/40 text-[#D4A853] hover:bg-[#D4A853] hover:text-black transition"
+          >
+            <Sparkles size={16} />
+            <span>Open Public Live Feed</span>
+          </a>
           <button
             onClick={() => setCheckedInCount(prev => Math.min(totalExpected, prev + 1))}
             className="fv-btn-secondary !py-2.5 !px-4 text-[13px] flex items-center gap-1.5 bg-white/[0.05] border border-white/[0.15] hover:bg-white/[0.1]"

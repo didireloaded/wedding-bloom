@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useParams, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Flower2, CheckCircle2, ArrowLeft } from "lucide-react";
@@ -9,24 +9,51 @@ import { GlassCard } from "@/components/ui/GlassCard";
 /**
  * Guest self-check-in page — pure Supabase.
  * Fuzzy-matches the entered name against the RSVP list for a warmer welcome.
+ * Includes timeout protection and error handling for loading state.
  */
 export default function WeddingCheckin() {
   const { slug } = useParams();
   const [wedding, setWedding] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const loadingRef = useRef(true);
+  loadingRef.current = loading;
   const [name, setName] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [checkedIn, setCheckedIn] = useState(false);
   const [rsvpMatch, setRsvpMatch] = useState<any>(null);
 
   useEffect(() => {
+    let cancelled = false;
+
+    const safetyTimer = setTimeout(() => {
+      if (!cancelled && loadingRef.current) {
+        console.warn(`[WeddingCheckin] Loading timed out for slug: ${slug}`);
+        setLoading(false);
+        loadingRef.current = false;
+      }
+    }, 3000);
+
     async function run() {
-      if (!slug) { setLoading(false); return; }
-      const { data } = await supabase.from("weddings").select("*").eq("slug", slug).maybeSingle();
-      setWedding(data ?? null);
-      setLoading(false);
+      if (!slug) { setLoading(false); loadingRef.current = false; return; }
+      try {
+        const res = await Promise.race([
+          supabase.from("weddings").select("*").eq("slug", slug).maybeSingle(),
+          new Promise<null>((resolve) => setTimeout(() => resolve(null), 2500))
+        ]);
+        if (cancelled) return;
+        setWedding(res && (res as any).data ? (res as any).data : null);
+      } catch (err) {
+        if (!cancelled) console.warn("[WeddingCheckin] Error loading wedding:", err);
+      } finally {
+        if (!cancelled) { setLoading(false); loadingRef.current = false; }
+      }
     }
     run();
+
+    return () => {
+      cancelled = true;
+      clearTimeout(safetyTimer);
+    };
   }, [slug]);
 
   const handleCheckin = async (e: React.FormEvent) => {

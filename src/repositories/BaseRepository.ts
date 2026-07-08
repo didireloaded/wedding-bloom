@@ -42,6 +42,34 @@ export class BaseRepository<T extends { id?: string }> {
     }
   }
 
+  async findAll(options?: PaginationOptions): Promise<{ data: T[]; error: string | null }> {
+    try {
+      let query = supabase.from(this.tableName).select("*");
+      if (options?.orderBy) {
+        query = query.order(options.orderBy, { ascending: options.ascending ?? true });
+      }
+      if (options?.limit) {
+        const offset = options.offset || 0;
+        query = query.range(offset, offset + options.limit - 1);
+      }
+      const { data, error } = await query;
+      if (error) return { data: [], error: error.message };
+      return { data: (data || []) as T[], error: null };
+    } catch (err: any) {
+      return { data: [], error: err?.message || "Repository query failed" };
+    }
+  }
+
+  async findOne(column: string, value: any): Promise<{ data: T | null; error: string | null }> {
+    try {
+      const { data, error } = await supabase.from(this.tableName).select("*").eq(column, value).maybeSingle();
+      if (error) return { data: null, error: error.message };
+      return { data: data as T | null, error: null };
+    } catch (err: any) {
+      return { data: null, error: err?.message || "Repository query failed" };
+    }
+  }
+
   async create(payload: Partial<T>): Promise<{ data: T | null; error: string | null }> {
     try {
       const { data, error } = await (supabase.from(this.tableName) as any)

@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { store } from "@/store/weddingStore";
+import { supabase } from "@/utils/supabase";
 import { MediaService } from "@/services";
 import { ConfirmModal } from "@/components/ui/ConfirmModal";
 import { PromptModal } from "@/components/ui/PromptModal";
@@ -34,6 +35,11 @@ import {
   BudgetVendorModule, MoodBoardModule, ThankYouTrackerModule
 } from "@/features/couple/planningSuite";
 import { CoupleOnboardingModal } from "@/components/wedding/CoupleOnboardingModal";
+import { CoupleWorkspaceShell, type TabId } from "@/components/nav/CoupleWorkspaceShell";
+import { WeddingHomeView } from "@/features/couple/views/WeddingHomeView";
+import { PlanningDashboardView } from "@/features/couple/views/PlanningDashboardView";
+import { VendorManagerView } from "@/features/couple/views/VendorManagerView";
+import { SeatingAndTablesView } from "@/features/couple/views/SeatingAndTablesView";
 
 export default function CoupleDashboard() {
   const navigate = useNavigate();
@@ -60,7 +66,6 @@ export default function CoupleDashboard() {
   const [gifts, setGifts] = useState<GiftItem[]>([]);
   const refreshTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  type TabId = "workspace" | "overview" | "budget" | "mood_board" | "gifts" | "rsvp" | "crm" | "run_sheet" | "tables" | "tasks" | "broadcasts" | "events" | "map" | "accommodations" | "gallery" | "guest_photos" | "moments" | "updates" | "share" | "checkins" | "arrivals";
   const [tab, setTab] = useState<TabId>("workspace");
   const [editingWedding, setEditingWedding] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -83,24 +88,34 @@ export default function CoupleDashboard() {
   const [uploadStats, setUploadStats] = useState<string | null>(null);
 
   useEffect(() => {
-    let activeId = weddingId;
-    if (!activeId && slug) {
-      const found = store.find<Wedding>("weddings", (w) => w.slug === slug);
-      if (found) {
-        activeId = found.id;
-        sessionStorage.setItem("couple_wedding_id", found.id);
-        sessionStorage.setItem("couple_wedding_slug", found.slug);
-        localStorage.setItem("couple_wedding_id", found.id);
-        localStorage.setItem("couple_wedding_slug", found.slug);
+    let cancelled = false;
+    async function initWedding() {
+      let activeId = weddingId;
+      if (!activeId && slug) {
+        let found = store.find<Wedding>("weddings", (w) => w.slug === slug);
+        if (!found) {
+          const { data } = await supabase.from("weddings").select("*").eq("slug", slug).maybeSingle();
+          if (data) {
+            found = data as Wedding;
+            store.insert("weddings", found);
+          }
+        }
+        if (found) {
+          activeId = found.id;
+          sessionStorage.setItem("couple_wedding_id", found.id);
+          sessionStorage.setItem("couple_wedding_slug", found.slug);
+          localStorage.setItem("couple_wedding_id", found.id);
+          localStorage.setItem("couple_wedding_slug", found.slug);
+        }
       }
+      if (!activeId) {
+        if (!cancelled) navigate("/couple-login");
+        return;
+      }
+      await store.loadForWedding(activeId);
+      if (!cancelled) refresh();
     }
-    if (!activeId) {
-      navigate("/couple-login");
-      return;
-    }
-    store.loadForWedding(activeId).then(() => {
-      refresh();
-    });
+    initWedding();
     const off1 = store.subscribe("rsvps", refresh);
     const off2 = store.subscribe("guest_moments", refresh);
     const off3 = store.subscribe("checkins", refresh);
@@ -118,7 +133,7 @@ export default function CoupleDashboard() {
     const off15 = store.subscribe("vendors", refresh);
     const off16 = store.subscribe("mood_items", refresh);
     const off17 = store.subscribe("gifts", refresh);
-    return () => { off1(); off2(); off3(); off4(); off5(); off6(); off7(); off8(); off9(); off10(); off11(); off12(); off13(); off14(); off15(); off16(); off17(); };
+    return () => { cancelled = true; off1(); off2(); off3(); off4(); off5(); off6(); off7(); off8(); off9(); off10(); off11(); off12(); off13(); off14(); off15(); off16(); off17(); };
   }, [weddingId, slug]);
 
   useEffect(() => {
@@ -246,85 +261,6 @@ export default function CoupleDashboard() {
 
   return (
     <div className="min-h-screen bg-[#0C0A09] text-[#FAF7F2] pb-28 md:pb-24">
-      {/* Sticky Header Bar */}
-      <header className="sticky top-0 z-30 glass-obsidian border-b border-white/[0.1] shadow-2xl">
-        <div className="mx-auto max-w-[1520px] px-4 md:px-8 h-[74px] flex items-center gap-4">
-          <button
-            onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="md:hidden w-10 h-10 rounded-full bg-white/[0.04] border border-white/[0.1] flex items-center justify-center text-[#FAF7F2]"
-          >
-            {sidebarOpen ? <X size={18} /> : <Menu size={18} />}
-          </button>
-
-          <div className="flex items-center gap-3.5 min-w-0">
-            <div className="w-10 h-10 rounded-full bg-[#D4A853]/20 border border-[#D4A853]/30 flex items-center justify-center text-[#D4A853] shrink-0">
-              <Flower2 size={18} />
-            </div>
-            <div className="min-w-0 hidden sm:block">
-              <div className="text-[10px] uppercase tracking-[0.24em] text-[#D4A853] font-semibold">Couple OS</div>
-              <div className="display text-[18px] text-[#FAF7F2] -mt-0.5 truncate">{wedding.couple_names}</div>
-            </div>
-          </div>
-
-          <div className="flex-1 max-w-md mx-auto hidden md:block">
-            <WorkspaceSearch wedding={wedding} onNavigate={(t: TabId) => setTab(t)} />
-          </div>
-
-          <div className="ml-auto flex items-center gap-3">
-            <button
-              onClick={() => setInCockpitMode(true)}
-              className="inline-flex items-center gap-1.5 !py-2 !px-3.5 text-[12px] rounded-xl bg-[#7A9E7E]/20 hover:bg-[#7A9E7E] text-[#7A9E7E] hover:text-black border border-[#7A9E7E]/30 transition shadow-sm font-semibold"
-              title="Enter Day-Of Coordinator Cockpit Mode"
-            >
-              <Radio size={14} className="animate-pulse" />
-              <span className="hidden sm:inline">Live Cockpit</span>
-            </button>
-
-            <button
-              onClick={() => setShowOnboarding(true)}
-              className="inline-flex items-center gap-1.5 fv-btn-ghost !py-2 !px-3 text-[12px] text-[#E8C97A] border-[#D4A853]/30 hover:bg-[#D4A853]/10 transition"
-              title="Concierge Walkthrough Tour"
-            >
-              <Sparkles size={14} className="text-[#D4A853] animate-pulse" />
-              <span className="hidden sm:inline">Walkthrough</span>
-            </button>
-
-            <button
-              onClick={() => setNotifsOpen(true)}
-              className="relative w-10 h-10 rounded-full bg-white/[0.04] border border-white/[0.08] hover:bg-white/[0.1] flex items-center justify-center text-[#FAF7F2] transition"
-              title="Live Notifications"
-            >
-              <Bell size={16} />
-              {unread > 0 && (
-                <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] bg-[#D4A853] text-[#0C0A09] text-[10px] font-bold rounded-full flex items-center justify-center px-1">
-                  {unread > 9 ? "9+" : unread}
-                </span>
-              )}
-            </button>
-
-            <Link
-              to={`/wedding/${slug}`}
-              target="_blank"
-              className="hidden sm:inline-flex items-center gap-2 fv-btn-ghost !py-2 !px-4 text-[12px]"
-            >
-              <ExternalLink size={14} className="text-[#D4A853]" /> Live Site
-            </Link>
-
-            <button
-              onClick={logout}
-              className="w-10 h-10 rounded-full bg-white/[0.04] border border-white/[0.08] hover:bg-[#C97B7B]/20 text-[#A8A29E] hover:text-[#E4A5A5] flex items-center justify-center transition"
-              title="Sign Out"
-            >
-              <LogOut size={16} />
-            </button>
-          </div>
-        </div>
-
-        <div className="md:hidden px-4 pb-3">
-          <WorkspaceSearch wedding={wedding} onNavigate={(t: TabId) => setTab(t)} />
-        </div>
-      </header>
-
       {/* Notification Center */}
       <NotificationCenter
         wedding={wedding}
@@ -336,146 +272,54 @@ export default function CoupleDashboard() {
         onNavigate={(t: TabId) => setTab(t)}
       />
 
-      <div className="mx-auto max-w-[1520px] px-4 md:px-8 pt-8 grid md:grid-cols-[280px_1fr] gap-8">
-        {/* Sidebar Nav */}
-        <aside className={`${sidebarOpen ? "block" : "hidden md:block"} md:sticky md:top-[96px] md:self-start z-10`}>
-          <GlassCard variant="obsidian" padding="md" className="border border-white/[0.1] space-y-6">
-            {[
-              {
-                group: "Celebration Studio",
-                items: [
-                  { id: "workspace", label: "Studio Cockpit", icon: <Home size={16} /> },
-                ]
-              },
-              {
-                group: "Treasury & Vision",
-                items: [
-                  { id: "budget", label: "Budget & Vendor Hub", count: vendors.length, icon: <DollarSign size={16} /> },
-                  { id: "mood_board", label: "Vision & Mood Board", count: moodItems.length, icon: <Sparkles size={16} /> },
-                  { id: "gifts", label: "Thank-You Tracker", count: gifts.length, icon: <Gift size={16} /> },
-                ]
-              },
-              {
-                group: "Execution Logistics",
-                items: [
-                  { id: "arrivals", label: "Live Guest Arrivals", icon: <Navigation size={16} /> },
-                  { id: "run_sheet", label: "Day-of Run Sheet", count: runSheet.length, icon: <Clock size={16} /> },
-                  { id: "tables", label: "Seating Floor Plan", count: tablesList.length, icon: <Users size={16} /> },
-                  { id: "tasks", label: "Delegation Board", count: tasks.filter(t => t.status !== "done").length, icon: <CheckCircle2 size={16} /> },
-                  { id: "map", label: "Interactive Map", count: markers.length, icon: <MapPin size={16} /> },
-                  { id: "accommodations", label: "Hotels & Stay", count: accommodations.length, icon: <Sparkles size={16} /> },
-                ]
-              },
-              {
-                group: "Guest Intelligence",
-                items: [
-                  { id: "crm", label: "Guest CRM Database", count: rsvps.length, icon: <Award size={16} /> },
-                  { id: "broadcasts", label: "Batch Communications", count: broadcasts.length, icon: <Mail size={16} /> },
-                  { id: "rsvp", label: "RSVP Manager", count: rsvps.length, icon: <UserCheck size={16} /> },
-                  { id: "checkins", label: "Day-of Check-ins", count: checkins.length, icon: <CheckCircle2 size={16} /> },
-                  { id: "moments", label: "Memory Wall", count: moments.length, icon: <MessageCircle size={16} /> },
-                ]
-              },
-              {
-                group: "Celebration Plan",
-                items: [
-                  { id: "overview", label: "Overview & Story", icon: <Heart size={16} /> },
-                  { id: "events", label: "Timeline Events", count: events.length, icon: <Calendar size={16} /> },
-                  { id: "updates", label: "Wedding Announcements", count: updates.length, icon: <Radio size={16} /> },
-                ]
-              },
-              {
-                group: "Media Vault",
-                items: [
-                  { id: "gallery", label: "Curated Portfolio", count: gallery.length, icon: <ImageIcon size={16} /> },
-                  { id: "guest_photos", label: "Guest Photo Vault", count: guestPhotos.length, icon: <Camera size={16} /> },
-                ]
-              },
-              {
-                group: "Distribution",
-                items: [
-                  { id: "share", label: "QR & Share Links", icon: <ExternalLink size={16} /> },
-                ]
-              },
-            ].map(group => (
-              <div key={group.group}>
-                <div className="text-[10px] uppercase tracking-[0.24em] text-[#D4A853] px-3 pb-2 font-bold">{group.group}</div>
-                <div className="space-y-1">
-                  {group.items.map((it: any) => (
-                    <button
-                      key={it.id}
-                      onClick={() => { setTab(it.id as TabId); setSidebarOpen(false); }}
-                      className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-[16px] text-[13px] font-medium transition ${
-                        tab === it.id
-                          ? "bg-[#D4A853] text-[#0C0A09] font-bold shadow-md"
-                          : "text-[#A8A29E] hover:bg-white/[0.06] hover:text-[#FAF7F2]"
-                      }`}
-                    >
-                      <div className="flex items-center gap-3 min-w-0">
-                        <span className={tab === it.id ? "text-[#0C0A09]" : "text-[#D4A853]"}>{it.icon}</span>
-                        <span className="truncate">{it.label}</span>
-                      </div>
-                      {it.count !== undefined && (
-                        <span className={`text-[10px] font-mono px-2 py-0.5 rounded-full ${tab === it.id ? "bg-[#0C0A09]/20 text-[#0C0A09]" : "bg-white/[0.06] text-[#A8A29E]"}`}>
-                          {it.count}
-                        </span>
-                      )}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            ))}
-
-            <div className="pt-4 border-t border-white/[0.08]">
-              <button
-                onClick={() => { setEditingWedding(true); setSidebarOpen(false); }}
-                className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-[16px] text-[13px] font-semibold text-[#A8A29E] hover:bg-white/[0.06] hover:text-[#FAF7F2] transition"
-              >
-                <Settings size={16} className="text-[#D4A853]" />
-                <span>Wedding Settings</span>
-              </button>
-            </div>
-          </GlassCard>
-        </aside>
-
-        {/* Main Workspace Area */}
-        <main className="min-w-0">
+      {/* Modern 5-Suite Workspace Shell */}
+      <CoupleWorkspaceShell
+        wedding={wedding}
+        activeTab={tab}
+        onSelectTab={(t: TabId) => setTab(t)}
+        onOpenSettings={() => setEditingWedding(true)}
+        onOpenCockpit={() => setInCockpitMode(true)}
+        onOpenWalkthrough={() => setShowOnboarding(true)}
+        onOpenNotifications={() => setNotifsOpen(true)}
+        onLogout={logout}
+        unreadCount={unread}
+        counts={{
+          vendors: vendors.length,
+          moodItems: moodItems.length,
+          gifts: gifts.length,
+          runSheet: runSheet.length,
+          tables: tablesList.length,
+          tasks: tasks.filter(t => t.status !== "done").length,
+          markers: markers.length,
+          accommodations: accommodations.length,
+          crm: rsvps.length,
+          broadcasts: broadcasts.length,
+          rsvps: rsvps.length,
+          checkins: checkins.length,
+          moments: moments.length,
+          events: events.length,
+          updates: updates.length,
+          gallery: gallery.length,
+          guestPhotos: guestPhotos.length,
+        }}
+        searchComponent={<WorkspaceSearch wedding={wedding} onNavigate={(t: TabId) => setTab(t)} />}
+      >
+        <div className="space-y-8 min-w-0">
           {tab === "workspace" && (
-            <div className="space-y-8">
-              <CommandCenter
-                wedding={wedding}
-                rsvps={rsvps}
-                moments={moments}
-                guestPhotos={guestPhotos}
-                onOpenOnboarding={() => setShowOnboarding(true)}
-              />
-
-              <div className="grid lg:grid-cols-3 gap-8">
-                <div className="lg:col-span-2 space-y-8">
-                  <SummaryGrid
-                    rsvps={rsvps}
-                    moments={moments}
-                    guestPhotos={guestPhotos}
-                    wedding={wedding}
-                    onNavigate={(t: TabId) => setTab(t)}
-                  />
-                  <QuickActionsWidget
-                    wedding={wedding}
-                    onNavigate={(t: TabId) => setTab(t)}
-                    onCopyLink={copyLink}
-                    onOpenOnboarding={() => setShowOnboarding(true)}
-                  />
-                  <ActivityTimeline
-                    rsvps={rsvps} moments={moments} guestPhotos={guestPhotos} updates={updates}
-                  />
-                </div>
-                <div className="space-y-8">
-                  <CountdownWidget wedding={wedding} />
-                  <HealthWidget wedding={wedding} gallery={gallery} events={events} accommodations={accommodations} />
-                  <InsightsWidget wedding={wedding} rsvps={rsvps} guestPhotos={guestPhotos} moments={moments} />
-                </div>
-              </div>
-            </div>
+            <WeddingHomeView
+              wedding={wedding}
+              rsvps={rsvps}
+              moments={moments}
+              guestPhotos={guestPhotos}
+              gallery={gallery}
+              events={events}
+              accommodations={accommodations}
+              updates={updates}
+              tasks={tasks}
+              onNavigate={(t: TabId) => setTab(t)}
+              onOpenOnboarding={() => setShowOnboarding(true)}
+              onCopyLink={copyLink}
+            />
           )}
 
           {/* Edit Wedding Slide/Modal Card */}
@@ -526,7 +370,7 @@ export default function CoupleDashboard() {
             </GlassCard>
           )}
 
-          {tab !== "workspace" && (
+          {tab !== "workspace" && tab !== "overview" && tab !== "budget" && tab !== "tables" && (
             <div className="mb-6 flex items-center justify-between">
               <div>
                 <div className="wedding-label text-[#D4A853]">Module Workspace</div>
@@ -542,43 +386,15 @@ export default function CoupleDashboard() {
 
           {/* Overview Tab */}
           {tab === "overview" && (
-            <div className="space-y-6">
-              <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                {[
-                  { icon: <UserCheck size={18}/>, label: "Confirmed", value: confirmed, color: "text-[#7A9E7E]" },
-                  { icon: <Clock size={18}/>, label: "Pending", value: pending, color: "text-[#D4A853]" },
-                  { icon: <Users size={18}/>, label: "Total Guests", value: totalGuests, color: "text-[#FAF7F2]" },
-                  { icon: <MessageCircle size={18}/>, label: "Memory Notes", value: moments.length, color: "text-[#A882DD]" },
-                ].map(c => (
-                  <GlassCard key={c.label} variant="obsidian" padding="lg" className="border border-white/[0.1]">
-                    <div className={`w-11 h-11 rounded-[14px] bg-white/[0.06] flex items-center justify-center ${c.color} mb-4`}>{c.icon}</div>
-                    <div className="text-[10px] uppercase tracking-[0.2em] text-[#78716C]">{c.label}</div>
-                    <div className="display text-[34px] text-[#FAF7F2] leading-none mt-1">{c.value}</div>
-                  </GlassCard>
-                ))}
-              </div>
-
-              {pending > 0 && (
-                <GlassCard variant="aurora" padding="md" className="border border-[#D4A853]/30 flex items-center gap-3">
-                  <Clock size={18} className="text-[#D4A853] shrink-0" />
-                  <span className="text-[14px] text-[#FAF7F2]">
-                    <strong>{pending} guest{pending === 1 ? "" : "s"}</strong> awaiting RSVP verification. Consider sending automated follow-ups.
-                  </span>
-                </GlassCard>
-              )}
-
-              {Object.keys(dietary).length > 0 && (
-                <GlassCard variant="obsidian" padding="lg" className="border border-white/[0.1]">
-                  <div className="wedding-label mb-3">Dietary Requirements</div>
-                  <div className="flex flex-wrap gap-2.5">
-                    {Object.entries(dietary).map(([label, count]) => (
-                      <span key={label} className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/[0.06] border border-white/[0.08] text-[13px] text-[#FAF7F2]">
-                        <span className="text-[#D4A853] font-mono font-bold">{count as number}</span>{label}
-                      </span>
-                    ))}
-                  </div>
-                </GlassCard>
-              )}
+            <div className="space-y-8">
+              <PlanningDashboardView
+                wedding={wedding}
+                tasks={tasks}
+                vendors={vendors}
+                budgets={budgets}
+                rsvps={rsvps}
+                onNavigate={(t: TabId) => setTab(t)}
+              />
             </div>
           )}
 
@@ -892,7 +708,16 @@ export default function CoupleDashboard() {
                   <p className="text-[13px] text-[#A8A29E] mt-0.5">Review guest moments, pin highlights, or promote favorites directly to your Curated Portfolio.</p>
                 </div>
 
-                <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
+                <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
+                  <a
+                    href={`/memory-book/${wedding?.slug || weddingId}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="fv-btn-secondary !py-2.5 !px-3.5 text-[12px] flex items-center gap-1.5 bg-[#D4A853]/20 border border-[#D4A853]/40 text-[#D4A853] hover:bg-[#D4A853] hover:text-black transition shrink-0"
+                  >
+                    <Sparkles size={14} />
+                    <span>View Memory Book</span>
+                  </a>
                   <div className="flex items-center bg-black/40 p-1 rounded-xl border border-white/[0.08]">
                     {["all", "approved", "pinned", "pending"].map((f) => (
                       <button
@@ -1087,17 +912,42 @@ export default function CoupleDashboard() {
           {/* New Advanced Execution Logistics & Guest Intelligence Modules */}
           {tab === "arrivals" && <GuestArrivalsModule wedding={wedding} rsvps={rsvps} />}
           {tab === "run_sheet" && <RunSheetModule wedding={wedding} runSheet={runSheet} refresh={refresh} />}
-          {tab === "tables" && <FloorPlannerModule wedding={wedding} tablesList={tablesList} rsvps={rsvps} refresh={refresh} />}
+          {tab === "tables" && (
+            <div className="space-y-12">
+              <SeatingAndTablesView
+                wedding={wedding}
+                tablesList={tablesList}
+                rsvps={rsvps}
+                onRefresh={refresh}
+              />
+              <div className="pt-8 border-t border-white/[0.1]">
+                <FloorPlannerModule wedding={wedding} tablesList={tablesList} rsvps={rsvps} refresh={refresh} />
+              </div>
+            </div>
+          )}
           {tab === "tasks" && <TaskBoardModule wedding={wedding} tasks={tasks} refresh={refresh} />}
           {tab === "crm" && <GuestCrmModule wedding={wedding} rsvps={rsvps} tablesList={tablesList} refresh={refresh} />}
           {tab === "broadcasts" && <BroadcastHubModule wedding={wedding} broadcasts={broadcasts} rsvps={rsvps} refresh={refresh} />}
 
           {/* New Interactive Treasury, Vision & Gratitude Modules */}
-          {tab === "budget" && <BudgetVendorModule wedding={wedding} budgets={budgets} vendors={vendors} refresh={refresh} />}
+          {tab === "budget" && (
+            <div className="space-y-12">
+              <VendorManagerView
+                wedding={wedding}
+                vendors={vendors}
+                budgets={budgets}
+                onRefresh={refresh}
+                onNavigate={(t: TabId) => setTab(t)}
+              />
+              <div className="pt-8 border-t border-white/[0.1]">
+                <BudgetVendorModule wedding={wedding} budgets={budgets} vendors={vendors} refresh={refresh} />
+              </div>
+            </div>
+          )}
           {tab === "mood_board" && <MoodBoardModule wedding={wedding} moodItems={moodItems} refresh={refresh} />}
           {tab === "gifts" && <ThankYouTrackerModule wedding={wedding} gifts={gifts} rsvps={rsvps} refresh={refresh} />}
-        </main>
-      </div>
+        </div>
+      </CoupleWorkspaceShell>
 
       <PromptModal
         open={hotelPromptOpen}

@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Wedding Invitation - Alex &amp; Jordan</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                            "on-secondary-fixed": "#281717",
+                            "on-error-container": "#93000a",
+                            "on-surface-variant": "#4d4635",
+                            "surface-bright": "#fcf9f8",
+                            "outline": "#7f7663",
+                            "primary-fixed": "#ffe088",
+                            "on-secondary": "#ffffff",
+                            "surface-variant": "#e5e2e1",
+                            "secondary-fixed-dim": "#dfbfbf",
+                            "on-secondary-container": "#755d5d",
+                            "surface": "#fcf9f8",
+                            "on-primary-fixed-variant": "#574500",
+                            "primary-container": "#d4af37",
+                            "surface-container-high": "#eae7e7",
+                            "on-tertiary": "#ffffff",
+                            "background": "#fcf9f8",
+                            "on-background": "#1b1c1c",
+                            "primary": "#735c00",
+                            "error-container": "#ffdad6",
+                            "tertiary-fixed-dim": "#b5cdb5",
+                            "outline-variant": "#d0c5af",
+                            "surface-container-lowest": "#ffffff",
+                            "inverse-surface": "#303030",
+                            "error": "#ba1a1a",
+                            "secondary-container": "#f9d8d8",
+                            "surface-container": "#f0eded",
+                            "on-tertiary-fixed-variant": "#374c3a",
+                            "inverse-on-surface": "#f3f0ef",
+                            "on-primary": "#ffffff",
+                            "on-error": "#ffffff",
+                            "tertiary-fixed": "#d1e9d0",
+                            "on-surface": "#1b1c1c",
+                            "on-primary-fixed": "#241a00",
+                            "secondary": "#715859",
+                            "inverse-primary": "#e9c349",
+                            "on-tertiary-container": "#364a38",
+                            "secondary-fixed": "#fcdbdb",
+                            "on-secondary-fixed-variant": "#584142",
+                            "on-primary-container": "#554300",
+                            "surface-dim": "#dcd9d9",
+                            "tertiary": "#4f6450",
+                            "on-tertiary-fixed": "#0c1f11",
+                            "primary-fixed-dim": "#e9c349",
+                            "surface-tint": "#735c00",
+                            "tertiary-container": "#a2b9a2",
+                            "surface-container-low": "#f6f3f2",
+                            "surface-container-highest": "#e5e2e1"
+                    },
+                    "borderRadius": {
+                            "DEFAULT": "1rem",
+                            "lg": "2rem",
+                            "xl": "3rem",
+                            "full": "9999px"
+                    },
+                    "spacing": {
+                            "stack-md": "24px",
+                            "unit": "8px",
+                            "gutter": "24px",
+                            "margin-desktop": "64px",
+                            "stack-lg": "48px",
+                            "container-max": "1280px",
+                            "stack-sm": "12px",
+                            "margin-mobile": "20px"
+                    },
+                    "fontFamily": {
+                            "headline-sm": ["Playfair Display", "serif"],
+                            "label-sm": ["Inter", "sans-serif"],
+                            "body-md": ["Inter", "sans-serif"],
+                            "body-lg": ["Inter", "sans-serif"],
+                            "display-lg-mobile": ["Playfair Display", "serif"],
+                            "label-md": ["Inter", "sans-serif"],
+                            "headline-md": ["Playfair Display", "serif"],
+                            "display-lg": ["Playfair Display", "serif"]
+                    },
+                    "fontSize": {
+                            "headline-sm": ["24px", {"lineHeight": "1.4", "fontWeight": "600"}],
+                            "label-sm": ["12px", {"lineHeight": "1.2", "fontWeight": "500"}],
+                            "body-md": ["16px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                            "body-lg": ["18px", {"lineHeight": "1.6", "letterSpacing": "-0.01em", "fontWeight": "400"}],
+                            "display-lg-mobile": ["36px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                            "label-md": ["14px", {"lineHeight": "1.2", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                            "headline-md": ["32px", {"lineHeight": "1.3", "fontWeight": "600"}],
+                            "display-lg": ["48px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "700"}]
+                    }
+                }
+            }
+        }
+    </script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) scale(1); opacity: 0; }
+            50% { transform: translateY(-20px) scale(1.1); opacity: 0.6; }
+        }
+        .particle {
+            position: absolute;
+            background: radial-gradient(circle, rgba(212, 175, 55, 0.8) 0%, rgba(212, 175, 55, 0) 70%);
+            border-radius: 50%;
+            pointer-events: none;
+            animation: float 4s ease-in-out infinite;
+        }
+        
+        .envelope-flap {
+            transform-origin: top center;
+            transition: transform 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+            transform: rotateX(180deg); /* Start open for this scenario */
+        }
+        
+        .card-emerge {
+            animation: slideUp 2s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+            animation-delay: 0.5s;
+            transform: translateY(100%);
+            opacity: 0;
+        }
+
+        @keyframes slideUp {
+            0% { transform: translateY(40%) scale(0.9); opacity: 0; }
+            100% { transform: translateY(-10%) scale(1); opacity: 1; }
+        }
+
+        .seal-break {
+            animation: fadeOut 1s ease-in forwards;
+        }
+        
+        @keyframes fadeOut {
+            to { opacity: 0.2; transform: scale(1.2); }
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface text-on-surface min-h-screen overflow-hidden flex items-center justify-center font-body-md relative antialiased selection:bg-primary-container/30">
+<!-- Ambient Background Effects -->
+<div class="absolute inset-0 pointer-events-none overflow-hidden z-0">
+<div class="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-secondary-container/40 rounded-full blur-[100px]"></div>
+<div class="absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] bg-primary-container/20 rounded-full blur-[120px]"></div>
+</div>
+<!-- Main Container -->
+<main class="relative z-10 w-full max-w-[600px] h-[800px] mx-auto flex items-center justify-center p-margin-mobile md:p-stack-md perspective-[1000px]">
+<!-- The Envelope Wrapper -->
+<div class="relative w-full aspect-[4/5] md:aspect-[3/4] max-w-[400px] mx-auto flex flex-col items-center justify-end">
+<!-- Emerging Card (The actual invitation) -->
+<div class="card-emerge absolute top-0 left-0 w-full h-[90%] bg-surface-container-lowest rounded-xl shadow-[0_20px_40px_rgba(34,34,34,0.08)] border border-outline-variant/30 flex flex-col items-center justify-between p-stack-md overflow-hidden z-20">
+<!-- Background Image of Venue on Card -->
+<div class="absolute inset-0 z-0 opacity-20" data-alt="A cinematic, softly lit photograph of an elegant historic wedding venue featuring grand arches, lush greenery, and subtle golden hour lighting. The image should have a luxurious, airy, and romantic light-mode aesthetic with soft ivory and sage tones." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDwIBKvERsuOgYceiC3j8J3lyoxZegrNcG3teLVvOjH8G-rTnfSx8x3_dN5jt5HAK4XeL9mqYUyKFCHaOhxtjHiffjhiOTACTVPrgbBX1nmTSz-nwFGF038ssI2xxjiE1bc_c5YeDiFYVTmRH8DKU_7Vcu5Udjn6ZMhcQoetrxKZOUGqfw0BPIngGEvywP0uAM_oHUb3mHLDmikeFpCNcXEDFEMjaoFZcBrlX3cZb4efpgn5GImkBhK')"></div>
+<div class="absolute inset-0 bg-gradient-to-b from-surface-container-lowest/80 via-surface-container-lowest/40 to-surface-container-lowest/90 z-0"></div>
+<!-- Card Content -->
+<div class="relative z-10 text-center w-full mt-stack-md">
+<p class="font-label-md text-label-md text-primary tracking-widest uppercase mb-unit">You are invited</p>
+<h1 class="font-display-lg-mobile md:font-display-lg text-display-lg-mobile md:text-display-lg text-on-background mb-stack-sm italic">Alex &amp; Jordan</h1>
+<div class="w-12 h-[1px] bg-primary-container mx-auto my-stack-sm"></div>
+<p class="font-body-lg text-body-lg text-on-surface-variant max-w-[280px] mx-auto leading-relaxed">
+                        Join us as we celebrate our new beginning.
+                    </p>
+</div>
+<div class="relative z-10 text-center mb-stack-md space-y-stack-sm w-full">
+<p class="font-headline-sm text-headline-sm text-on-surface">October 24, 2025</p>
+<p class="font-body-md text-body-md text-on-surface-variant">The Grand Estate<br/>Lake Como, Italy</p>
+<button class="mt-stack-md w-full max-w-[200px] mx-auto bg-primary-container text-on-primary-container font-label-md text-label-md py-3 px-6 rounded-full hover:scale-[1.02] transition-transform duration-300 shadow-[0_8px_16px_rgba(212,175,55,0.2)] flex items-center justify-center gap-2 group backdrop-blur-md bg-opacity-90">
+                        Open Invitation
+                        <span class="material-symbols-outlined text-[18px] group-hover:translate-x-1 transition-transform">arrow_forward</span>
+</button>
+</div>
+</div>
+<!-- Front of Envelope -->
+<div class="absolute bottom-0 left-0 w-full h-[60%] bg-[#F9F7F3] rounded-b-xl shadow-[0_-5px_15px_rgba(34,34,34,0.03)] border-t border-outline-variant/20 z-30 flex items-center justify-center overflow-hidden">
+<!-- Subtle texture overlay -->
+<div class="absolute inset-0 opacity-10 bg-[radial-gradient(#4d4635_1px,transparent_1px)] [background-size:16px_16px]"></div>
+<!-- The broken seal -->
+<div class="seal-break relative w-16 h-16 bg-gradient-to-br from-[#d4af37] to-[#8a7223] rounded-full shadow-lg flex items-center justify-center transform -translate-y-1/2 border-2 border-[#f0df9c]">
+<span class="font-headline-sm text-on-primary text-xl italic text-white/80">A&amp;J</span>
+</div>
+</div>
+<!-- Envelope Flap (Opened) -->
+<div class="envelope-flap absolute top-[40%] left-0 w-full h-[30%] bg-[#F4F1EA] origin-bottom z-10 shadow-[0_10px_20px_rgba(0,0,0,0.05)] border-b border-outline-variant/10" style="clip-path: polygon(0 100%, 50% 0, 100% 100%);"></div>
+</div>
+</main>
+<!-- Particle Script for Magical Effect -->
+<script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const container = document.querySelector('main');
+            const particleCount = 20;
+
+            for (let i = 0; i < particleCount; i++) {
+                createParticle(container);
+            }
+
+            function createParticle(parent) {
+                const particle = document.createElement('div');
+                particle.classList.add('particle');
+                
+                // Randomize properties
+                const size = Math.random() * 8 + 2; // 2px to 10px
+                const left = Math.random() * 100; // 0% to 100%
+                const top = Math.random() * 100;
+                const duration = Math.random() * 3 + 3; // 3s to 6s
+                const delay = Math.random() * 2; // 0s to 2s
+
+                particle.style.width = `${size}px`;
+                particle.style.height = `${size}px`;
+                particle.style.left = `${left}%`;
+                particle.style.top = `${top}%`;
+                particle.style.animationDuration = `${duration}s`;
+                particle.style.animationDelay = `${delay}s`;
+
+                parent.appendChild(particle);
+            }
+        });
+    </script>
+</body></html>

@@ -11,6 +11,8 @@ import { GlassCard } from "@/components/ui/GlassCard";
 import { submitRSVPToBackend, supabase } from "@/utils/supabase";
 import { siteContent } from "@/config/siteContent";
 import { AnalyticsService } from "@/services/AnalyticsService";
+import { GuestHomeView } from "@/features/guest/views/GuestHomeView";
+import { RSVPFlowView } from "@/features/guest/views/RSVPFlowView";
 
 function useCountdown(target: string | null) {
   const [now, setNow] = useState(() => Date.now());
@@ -43,128 +45,7 @@ function generateICS(title: string, date: string | null, time: string | null, ve
   a.click();
 }
 
-function RSVPForm({ wedding, isPreview }: { wedding: any; isPreview?: boolean }) {
-  const [submitted, setSubmitted] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [form, setForm] = useState({
-    guest_name: "", email: "", attending: "yes", guest_count: 1,
-    dietary_preference: "No preference", custom_diet: "", song_request: "", note: ""
-  });
-  const update = (k: string, v: any) => setForm(f => ({ ...f, [k]: v }));
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (isPreview) { toast.info("This is a preview — RSVP is disabled"); return; }
-    if (!form.guest_name.trim()) { toast.error("Please enter your name"); return; }
-    if (form.attending === "yes" && form.dietary_preference === "Other" && !form.custom_diet.trim()) {
-      toast.error("Please specify your dietary requirement"); return;
-    }
-    setLoading(true);
-    const payload = {
-      wedding_id: wedding.id,
-      guest_name: form.guest_name.trim(),
-      email: form.email.trim() || null,
-      attending: form.attending === "yes" ? "confirmed" : "declined",
-      guest_count: form.attending === "yes" ? (Number(form.guest_count) || 1) : 0,
-      dietary_preference: form.attending === "yes" ? (form.dietary_preference === "Other" ? form.custom_diet.trim() : (form.dietary_preference || null)) : null,
-      message: form.song_request || form.note || null,
-      submitted_at: new Date().toISOString(),
-    };
-
-    const res = await submitRSVPToBackend(payload);
-    if (!res.success) { toast.error(res.error || "Could not submit RSVP"); setLoading(false); return; }
-    setLoading(false);
-    setSubmitted(true);
-    toast.success(form.attending === "yes" ? "RSVP Confirmed! ✨" : "RSVP Received", {
-      description: form.attending === "yes" ? "We can't wait to celebrate with you!" : "Thank you for letting us know.",
-    });
-  };
-
-  if (submitted) {
-    return (
-      <div className="text-center py-12">
-        <div className="mx-auto w-16 h-16 rounded-full bg-[#7A9E7E]/20 border border-[#7A9E7E]/40 flex items-center justify-center text-[#7A9E7E] mb-5">
-          <Heart size={24} fill="currentColor" />
-        </div>
-        <h3 className="display text-[32px] text-[#2C2926]">Thank You</h3>
-        <p className="text-[15px] text-[#726C65] mt-2 max-w-md mx-auto leading-relaxed">
-          Your response has been recorded. We will send updates and logistical details as the celebration approaches.
-        </p>
-        <button onClick={() => setSubmitted(false)} className="mt-6 text-[13px] text-[#A37C4D] font-bold underline underline-offset-4">Submit another RSVP</button>
-      </div>
-    );
-  }
-
-  const inputCls = "w-full rounded-[16px] border border-stone-200 bg-transparent px-4 py-3.5 outline-none focus:ring-1 focus:ring-stone-400 focus:border-stone-400 transition text-[14px] text-stone-800 placeholder:text-stone-400";
-  const labelCls = "block text-[11px] uppercase tracking-[0.18em] font-semibold text-stone-600 mb-1.5";
-
-  return (
-    <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6 text-[14px]">
-      <div>
-        <label className={labelCls}>Full Name</label>
-        <input required value={form.guest_name} onChange={e => update("guest_name", e.target.value)} placeholder="Your name exactly as invited" className={inputCls} />
-      </div>
-      <div>
-        <label className={labelCls}>Email Address</label>
-        <input type="email" value={form.email} onChange={e => update("email", e.target.value)} placeholder="hello@example.com" className={inputCls} />
-      </div>
-      <div>
-        <label className={labelCls}>Attendance</label>
-        <select value={form.attending} onChange={e => update("attending", e.target.value)} className={inputCls}>
-          <option value="yes" className="bg-white text-stone-800">Joyfully Attending</option>
-          <option value="no" className="bg-white text-stone-800">Regretfully Declining</option>
-        </select>
-      </div>
-      {form.attending === "yes" && (
-        <>
-          <div>
-            <label className={labelCls}>Party Size (Including You)</label>
-            <input type="number" min={1} max={6} value={form.guest_count} onChange={e => update("guest_count", e.target.value)} className={inputCls} />
-          </div>
-          <div className="col-span-1 md:col-span-2">
-            <label className={labelCls}>Dietary Requirement</label>
-            <select value={form.dietary_preference} onChange={e => update("dietary_preference", e.target.value)} className={inputCls}>
-              <option value="No preference" className="bg-white text-stone-800">No preference</option>
-              <option value="Vegetarian" className="bg-white text-stone-800">Vegetarian</option>
-              <option value="Vegan" className="bg-white text-stone-800">Vegan</option>
-              <option value="Gluten-free" className="bg-white text-stone-800">Gluten-free</option>
-              <option value="Dairy-free" className="bg-white text-stone-800">Dairy-free</option>
-              <option value="Severe Nut / Shellfish Allergy" className="bg-white text-stone-800">Severe Nut / Shellfish Allergy</option>
-              <option value="Halal" className="bg-white text-stone-800">Halal</option>
-              <option value="Other" className="bg-white text-stone-800">Other (Specify below)</option>
-            </select>
-          </div>
-          {form.dietary_preference === "Other" && (
-            <div className="col-span-1 md:col-span-2">
-              <label className={labelCls}>Specify Allergy or Dietary Need</label>
-              <input
-                required
-                value={form.custom_diet}
-                onChange={e => update("custom_diet", e.target.value)}
-                placeholder="e.g. Severe peanut allergy, FODMAP..."
-                className={inputCls}
-              />
-            </div>
-          )}
-        </>
-      )}
-      <div className="col-span-1 md:col-span-2">
-        <label className={labelCls}>Song Request</label>
-        <textarea rows={2} value={form.song_request} onChange={e => update("song_request", e.target.value)} placeholder="One track guaranteed to get you on the dance floor…" className={inputCls + " resize-none"} />
-      </div>
-      <div className="col-span-1 md:col-span-2">
-        <label className={labelCls}>Special Note for the Couple</label>
-        <textarea rows={2} value={form.note} onChange={e => update("note", e.target.value)} placeholder="Optional warm wishes or logistical notes…" className={inputCls + " resize-none"} />
-      </div>
-      <div className="col-span-1 md:col-span-2 flex flex-col sm:flex-row items-center justify-between gap-4 pt-2">
-        <div className="text-[12px] text-stone-400 font-mono">ForeverVow Celebration Studio</div>
-        <button type="submit" disabled={loading} className="fv-btn-primary !py-3.5 !px-8 text-[13px] disabled:opacity-50">
-          <Send size={15} /> {loading ? "Sending RSVP..." : "Confirm & Send RSVP"}
-        </button>
-      </div>
-    </form>
-  );
-}
 
 function MomentsSectionGuestbook({ wedding, isPreview }: { wedding: any; isPreview?: boolean }) {
   const [messages, setMessages] = useState<any[]>([]);
@@ -648,113 +529,25 @@ export default function WeddingPage() {
               </motion.div>
             )}
 
-            {/* Hero Section */}
-            <section id="home" className="relative overflow-hidden pt-6 pb-2 md:pt-10 md:pb-4">
-              <div className="mx-auto max-w-5xl px-6 text-center">
-                {wedding.hero_image ? (
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.8, ease: "easeOut" }}
-                    className="max-w-4xl mx-auto"
-                  >
-                    <div className="rounded-[36px] overflow-hidden bg-white p-2 sm:p-3 shadow-2xl border border-[#E5DEC9]">
-                      <div className="relative rounded-[26px] overflow-hidden h-[460px] md:h-[600px]">
-                        <img src={wedding.hero_image} alt={wedding.couple_names} className="w-full h-full object-cover" />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-transparent flex flex-col justify-end p-6 sm:p-10 md:p-14 pb-16 md:pb-20 text-left">
-                          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, ease: "easeOut", delay: 0.2 }}>
-                            <div className="text-[#EAB308] text-[11px] sm:text-[13px] tracking-[0.28em] uppercase font-bold font-mono mb-2 sm:mb-3 drop-shadow">
-                              {wedding.legacy_mode ? siteContent.hero.legacyLabel : siteContent.hero.label}
-                            </div>
-                          </motion.div>
-                          <motion.h1
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.8, ease: "easeOut", delay: 0.4 }}
-                            className="display text-[44px] sm:text-[70px] md:text-[92px] leading-[0.92] text-[#FAF7F2] drop-shadow-lg"
-                          >
-                            {wedding.couple_names}
-                          </motion.h1>
-                          {weddingDate && (
-                            <motion.div
-                              initial={{ opacity: 0, y: 20 }}
-                              animate={{ opacity: 1, y: 0 }}
-                              transition={{ duration: 0.8, ease: "easeOut", delay: 0.6 }}
-                              className="mt-4 sm:mt-5 flex flex-wrap items-center gap-3 md:gap-5 text-[12px] sm:text-[14px] tracking-[0.18em] uppercase font-semibold text-[#F3EFEA]/95 drop-shadow"
-                            >
-                              <span className="flex items-center gap-2"><Calendar size={15} className="text-[#EAB308]" />{wedding.legacy_mode ? `Married On ${weddingDate}` : weddingDate}</span>
-                              {wedding.ceremony_venue && (
-                                <>
-                                  <span className="opacity-40 hidden sm:inline">•</span>
-                                  <span className="flex items-center gap-2"><MapPin size={15} className="text-[#EAB308]" />{wedding.ceremony_venue}</span>
-                                </>
-                              )}
-                            </motion.div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </motion.div>
-                ) : (
-                  <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, ease: "easeOut" }} className="py-8">
-                    <div className="wedding-label mb-3">{wedding.legacy_mode ? siteContent.hero.legacyLabel : siteContent.hero.label}</div>
-                    <h1 className="display text-[58px] sm:text-[84px] md:text-[108px] leading-[0.9] text-[#2C2926]">
-                      {wedding.couple_names}
-                    </h1>
-                    {weddingDate && (
-                      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, ease: "easeOut", delay: 0.3 }} className="mt-6 text-[12px] tracking-[0.24em] uppercase font-bold text-[#A37C4D]">
-                        {wedding.legacy_mode ? `Married On ${weddingDate}` : `${weddingDate}${wedding.ceremony_venue ? ` • ${wedding.ceremony_venue}` : ""}`}
-                      </motion.div>
-                    )}
-                  </motion.div>
-                )}
-              </div>
-            </section>
-
-            {/* Unified Sleek Countdown Banner */}
-            {countdown && !wedding.legacy_mode && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, ease: "easeOut", delay: 0.8 }}
-                className="max-w-4xl mx-auto px-6 -mt-14 md:-mt-20 relative z-30 mb-12"
-              >
-                <GlassCard variant="crystal" padding="lg" className="border border-white/40 shadow-2xl bg-white/90 backdrop-blur-xl rounded-[28px]">
-                  <div className="flex flex-col md:flex-row items-center justify-between gap-6 px-3 py-1">
-                    <div className="text-center md:text-left">
-                      <div className="wedding-label text-[#A37C4D]">{siteContent.hero.countdownTitle}</div>
-                      <div className="display text-[22px] md:text-[26px] text-[#2C2926] mt-1 font-semibold">
-                        {daysAway && daysAway > 0 ? `${daysAway} Days Until We Say "I Do"` : siteContent.hero.countdownFallbackText}
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-center gap-4 sm:gap-6">
-                      {[["Days", countdown.days], ["Hours", countdown.hours], ["Minutes", countdown.minutes], ["Seconds", countdown.seconds]].map(([l, v], idx) => (
-                        <div key={l as string} className="flex items-center gap-4 sm:gap-6">
-                          <div className="text-center">
-                            <div className="display text-[32px] sm:text-[40px] leading-none text-[#2C2926] font-mono">{String(v).padStart(2, "0")}</div>
-                            <div className="wedding-label !text-[9px] mt-1 text-[#726C65]">{l}</div>
-                          </div>
-                          {idx < 3 && <div className="text-[24px] text-[#C5A059] font-light -mt-4">:</div>}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </GlassCard>
-              </motion.div>
-            )}
-
-            {/* Our Story Section */}
-            {wedding.story && (
-              <section id="story" className="py-20">
-                <div className="mx-auto max-w-3xl px-6 text-center">
-                  <div className="wedding-label">{siteContent.story.label}</div>
-                  <h2 className="display text-[40px] md:text-[52px] text-[#2C2926] mt-2 leading-[1.05]">
-                    {siteContent.story.headingPrefix}<span className="text-[#A37C4D] italic font-serif">{siteContent.story.headingHighlight}</span>
-                  </h2>
-                  <p className="mt-8 text-[17px] leading-relaxed text-[#726C65] whitespace-pre-line font-serif">{wedding.story}</p>
-                </div>
-              </section>
-            )}
+            {/* Modular Guest Portal Overview (Hero, Countdown, Essential Details, Updates, Story) */}
+            <div id="home" className="pt-6 md:pt-10">
+              <GuestHomeView
+                wedding={wedding}
+                events={events}
+                accommodations={accommodations}
+                markers={markers}
+                gallery={gallery}
+                updates={updates}
+                countdown={countdown}
+                onNavigateToRSVP={() => document.getElementById("rsvp")?.scrollIntoView({ behavior: "smooth" })}
+                onNavigateToTimeline={() => document.getElementById("timeline")?.scrollIntoView({ behavior: "smooth" })}
+                onNavigateToVenue={() => document.getElementById("venue")?.scrollIntoView({ behavior: "smooth" })}
+                onNavigateToGallery={() => document.getElementById("gallery")?.scrollIntoView({ behavior: "smooth" })}
+                onNavigateToMoments={() => document.getElementById("moments")?.scrollIntoView({ behavior: "smooth" })}
+                onGenerateICS={() => generateICS(wedding.couple_names + " Wedding", wedding.wedding_date, wedding.ceremony_time, wedding.ceremony_venue, window.location.href)}
+                isPreview={isPreview}
+              />
+            </div>
 
             {/* Timeline Events */}
             {timelineEvents.length > 0 && (
@@ -1037,58 +830,13 @@ export default function WeddingPage() {
               </section>
             )}
 
-            {/* Live Announcements */}
-            {updates.length > 0 && !wedding.legacy_mode && (
-              <section className="py-20 bg-[#FAF7F2]">
-                <div className="mx-auto max-w-4xl px-6">
-                  <div className="text-center mb-10">
-                    <div className="wedding-label">Real-Time Alerts</div>
-                    <h3 className="display text-[38px] text-[#2C2926] mt-2">Live Announcements</h3>
-                  </div>
-                  <div className="space-y-5 relative pl-6 border-l-2 border-[#C5A059]">
-                    {updates.slice().reverse().map(u => (
-                      <GlassCard key={u.id} variant="crystal" padding="lg" className="border border-[#E5DEC9] relative">
-                        <div className="absolute -left-[31px] top-7 w-3.5 h-3.5 rounded-full bg-[#2C2926] border-2 border-[#C5A059]" />
-                        <div className="flex items-center gap-2 text-[11px] tracking-[0.2em] uppercase font-bold text-[#A37C4D] mb-2"><Sparkles size={13} />{format(new Date(u.created_at), "HH:mm • d MMM yyyy")}</div>
-                        <h4 className="display text-[24px] text-[#2C2926]">{u.title}</h4>
-                        <p className="text-[15px] text-[#726C65] leading-relaxed mt-2">{u.message}</p>
-                      </GlassCard>
-                    ))}
-                  </div>
-                </div>
-              </section>
-            )}
-
-            {/* RSVP Section */}
+            {/* Modular RSVP Flow */}
             {!wedding.legacy_mode && (
-              <section id="rsvp" className="py-24 bg-[#F3EFEA] border-y border-[#E5DEC9]">
-                <div className="mx-auto max-w-4xl px-6">
-                  <motion.div
-                    initial={{ opacity: 0, y: 30 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true, margin: "-50px" }}
-                    transition={{ type: "spring", stiffness: 50, damping: 20 }}
-                    className="text-center mb-12"
-                  >
-                    <div className="wedding-label text-[#A37C4D]">{siteContent.rsvp.label}</div>
-                    <h2 className="font-serif text-[42px] sm:text-[52px] text-stone-800 font-normal bg-transparent mt-2 tracking-tight">
-                      {siteContent.rsvp.heading}
-                    </h2>
-                    <p className="text-[15.5px] text-stone-600 mt-3 font-serif">
-                      {siteContent.rsvp.deadlineText}
-                    </p>
-                  </motion.div>
-                  <motion.div
-                    initial={{ opacity: 0, y: 30 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true, margin: "-50px" }}
-                    transition={{ type: "spring", stiffness: 50, damping: 20, delay: 0.15 }}
-                  >
-                    <GlassCard variant="crystal" padding="xl" className="border border-[#E5DEC9] shadow-2xl">
-                      <RSVPForm wedding={wedding} isPreview={isPreview} />
-                    </GlassCard>
-                  </motion.div>
-                </div>
+              <section id="rsvp" className="py-16 md:py-24 border-t border-white/[0.1] bg-obsidian/40">
+                <RSVPFlowView
+                  wedding={wedding}
+                  isPreview={isPreview}
+                />
               </section>
             )}
 

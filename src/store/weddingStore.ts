@@ -131,6 +131,24 @@ async function loadTablesForWedding(weddingId: string): Promise<void> {
   loadedWeddings.add(weddingId);
 }
 
+async function ensureWeddingLoaded(weddingId: string, forceReload = false): Promise<void> {
+  if (!weddingId) return;
+  if (!forceReload && cache.weddings?.some((w: Record<string, unknown>) => w.id === weddingId)) {
+    return;
+  }
+  const { data, error } = await supabase.from("weddings").select("*").eq("id", weddingId);
+  if (data && data.length > 0) {
+    if (!cache.weddings) cache.weddings = [];
+    cache.weddings = [
+      ...cache.weddings.filter((w: Record<string, unknown>) => w.id !== weddingId),
+      ...(data as Record<string, unknown>[]),
+    ];
+    emit("weddings");
+  } else if (error) {
+    console.warn(`[Store] Failed to load wedding ${weddingId}:`, error.message);
+  }
+}
+
 async function loadWeddingsTable(): Promise<void> {
   if (cache.weddings?.length) return; // Already loaded
   const { data } = await supabase.from("weddings").select("*");
@@ -143,6 +161,7 @@ export const store = {
   /** Load all data for a specific wedding. Safe to call multiple times. */
   async loadForWedding(weddingId: string): Promise<void> {
     await loadWeddingsTable();
+    await ensureWeddingLoaded(weddingId);
     await loadTablesForWedding(weddingId);
   },
 
@@ -154,6 +173,7 @@ export const store = {
   /** Force reload for a specific wedding (invalidates cache). */
   async reloadForWedding(weddingId: string): Promise<void> {
     loadedWeddings.delete(weddingId);
+    await ensureWeddingLoaded(weddingId, true);
     await loadTablesForWedding(weddingId);
   },
 

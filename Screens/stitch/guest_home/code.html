@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Guest Home - Forever Vow</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Playfair+Display:ital,wght@0,600;0,700;1,600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "surface-dim": "#dcd9d9",
+                      "surface-container": "#f0eded",
+                      "primary-fixed": "#ffe088",
+                      "on-primary-container": "#554300",
+                      "inverse-on-surface": "#f3f0ef",
+                      "primary-container": "#d4af37",
+                      "on-secondary-fixed-variant": "#584142",
+                      "surface-container-highest": "#e5e2e1",
+                      "error-container": "#ffdad6",
+                      "tertiary-container": "#a2b9a2",
+                      "inverse-surface": "#303030",
+                      "on-surface-variant": "#4d4635",
+                      "surface-variant": "#e5e2e1",
+                      "surface": "#fcf9f8",
+                      "on-secondary-container": "#755d5d",
+                      "on-secondary": "#ffffff",
+                      "on-error": "#ffffff",
+                      "error": "#ba1a1a",
+                      "secondary-fixed-dim": "#dfbfbf",
+                      "on-primary-fixed-variant": "#574500",
+                      "background": "#fcf9f8",
+                      "on-background": "#1b1c1c",
+                      "primary": "#735c00",
+                      "outline": "#7f7663",
+                      "surface-container-high": "#eae7e7",
+                      "on-error-container": "#93000a",
+                      "on-tertiary-fixed": "#0c1f11",
+                      "on-tertiary-fixed-variant": "#374c3a",
+                      "tertiary-fixed-dim": "#b5cdb5",
+                      "tertiary-fixed": "#d1e9d0",
+                      "secondary-container": "#f9d8d8",
+                      "tertiary": "#4f6450",
+                      "primary-fixed-dim": "#e9c349",
+                      "secondary": "#715859",
+                      "outline-variant": "#d0c5af",
+                      "on-tertiary": "#ffffff",
+                      "surface-tint": "#735c00",
+                      "surface-container-lowest": "#ffffff",
+                      "surface-bright": "#fcf9f8",
+                      "on-primary-fixed": "#241a00",
+                      "on-primary": "#ffffff",
+                      "surface-container-low": "#f6f3f2",
+                      "on-surface": "#1b1c1c",
+                      "inverse-primary": "#e9c349",
+                      "secondary-fixed": "#fcdbdb",
+                      "on-tertiary-container": "#364a38",
+                      "on-secondary-fixed": "#281717"
+              },
+              "borderRadius": {
+                      "DEFAULT": "1rem",
+                      "lg": "2rem",
+                      "xl": "3rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "unit": "8px",
+                      "stack-lg": "48px",
+                      "gutter": "24px",
+                      "margin-mobile": "20px",
+                      "stack-sm": "12px",
+                      "margin-desktop": "64px",
+                      "stack-md": "24px",
+                      "container-max": "1280px"
+              },
+              "fontFamily": {
+                      "label-sm": [
+                              "Inter"
+                      ],
+                      "headline-sm": [
+                              "Playfair Display"
+                      ],
+                      "headline-md": [
+                              "Playfair Display"
+                      ],
+                      "display-lg-mobile": [
+                              "Playfair Display"
+                      ],
+                      "body-md": [
+                              "Inter"
+                      ],
+                      "label-md": [
+                              "Inter"
+                      ],
+                      "body-lg": [
+                              "Inter"
+                      ],
+                      "display-lg": [
+                              "Playfair Display"
+                      ]
+              },
+              "fontSize": {
+                      "label-sm": [
+                              "12px",
+                              {
+                                      "lineHeight": "1.2",
+                                      "fontWeight": "500"
+                              }
+                      ],
+                      "headline-sm": [
+                              "24px",
+                              {
+                                      "lineHeight": "1.4",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "headline-md": [
+                              "32px",
+                              {
+                                      "lineHeight": "1.3",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "display-lg-mobile": [
+                              "36px",
+                              {
+                                      "lineHeight": "1.2",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "body-md": [
+                              "16px",
+                              {
+                                      "lineHeight": "1.5",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "label-md": [
+                              "14px",
+                              {
+                                      "lineHeight": "1.2",
+                                      "letterSpacing": "0.05em",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "body-lg": [
+                              "18px",
+                              {
+                                      "lineHeight": "1.6",
+                                      "letterSpacing": "-0.01em",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "display-lg": [
+                              "48px",
+                              {
+                                      "lineHeight": "1.1",
+                                      "letterSpacing": "-0.02em",
+                                      "fontWeight": "700"
+                              }
+                      ]
+              }
+      },
+          },
+        }
+      </script>
+<style>
+          .glass-panel {
+              background: rgba(255, 255, 255, 0.7);
+              backdrop-filter: blur(20px);
+              -webkit-backdrop-filter: blur(20px);
+          }
+          .glass-panel-dark {
+              background: rgba(30, 30, 30, 0.7);
+              backdrop-filter: blur(20px);
+              -webkit-backdrop-filter: blur(20px);
+          }
+      </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background min-h-screen font-body-md text-body-md overflow-x-hidden selection:bg-primary-container selection:text-on-primary-container">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-surface/80 dark:bg-surface/80 backdrop-blur-xl border-b border-outline-variant/20 shadow-sm transition-transform duration-300" id="top-nav">
+<div class="flex items-center justify-between px-margin-mobile h-16 w-full max-w-container-max mx-auto">
+<button class="p-2 text-primary dark:text-primary-fixed hover:opacity-80 transition-opacity active:scale-95 duration-200 focus:outline-none">
+<span class="material-symbols-outlined text-2xl" style="font-variation-settings: 'FILL' 0;">menu</span>
+</button>
+<h1 class="font-headline-md text-headline-md-mobile text-primary dark:text-primary-fixed italic font-extrabold tracking-tight">Forever Vow</h1>
+<div class="w-8 h-8 rounded-full bg-surface-container overflow-hidden border border-outline-variant/30 flex items-center justify-center">
+<span class="material-symbols-outlined text-outline" style="font-variation-settings: 'FILL' 0;">person</span>
+</div>
+</div>
+</header>
+<main class="pb-24 pt-16 md:pt-24 max-w-container-max mx-auto md:px-margin-desktop">
+<!-- Hero Section -->
+<section class="relative w-full h-[530px] md:h-[618px] md:rounded-[2rem] overflow-hidden shadow-2xl mb-stack-lg group">
+<img class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" data-alt="A breathtaking, cinematic wide shot of a luxurious wedding venue. A grand historic estate with manicured gardens bathed in soft, golden hour sunlight. The scene feels serene, premium, and deeply romantic, with elegant floral arrangements framing the entrance. The color palette is rich with natural greens, soft ivory, and warm gold. Light mode aesthetic, high-end editorial style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAbDu9L_n0Ab4SwmyTL2bSVSgy8B-t6KbwzG-0ssbkoXpOJNEOK1Um84AGnWiEXrRkCmg4Uu_Vv43R3zL9pvigSFP0MIPOADPMh2x7KBOLBoH5omOf8FqJZNYNDsK4Pxgsb0bq2IxEN8XzufWA-9xZi4TCmyUdTuBszXLEc78tiaKlh_4L8Xl0mTBzeddurazVU8XcyFxJ3XVN8pdFhrqeIGTme1muBqwlWvCFtKaOslmG0W01iklDB"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent"></div>
+<div class="absolute bottom-0 left-0 w-full p-6 md:p-12 flex flex-col justify-end text-on-primary">
+<p class="font-label-md text-label-md uppercase tracking-[0.2em] mb-2 text-primary-fixed-dim">You are invited</p>
+<h2 class="font-display-lg-mobile md:font-display-lg text-display-lg-mobile md:text-display-lg mb-4 leading-tight">Alex &amp; Jordan's<br/>Wedding Celebration</h2>
+<!-- Countdown Glass Card -->
+<div class="glass-panel-dark rounded-xl p-4 md:p-6 w-max border border-white/10 shadow-[0_20px_40px_rgba(0,0,0,0.2)] inline-flex gap-4 md:gap-8 mt-4">
+<div class="flex flex-col items-center">
+<span class="font-headline-md text-headline-md text-white">45</span>
+<span class="font-label-sm text-label-sm text-white/70 uppercase tracking-widest mt-1">Days</span>
+</div>
+<div class="w-px h-12 bg-white/20 self-center"></div>
+<div class="flex flex-col items-center">
+<span class="font-headline-md text-headline-md text-white">12</span>
+<span class="font-label-sm text-label-sm text-white/70 uppercase tracking-widest mt-1">Hours</span>
+</div>
+<div class="w-px h-12 bg-white/20 self-center hidden sm:block"></div>
+<div class="flex flex-col items-center hidden sm:flex">
+<span class="font-headline-md text-headline-md text-white">30</span>
+<span class="font-label-sm text-label-sm text-white/70 uppercase tracking-widest mt-1">Mins</span>
+</div>
+</div>
+</div>
+</section>
+<div class="grid grid-cols-1 md:grid-cols-12 gap-stack-md px-margin-mobile md:px-0">
+<!-- Quick Info Bento Grid -->
+<div class="md:col-span-8 flex flex-col gap-stack-md">
+<h3 class="font-headline-sm text-headline-sm text-on-surface mb-2 border-b border-outline-variant/30 pb-2">Essential Details</h3>
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+<!-- Schedule Card -->
+<div class="bg-surface rounded-2xl p-6 border border-outline-variant/30 shadow-[0_20px_40px_rgba(34,34,34,0.03)] hover:shadow-[0_20px_40px_rgba(34,34,34,0.06)] transition-all duration-300 group cursor-pointer">
+<div class="flex justify-between items-start mb-4">
+<div class="w-12 h-12 rounded-full bg-secondary-container flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined text-[28px]" style="font-variation-settings: 'FILL' 1;">event</span>
+</div>
+<span class="material-symbols-outlined text-outline group-hover:text-primary transition-colors">arrow_forward</span>
+</div>
+<h4 class="font-headline-sm text-headline-sm text-on-surface mb-1">Event Schedule</h4>
+<p class="font-body-md text-body-md text-on-surface-variant">View the timeline for the welcome drinks, ceremony, and reception.</p>
+</div>
+<!-- Venue Directions Card -->
+<div class="bg-surface rounded-2xl p-6 border border-outline-variant/30 shadow-[0_20px_40px_rgba(34,34,34,0.03)] hover:shadow-[0_20px_40px_rgba(34,34,34,0.06)] transition-all duration-300 group cursor-pointer">
+<div class="flex justify-between items-start mb-4">
+<div class="w-12 h-12 rounded-full bg-tertiary-container flex items-center justify-center text-tertiary">
+<span class="material-symbols-outlined text-[28px]" style="font-variation-settings: 'FILL' 1;">location_on</span>
+</div>
+<span class="material-symbols-outlined text-outline group-hover:text-primary transition-colors">arrow_forward</span>
+</div>
+<h4 class="font-headline-sm text-headline-sm text-on-surface mb-1">Venue Directions</h4>
+<p class="font-body-md text-body-md text-on-surface-variant">Navigate to the Estate. Parking and shuttle information included.</p>
+</div>
+</div>
+<!-- RSVP Status Wide Card -->
+<div class="glass-panel rounded-2xl p-6 border border-outline-variant/40 shadow-[0_20px_40px_rgba(34,34,34,0.04)] relative overflow-hidden flex items-center justify-between">
+<div class="absolute -right-10 -top-10 w-40 h-40 bg-primary-container/20 rounded-full blur-3xl"></div>
+<div class="z-10">
+<h4 class="font-headline-sm text-headline-sm text-on-surface mb-1">Your RSVP Status</h4>
+<div class="flex items-center gap-2 mt-2">
+<span class="w-3 h-3 rounded-full bg-tertiary animate-pulse"></span>
+<span class="font-label-md text-label-md text-tertiary uppercase tracking-wider">Attending (2 Guests)</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant mt-2 text-sm">Meal preferences confirmed: 1 Vegetarian, 1 Chicken.</p>
+</div>
+<button class="z-10 bg-surface-container-high hover:bg-surface-container-highest text-on-surface font-label-md py-2 px-4 rounded-full transition-colors hidden sm:block">
+                        Update
+                    </button>
+</div>
+</div>
+<!-- Announcements & Quick Links -->
+<div class="md:col-span-4 flex flex-col gap-stack-md">
+<h3 class="font-headline-sm text-headline-sm text-on-surface mb-2 border-b border-outline-variant/30 pb-2">Latest Updates</h3>
+<div class="bg-surface rounded-2xl border border-outline-variant/30 shadow-[0_20px_40px_rgba(34,34,34,0.03)] overflow-hidden flex flex-col">
+<div class="p-5 border-b border-outline-variant/10 hover:bg-surface-container-lowest transition-colors cursor-pointer">
+<div class="flex items-center justify-between mb-1">
+<span class="font-label-sm text-label-sm text-primary uppercase tracking-wider">Announcement</span>
+<span class="text-xs text-outline">2 days ago</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface line-clamp-2">The welcome dinner location has been updated to the East Garden Terrace. Please dress accordingly for outdoor evening weather.</p>
+</div>
+<div class="p-5 hover:bg-surface-container-lowest transition-colors cursor-pointer">
+<div class="flex items-center justify-between mb-1">
+<span class="font-label-sm text-label-sm text-primary uppercase tracking-wider">Reminder</span>
+<span class="text-xs text-outline">1 week ago</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface line-clamp-2">Please book your hotel accommodations by the end of the month using our discount code found in the travel section.</p>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-4 mt-2">
+<div class="bg-surface-container-lowest rounded-xl p-4 border border-outline-variant/20 shadow-sm flex flex-col items-center justify-center text-center cursor-pointer hover:border-primary/50 transition-colors group">
+<span class="material-symbols-outlined text-[32px] text-primary mb-2 group-hover:scale-110 transition-transform" style="font-variation-settings: 'FILL' 0;">photo_library</span>
+<span class="font-label-md text-label-md text-on-surface">Gallery</span>
+</div>
+<div class="bg-surface-container-lowest rounded-xl p-4 border border-outline-variant/20 shadow-sm flex flex-col items-center justify-center text-center cursor-pointer hover:border-primary/50 transition-colors group">
+<span class="material-symbols-outlined text-[32px] text-primary mb-2 group-hover:scale-110 transition-transform" style="font-variation-settings: 'FILL' 0;">menu_book</span>
+<span class="font-label-md text-label-md text-on-surface">Guestbook</span>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- BottomNavBar (Visible only on mobile) -->
+<nav class="md:hidden fixed bottom-0 w-full z-50 rounded-t-lg bg-surface/80 dark:bg-surface/80 backdrop-blur-xl border-t border-outline-variant/20 shadow-[0_-10px_30px_rgba(34,34,34,0.03)]">
+<ul class="flex justify-around items-center h-20 px-4 pb-safe">
+<li>
+<a class="flex flex-col items-center justify-center text-outline hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined text-2xl mb-1" style="font-variation-settings: 'FILL' 0;">event_upcoming</span>
+<span class="font-label-sm text-label-sm">Plan</span>
+</a>
+</li>
+<li>
+<a class="flex flex-col items-center justify-center text-outline hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined text-2xl mb-1" style="font-variation-settings: 'FILL' 0;">auto_awesome</span>
+<span class="font-label-sm text-label-sm">Vendors</span>
+</a>
+</li>
+<li>
+<a class="flex flex-col items-center justify-center text-primary bg-primary-container/30 rounded-full px-4 py-1 scale-110 duration-300 ease-out" href="#">
+<span class="material-symbols-outlined text-2xl mb-1" style="font-variation-settings: 'FILL' 1;">group</span>
+<span class="font-label-sm text-label-sm font-semibold">Guests</span>
+</a>
+</li>
+<li>
+<a class="flex flex-col items-center justify-center text-outline hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined text-2xl mb-1" style="font-variation-settings: 'FILL' 0;">card_giftcard</span>
+<span class="font-label-sm text-label-sm">Registry</span>
+</a>
+</li>
+<li>
+<a class="flex flex-col items-center justify-center text-outline hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined text-2xl mb-1" style="font-variation-settings: 'FILL' 0;">settings</span>
+<span class="font-label-sm text-label-sm">Settings</span>
+</a>
+</li>
+</ul>
+</nav>
+<script>
+        // Simple scroll listener to add a slight shadow/opacity to top nav when scrolling
+        window.addEventListener('scroll', () => {
+            const nav = document.getElementById('top-nav');
+            if (window.scrollY > 20) {
+                nav.classList.add('shadow-md');
+                nav.classList.replace('bg-surface/80', 'bg-surface/95');
+            } else {
+                nav.classList.remove('shadow-md');
+                nav.classList.replace('bg-surface/95', 'bg-surface/80');
+            }
+        });
+    </script>
+</body></html>

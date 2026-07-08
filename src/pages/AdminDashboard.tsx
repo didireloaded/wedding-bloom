@@ -17,6 +17,7 @@ import { ConfirmModal } from "@/components/ui/ConfirmModal";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { MobileBottomNav } from "@/components/nav/MobileBottomNav";
 import { QRCodeModal } from "@/components/wedding/QRCodeModal";
+import { CreateWeddingWizard, SystemHealthModule } from "@/components/admin";
 import { supabase } from "@/utils/supabase";
 import { WeddingService } from "@/services";
 import { getStatusStyle } from "@/utils/designSystem";
@@ -73,7 +74,7 @@ export default function AdminDashboard() {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [detailWedding, setDetailWedding] = useState<any | null>(null);
   const [importPanel, setImportPanel] = useState<any | null>(null);
-  const [toolPanel, setToolPanel] = useState<"templates" | "themes" | "assets" | "reports" | "users" | "settings" | null>(null);
+  const [toolPanel, setToolPanel] = useState<"templates" | "themes" | "assets" | "reports" | "users" | "settings" | "health" | null>(null);
   const [template, setTemplate] = useState(templateLibrary[0].name);
   const [newCouple, setNewCouple] = useState("");
   const [newSlug, setNewSlug] = useState("");
@@ -631,7 +632,7 @@ export default function AdminDashboard() {
           <GlassCard variant="obsidian" padding="lg" className="order-3 lg:col-span-4 border border-white/[0.1] flex flex-col justify-between">
             <div>
               <div className="wedding-label mb-3">Quick Actions</div>
-              <div className="grid grid-cols-2 gap-2.5">
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-2.5">
                 <button
                   onClick={() => setShowCreate(true)}
                   className="p-3.5 rounded-[18px] bg-white/[0.04] border border-white/[0.08] hover:bg-[#D4A853]/10 hover:border-[#D4A853]/30 text-left transition group min-h-[64px]"
@@ -659,6 +660,13 @@ export default function AdminDashboard() {
                 >
                   <Download className="w-5 h-5 text-[#A8A29E] mb-2" />
                   <div className="text-[13px] font-semibold text-[#FAF7F2]">View Reports</div>
+                </button>
+                <button
+                  onClick={() => setToolPanel("health")}
+                  className="p-3.5 rounded-[18px] bg-white/[0.04] border border-white/[0.08] hover:bg-[#7A9E7E]/10 hover:border-[#7A9E7E]/30 text-left transition md:col-span-2 min-h-[64px]"
+                >
+                  <Gauge className="w-5 h-5 text-[#7A9E7E] mb-2" />
+                  <div className="text-[13px] font-semibold text-[#FAF7F2]">System Health & Diagnostics</div>
                 </button>
               </div>
             </div>
@@ -1060,53 +1068,16 @@ export default function AdminDashboard() {
 
       {/* ────────────────── MODALS & OVERLAYS ────────────────── */}
 
-      {/* Create Wedding Modal */}
+      {/* Create Wedding Wizard Modal */}
       {showCreate && (
-        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-xl flex items-center justify-center p-4">
-          <form onSubmit={createWedding} className="glass-obsidian rounded-[32px] border border-white/[0.15] p-8 w-full max-w-2xl shadow-2xl grid md:grid-cols-2 gap-5 relative">
-            <div className="md:col-span-2 flex items-start justify-between">
-              <div>
-                <div className="wedding-label mb-1">New Wedding Celebration</div>
-                <h2 className="display text-[32px] text-[#FAF7F2]">Create Wedding</h2>
-              </div>
-              <button type="button" onClick={() => setShowCreate(false)} className="w-9 h-9 rounded-full bg-white/[0.06] flex items-center justify-center text-[#A8A29E] hover:text-[#FAF7F2]"><X size={16}/></button>
-            </div>
-
-            <div>
-              <label className="block wedding-label mb-2">Couple Names</label>
-              <input required value={newCouple} onChange={e => setNewCouple(e.target.value)} placeholder="Elara & Julian" className="fv-input" />
-            </div>
-            <div>
-              <label className="block wedding-label mb-2">Custom Slug</label>
-              <input value={newSlug} onChange={e => setNewSlug(e.target.value)} placeholder="elara-julian" className="fv-input" />
-            </div>
-            <div>
-              <label className="block wedding-label mb-2">Wedding Date</label>
-              <input type="date" value={newDate} onChange={e => setNewDate(e.target.value)} className="fv-input" />
-            </div>
-            <div>
-              <label className="block wedding-label mb-2">Primary Venue</label>
-              <input value={newVenue} onChange={e => setNewVenue(e.target.value)} placeholder="Villa Rose, Como" className="fv-input" />
-            </div>
-
-            <div className="md:col-span-2">
-              <label className="block wedding-label mb-3">Design Template</label>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                {templateLibrary.map(t => (
-                  <button key={t.name} type="button" onClick={() => setTemplate(t.name)} className={`rounded-[16px] border overflow-hidden text-left transition ${template === t.name ? "border-[#D4A853] ring-2 ring-[#D4A853]/40" : "border-white/[0.08] opacity-60 hover:opacity-100"}`}>
-                    <img src={t.image} alt="" className="h-20 w-full object-cover" />
-                    <div className="p-2.5 text-[11px] font-semibold text-[#FAF7F2]">{t.name}</div>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="md:col-span-2 flex justify-end gap-3 pt-4 border-t border-white/[0.08]">
-              <button type="button" onClick={() => setShowCreate(false)} className="fv-btn-ghost !py-3 !px-6 text-[13px]">Cancel</button>
-              <button type="submit" className="fv-btn-primary !py-3 !px-7 text-[13px]">Create & Launch Wedding</button>
-            </div>
-          </form>
-        </div>
+        <CreateWeddingWizard
+          onClose={() => setShowCreate(false)}
+          onCreated={(newWed) => {
+            setShowCreate(false);
+            setDetailWedding(newWed);
+            refresh();
+          }}
+        />
       )}
 
       {/* Guest List CSV Import Panel */}
@@ -1150,7 +1121,20 @@ export default function AdminDashboard() {
       )}
 
       {/* Tool Module Panel */}
-      {toolPanel && (
+      {toolPanel === "health" && (
+        <div className="fixed inset-0 z-50 bg-[#0C0A09] overflow-y-auto">
+          <div className="fixed top-6 right-6 z-50">
+            <button
+              onClick={() => setToolPanel(null)}
+              className="px-5 py-2.5 rounded-full bg-white/[0.1] hover:bg-white/[0.2] text-white font-bold text-sm flex items-center gap-2 border border-white/[0.2] backdrop-blur-md shadow-2xl transition"
+            >
+              <X size={18} /> Close Cockpit
+            </button>
+          </div>
+          <SystemHealthModule />
+        </div>
+      )}
+      {toolPanel && toolPanel !== "health" && (
         <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-xl flex items-center justify-center p-4" onClick={() => setToolPanel(null)}>
           <div className="w-full max-w-3xl glass-obsidian rounded-[32px] border border-white/[0.15] p-8 shadow-2xl" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between pb-6 border-b border-white/[0.08] mb-6">

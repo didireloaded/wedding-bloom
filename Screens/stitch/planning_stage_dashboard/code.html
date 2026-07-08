@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Forever Vow - Planning Journey</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Playfair+Display:wght@600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "inverse-surface": "#303030",
+                        "on-secondary-container": "#755d5d",
+                        "background": "#fcf9f8",
+                        "outline": "#7f7663",
+                        "on-background": "#1b1c1c",
+                        "on-tertiary-container": "#364a38",
+                        "on-tertiary": "#ffffff",
+                        "primary-container": "#d4af37",
+                        "inverse-primary": "#e9c349",
+                        "surface": "#fcf9f8",
+                        "secondary-container": "#f9d8d8",
+                        "on-secondary-fixed-variant": "#584142",
+                        "surface-container-high": "#eae7e7",
+                        "on-tertiary-fixed": "#0c1f11",
+                        "tertiary-fixed-dim": "#b5cdb5",
+                        "on-error-container": "#93000a",
+                        "surface-dim": "#dcd9d9",
+                        "secondary-fixed-dim": "#dfbfbf",
+                        "surface-container-highest": "#e5e2e1",
+                        "surface-tint": "#735c00",
+                        "secondary": "#715859",
+                        "on-primary-fixed": "#241a00",
+                        "error": "#ba1a1a",
+                        "surface-container-low": "#f6f3f2",
+                        "on-surface-variant": "#4d4635",
+                        "on-secondary-fixed": "#281717",
+                        "on-secondary": "#ffffff",
+                        "on-surface": "#1b1c1c",
+                        "tertiary": "#4f6450",
+                        "surface-bright": "#fcf9f8",
+                        "on-primary-fixed-variant": "#574500",
+                        "primary": "#735c00",
+                        "tertiary-fixed": "#d1e9d0",
+                        "on-tertiary-fixed-variant": "#374c3a",
+                        "inverse-on-surface": "#f3f0ef",
+                        "surface-container-lowest": "#ffffff",
+                        "primary-fixed-dim": "#e9c349",
+                        "tertiary-container": "#a2b9a2",
+                        "secondary-fixed": "#fcdbdb",
+                        "on-error": "#ffffff",
+                        "error-container": "#ffdad6",
+                        "surface-container": "#f0eded",
+                        "primary-fixed": "#ffe088",
+                        "outline-variant": "#d0c5af",
+                        "on-primary-container": "#554300",
+                        "on-primary": "#ffffff",
+                        "surface-variant": "#e5e2e1"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "1rem",
+                        "lg": "2rem",
+                        "xl": "3rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "stack-sm": "12px",
+                        "unit": "8px",
+                        "stack-md": "24px",
+                        "stack-lg": "48px",
+                        "margin-desktop": "64px",
+                        "gutter": "24px",
+                        "margin-mobile": "20px",
+                        "container-max": "1280px"
+                    },
+                    "fontFamily": {
+                        "label-md": ["Inter"],
+                        "headline-md": ["Playfair Display"],
+                        "display-lg-mobile": ["Playfair Display"],
+                        "display-lg": ["Playfair Display"],
+                        "body-md": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "label-sm": ["Inter"],
+                        "headline-sm": ["Playfair Display"]
+                    },
+                    "fontSize": {
+                        "label-md": ["14px", { "lineHeight": "1.2", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "headline-md": ["32px", { "lineHeight": "1.3", "fontWeight": "600" }],
+                        "display-lg-mobile": ["36px", { "lineHeight": "1.2", "fontWeight": "700" }],
+                        "display-lg": ["48px", { "lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "body-md": ["16px", { "lineHeight": "1.5", "fontWeight": "400" }],
+                        "body-lg": ["18px", { "lineHeight": "1.6", "letterSpacing": "-0.01em", "fontWeight": "400" }],
+                        "label-sm": ["12px", { "lineHeight": "1.2", "fontWeight": "500" }],
+                        "headline-sm": ["24px", { "lineHeight": "1.4", "fontWeight": "600" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body {
+            background-color: #FAF7F2; /* Custom Ivory override as per style guide */
+        }
+        
+        /* Ambient animations */
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+        .float-animation {
+            animation: float 6s ease-in-out infinite;
+        }
+
+        /* Circular Progress */
+        .progress-circle {
+            width: 160px;
+            height: 160px;
+            border-radius: 50%;
+            background: conic-gradient(var(--tw-colors-primary-container) 45%, var(--tw-colors-surface-container-high) 45%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        .progress-circle::before {
+            content: '';
+            position: absolute;
+            inset: 8px;
+            border-radius: 50%;
+            background-color: #FAF7F2; /* Match body ivory */
+        }
+        .progress-content {
+            position: relative;
+            z-index: 1;
+        }
+    </style>
+</head>
+<body class="text-on-background font-body-md antialiased pb-32 md:pb-0">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-white/70 dark:bg-inverse-surface/70 backdrop-blur-xl shadow-[0_20px_40px_rgba(34,34,34,0.05)] transition-all duration-300 ease-in-out">
+<div class="flex items-center justify-between px-margin-mobile md:px-margin-desktop h-20 w-full max-w-container-max mx-auto">
+<button aria-label="Menu" class="text-on-surface-variant/60 dark:text-on-surface-variant hover:scale-[1.02] transition-transform duration-300 active:scale-95 md:hidden">
+<span class="material-symbols-outlined text-2xl">menu</span>
+</button>
+<div class="flex-1 text-center md:text-left">
+<h1 class="font-headline-md text-headline-md-mobile md:text-headline-md tracking-tighter text-on-surface dark:text-inverse-on-surface">Forever Vow</h1>
+</div>
+<!-- Desktop Nav Cluster -->
+<nav class="hidden md:flex items-center gap-8 mr-8">
+<a class="flex flex-col items-center gap-1 text-primary dark:text-inverse-primary transition-transform" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">calendar_today</span>
+<span class="font-label-sm text-label-sm">Plan</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-on-surface-variant/60 dark:text-on-surface-variant hover:scale-[1.02] transition-transform duration-300" href="#">
+<span class="material-symbols-outlined">group</span>
+<span class="font-label-sm text-label-sm">Guests</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-on-surface-variant/60 dark:text-on-surface-variant hover:scale-[1.02] transition-transform duration-300" href="#">
+<span class="material-symbols-outlined">auto_awesome</span>
+<span class="font-label-sm text-label-sm">Feed</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-on-surface-variant/60 dark:text-on-surface-variant hover:scale-[1.02] transition-transform duration-300" href="#">
+<span class="material-symbols-outlined">chat_bubble</span>
+<span class="font-label-sm text-label-sm">Chat</span>
+</a>
+</nav>
+<button class="text-on-surface-variant/60 dark:text-on-surface-variant hover:scale-[1.02] transition-transform duration-300 active:scale-95">
+<div class="w-10 h-10 rounded-full bg-surface-variant overflow-hidden border border-outline-variant/30">
+<img alt="User profile avatar" class="w-full h-full object-cover" data-alt="A sophisticated black and white portrait of a modern couple in elegant minimalist attire, softly lit in a bright, airy studio with high-key cinematic lighting. The image embodies a luxury, calm editorial aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD1mF89rc69LVc85_b6V2mOXm0Lhn20WE9N3pnanJZ99vUr1P-mYyFaxtLX5LP3KG8f02qSb7GHP3rCxZqG3oao7sjC4YEkhGb-WmYvA9eGOYRY4jkib2kcXXBRrNzjS_tWpREyxxFxCt-CuuEk_c0be95yo_JuQ9_C7N37j4i4ANKg8rdt0PP0Ty31lpvxbc2bFzR4x-evBohHPp36wZyNv1lNpbstMFVEp2xYRK8A3h4R6bA39e2o"/>
+</div>
+</button>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop pt-32 md:pt-40 pb-stack-lg min-h-screen">
+<!-- Header Section -->
+<section class="mb-stack-lg text-center md:text-left flex flex-col md:flex-row md:items-end justify-between gap-stack-sm">
+<div>
+<p class="font-label-md text-label-md text-tertiary mb-2 uppercase tracking-widest">Planning Journey</p>
+<h2 class="font-display-lg-mobile md:font-display-lg text-on-surface">The Prologue</h2>
+</div>
+<div class="bg-surface-container-lowest px-6 py-3 rounded-full border border-[#F0EBE0] shadow-[0_20px_40px_rgba(34,34,34,0.05)] inline-flex items-center gap-3 float-animation">
+<span class="material-symbols-outlined text-primary-container text-xl" style="font-variation-settings: 'FILL' 1;">favorite</span>
+<span class="font-headline-sm text-headline-sm text-on-surface">245 Days to Go</span>
+</div>
+</section>
+<!-- Bento Grid Layout -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-gutter">
+<!-- Hero Progress Card (Spans 8 cols on desktop) -->
+<div class="md:col-span-8 bg-surface-container-lowest rounded-xl border border-[#F0EBE0] shadow-[0_20px_40px_rgba(34,34,34,0.05)] p-stack-md flex flex-col md:flex-row items-center gap-stack-md relative overflow-hidden">
+<!-- Decorative background elements -->
+<div class="absolute top-0 right-0 w-64 h-64 bg-primary-container/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
+<div class="progress-circle flex-shrink-0">
+<div class="progress-content text-center">
+<span class="font-headline-md text-headline-md text-primary block">45%</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Complete</span>
+</div>
+</div>
+<div class="flex-1 text-center md:text-left z-10">
+<h3 class="font-headline-sm text-headline-sm text-on-surface mb-2">Vision Progress</h3>
+<p class="font-body-md text-body-md text-on-surface-variant mb-6">You are laying a beautiful foundation. The major anchors of your day are falling into place.</p>
+<div class="flex flex-wrap gap-3 justify-center md:justify-start">
+<span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-tertiary-fixed text-on-tertiary-fixed-variant font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-sm">check_circle</span> Venue
+                        </span>
+<span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-secondary-fixed text-on-secondary-fixed-variant font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-sm">radio_button_unchecked</span> Photographer
+                        </span>
+<span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-surface-container-high text-on-surface-variant font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-sm">radio_button_unchecked</span> Catering
+                        </span>
+</div>
+</div>
+</div>
+<!-- AI Recommendations (Spans 4 cols on desktop) -->
+<div class="md:col-span-4 bg-surface-container-lowest rounded-xl border border-[#F0EBE0] shadow-[0_20px_40px_rgba(34,34,34,0.05)] p-stack-md flex flex-col">
+<div class="flex items-center gap-2 mb-4">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+<h3 class="font-label-md text-label-md text-on-surface uppercase tracking-wider">Curated Next Steps</h3>
+</div>
+<div class="flex-1 flex flex-col gap-4">
+<div class="group p-4 rounded-lg bg-surface hover:bg-surface-container-low transition-colors cursor-pointer border border-transparent hover:border-[#F0EBE0]">
+<p class="font-body-md text-body-md text-on-surface mb-1">It's time to choose your floral palette.</p>
+<p class="font-label-sm text-label-sm text-primary">Explore Inspiration →</p>
+</div>
+<div class="group p-4 rounded-lg bg-surface hover:bg-surface-container-low transition-colors cursor-pointer border border-transparent hover:border-[#F0EBE0]">
+<p class="font-body-md text-body-md text-on-surface mb-1">Review your initial Guest List draft.</p>
+<p class="font-label-sm text-label-sm text-primary">Manage Guests →</p>
+</div>
+</div>
+</div>
+<!-- Focus Areas: Large Editorial Cards -->
+<div class="md:col-span-12 mt-stack-sm mb-stack-sm">
+<div class="flex items-center justify-between mb-stack-sm">
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Focus Areas</h3>
+<button class="font-label-md text-label-md text-primary hover:opacity-80 transition-opacity">View All</button>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-gutter">
+<!-- Card 1 -->
+<div class="group relative bg-surface-container-lowest rounded-xl overflow-hidden border border-[#F0EBE0] shadow-[0_20px_40px_rgba(34,34,34,0.05)] aspect-[4/5] cursor-pointer">
+<img alt="Venue Booked" class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" data-alt="A sweeping, cinematic wide shot of an empty luxury wedding venue. A beautifully restored historic glass conservatory filled with soft, diffused morning sunlight, elegant ivory drapery, and subtle champagne-colored lighting accents. High-end architectural photography style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCY_An3nITe4JltRf2OaidSRvwH1qOG030-bwa5B6xTzHjHG1McSDGRye9DUeOHgKHHXZLlTC4glweCcxIHStZvrJbANk6GRzHkzw-1_I6S3D2iHwzEFsPpOoAC3P_LwvEVfe5TYogKkK6sa4FwQ4lLLJbt9f5xopw0q4rc5X8fzITKDPVHHSkZCTRIJuuLbq0uCgW5oKhbeIYmokBCUr7EUS1S9IoUnZxxpOnq7WTIe-iboIzbj8c3"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent"></div>
+<div class="absolute bottom-0 left-0 w-full p-6 text-white">
+<span class="inline-flex items-center gap-1.5 px-3 py-1 bg-white/20 backdrop-blur-md rounded-full font-label-sm text-label-sm mb-3">
+<span class="material-symbols-outlined text-[14px]">check</span> Booked
+                            </span>
+<h4 class="font-headline-sm text-headline-sm mb-1">The Conservatory</h4>
+<p class="font-body-md text-body-md opacity-80 text-sm">Deposit paid • Contract signed</p>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="group relative bg-surface-container-lowest rounded-xl overflow-hidden border border-[#F0EBE0] shadow-[0_20px_40px_rgba(34,34,34,0.05)] aspect-[4/5] cursor-pointer">
+<img alt="Finding a Photographer" class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" data-alt="A close-up, highly aesthetic detail shot of a vintage film camera resting on a sleek white marble table next to delicate, minimal white floral arrangements. Soft, muted pastel color palette with crisp focus. Cinematic romance vibe." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDRS_RS173OlzaoA5bhImEGwrd4iehLBG0GCGiuUiKoQdAJZXceaN3ouGarGqCcdMcUt7vXrlLdmE9ya6cL06O-J58JBY8QFWh_5o7Mz5V5OhoE7wOe3EYGFIQc8wLjWC_UqbjlFycKK6FrifU7seWV-4SWje4fCkO4eqRg3sh-x4X3_-JEumGYaZUdMciNltMp18ttD_YP4Zk3EMA5-zAj1DccMFWMkRubYMvPvM5lNi5qzu5hGRHb"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent"></div>
+<div class="absolute bottom-0 left-0 w-full p-6 text-white">
+<span class="inline-flex items-center gap-1.5 px-3 py-1 bg-white/20 backdrop-blur-md rounded-full font-label-sm text-label-sm mb-3">
+<span class="material-symbols-outlined text-[14px]">schedule</span> In Progress
+                            </span>
+<h4 class="font-headline-sm text-headline-sm mb-1">Finding a Photographer</h4>
+<p class="font-body-md text-body-md opacity-80 text-sm">3 candidates shortlisted</p>
+</div>
+</div>
+<!-- Card 3 -->
+<div class="group relative bg-surface-container-lowest rounded-xl overflow-hidden border border-[#F0EBE0] shadow-[0_20px_40px_rgba(34,34,34,0.05)] aspect-[4/5] cursor-pointer">
+<img alt="Registry Progress" class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" data-alt="An elegant flat lay of luxury home goods: a fine ceramic plate, brushed gold cutlery, and a soft linen napkin arranged harmoniously on a textured beige canvas. Warm, inviting natural light creating soft shadows. Sophisticated, clean aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDbZXfTr_hMR0pLn5oQ41f6JlDcV2JYzYl-507fX8Pj7IF3OLyS5P9Jp7VuUydLdMxUxvC7yUmwv4Ehs3t2ykRpwT0aDpvNWvb_eN8hajkcr3r834s38NRwq-zaw9CDP-RqZWZ_hOAEa7WTqVefJOsndRSQ3sxI9FVmLJ1l4xUAGCBBMoXKsHd9j5TYHyj9uVqH3Y9pn7hHriSH3gWg4So3Vd4SzcVwlwbr4HuCGL4MlHUy3ktkRI8a"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent"></div>
+<div class="absolute bottom-0 left-0 w-full p-6 text-white">
+<span class="inline-flex items-center gap-1.5 px-3 py-1 bg-white/20 backdrop-blur-md rounded-full font-label-sm text-label-sm mb-3">
+<span class="material-symbols-outlined text-[14px]">schedule</span> In Progress
+                            </span>
+<h4 class="font-headline-sm text-headline-sm mb-1">Registry Curation</h4>
+<p class="font-body-md text-body-md opacity-80 text-sm">12 items added</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Recent Activity List (Spans 12 cols on desktop) -->
+<div class="md:col-span-12 bg-surface-container-lowest rounded-xl border border-[#F0EBE0] shadow-[0_20px_40px_rgba(34,34,34,0.05)] p-stack-md">
+<h3 class="font-label-md text-label-md text-on-surface uppercase tracking-wider mb-6">Recent Activity</h3>
+<div class="flex flex-col gap-0 relative">
+<!-- Vertical line for timeline -->
+<div class="absolute left-[19px] top-4 bottom-4 w-px bg-outline-variant/30"></div>
+<!-- Activity Item 1 -->
+<div class="flex gap-4 p-4 hover:bg-surface transition-colors rounded-lg group relative z-10">
+<div class="w-10 h-10 rounded-full bg-secondary-container flex items-center justify-center flex-shrink-0 text-on-secondary-container mt-1 border-2 border-surface-container-lowest">
+<span class="material-symbols-outlined text-sm">group_add</span>
+</div>
+<div>
+<p class="font-body-md text-body-md text-on-surface"><span class="font-semibold">Alex</span> added 5 guests to the 'Friends' list.</p>
+<p class="font-label-sm text-label-sm text-on-surface-variant mt-1">2 hours ago</p>
+</div>
+</div>
+<!-- Activity Item 2 -->
+<div class="flex gap-4 p-4 hover:bg-surface transition-colors rounded-lg group relative z-10">
+<div class="w-10 h-10 rounded-full bg-tertiary-fixed flex items-center justify-center flex-shrink-0 text-on-tertiary-fixed-variant mt-1 border-2 border-surface-container-lowest">
+<span class="material-symbols-outlined text-sm">draw</span>
+</div>
+<div>
+<p class="font-body-md text-body-md text-on-surface">Venue contract for <span class="font-semibold">The Conservatory</span> was signed.</p>
+<p class="font-label-sm text-label-sm text-on-surface-variant mt-1">Yesterday</p>
+</div>
+</div>
+<!-- Activity Item 3 -->
+<div class="flex gap-4 p-4 hover:bg-surface transition-colors rounded-lg group relative z-10">
+<div class="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center flex-shrink-0 text-on-surface-variant mt-1 border-2 border-surface-container-lowest">
+<span class="material-symbols-outlined text-sm">palette</span>
+</div>
+<div>
+<p class="font-body-md text-body-md text-on-surface"><span class="font-semibold">Julian</span> created a new Vision Board: 'Autumn Romance'.</p>
+<p class="font-label-sm text-label-sm text-on-surface-variant mt-1">Oct 12</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- BottomNavBar (Mobile Only) -->
+<nav class="md:hidden fixed bottom-0 w-full z-50 rounded-t-xl bg-white/80 dark:bg-inverse-surface/80 backdrop-blur-xl shadow-[0_-10px_30px_rgba(34,34,34,0.03)] flex justify-around items-center h-20 px-4 pb-safe">
+<a class="flex flex-col items-center gap-1 text-primary dark:text-inverse-primary scale-110 transition-transform" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">calendar_today</span>
+<span class="font-label-sm text-label-sm">Plan</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-on-surface-variant/50 dark:text-on-surface-variant active:scale-90 transition-all duration-200" href="#">
+<span class="material-symbols-outlined">group</span>
+<span class="font-label-sm text-label-sm">Guests</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-on-surface-variant/50 dark:text-on-surface-variant active:scale-90 transition-all duration-200" href="#">
+<span class="material-symbols-outlined">auto_awesome</span>
+<span class="font-label-sm text-label-sm">Feed</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-on-surface-variant/50 dark:text-on-surface-variant active:scale-90 transition-all duration-200" href="#">
+<span class="material-symbols-outlined">chat_bubble</span>
+<span class="font-label-sm text-label-sm">Chat</span>
+</a>
+</nav>
+</body></html>

@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Vendor Details - The Grand Ballroom</title>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Google Fonts: Playfair Display & Inter -->
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Theme Configuration -->
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "tertiary-fixed-dim": "#debfc2",
+                    "surface-container-lowest": "#ffffff",
+                    "on-primary": "#ffffff",
+                    "surface-container-high": "#ebe7e8",
+                    "surface-variant": "#e5e1e3",
+                    "on-background": "#1c1b1c",
+                    "on-secondary": "#ffffff",
+                    "primary": "#5c5d6e",
+                    "outline": "#77767d",
+                    "surface-container-low": "#f6f3f4",
+                    "secondary-container": "#e8e0ba",
+                    "on-tertiary": "#ffffff",
+                    "on-primary-fixed-variant": "#444655",
+                    "secondary-fixed": "#eae3bc",
+                    "secondary-fixed-dim": "#cec7a2",
+                    "on-tertiary-fixed-variant": "#574144",
+                    "on-primary-fixed": "#191b29",
+                    "tertiary-container": "#ffe0e3",
+                    "on-surface": "#1c1b1c",
+                    "inverse-on-surface": "#f3f0f1",
+                    "on-tertiary-fixed": "#281719",
+                    "surface-container": "#f1edee",
+                    "inverse-primary": "#c5c5d8",
+                    "primary-fixed-dim": "#c5c5d8",
+                    "on-secondary-container": "#686344",
+                    "on-surface-variant": "#46464c",
+                    "surface-dim": "#dcd9da",
+                    "error-container": "#ffdad6",
+                    "surface-container-highest": "#e5e1e3",
+                    "tertiary": "#70585b",
+                    "error": "#ba1a1a",
+                    "on-error-container": "#93000a",
+                    "outline-variant": "#c7c5cc",
+                    "surface-bright": "#fcf8fa",
+                    "on-tertiary-container": "#7a6164",
+                    "on-secondary-fixed": "#1f1c04",
+                    "primary-container": "#e6e6fa",
+                    "surface-tint": "#5c5d6e",
+                    "on-secondary-fixed-variant": "#4b472b",
+                    "on-primary-container": "#656677",
+                    "secondary": "#635f40",
+                    "inverse-surface": "#313031",
+                    "on-error": "#ffffff",
+                    "primary-fixed": "#e1e1f5",
+                    "background": "#fcf8fa",
+                    "surface": "#fcf8fa",
+                    "tertiary-fixed": "#fbdbde"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "stack-lg": "32px",
+                    "gutter": "16px",
+                    "stack-sm": "8px",
+                    "container-padding": "24px",
+                    "stack-md": "16px",
+                    "unit": "4px"
+            },
+            "fontFamily": {
+                    "headline-lg": ["Playfair Display"],
+                    "label-caps": ["Inter"],
+                    "body-sm": ["Inter"],
+                    "body-md": ["Inter"],
+                    "headline-md": ["Playfair Display"],
+                    "body-lg": ["Inter"],
+                    "headline-lg-mobile": ["Playfair Display"],
+                    "headline-xl": ["Playfair Display"]
+            },
+            "fontSize": {
+                    "headline-lg": ["32px", {"lineHeight": "40px", "fontWeight": "600"}],
+                    "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                    "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                    "headline-lg-mobile": ["28px", {"lineHeight": "36px", "fontWeight": "600"}],
+                    "headline-xl": ["40px", {"lineHeight": "48px", "letterSpacing": "-0.02em", "fontWeight": "700"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            line-height: 1;
+            text-transform: none;
+            letter-spacing: normal;
+            word-wrap: normal;
+            white-space: nowrap;
+            direction: ltr;
+        }
+
+        /* Ambient Shadows & Tonal Layering */
+        .card-shadow {
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+        }
+
+        .lavender-glow:active {
+            box-shadow: 0 0 15px rgba(230, 230, 250, 0.6);
+        }
+
+        .editorial-image-mask {
+            mask-image: linear-gradient(to bottom, black 80%, transparent 100%);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background font-body-md min-h-screen pb-24">
+<!-- TopAppBar -->
+<header class="flex justify-between items-center px-container-padding h-16 w-full fixed top-0 z-50 bg-surface/90 backdrop-blur-md">
+<button class="hover:opacity-80 transition-opacity duration-200">
+<span class="material-symbols-outlined text-primary font-headline-md text-headline-md-mobile" data-icon="arrow_back">arrow_back</span>
+</button>
+<h1 class="font-headline-md text-headline-md-mobile text-primary">The Grand Ballroom</h1>
+<button class="hover:opacity-80 transition-opacity duration-200">
+<span class="material-symbols-outlined text-primary font-headline-md text-headline-md-mobile" data-icon="more_horiz">more_horiz</span>
+</button>
+</header>
+<main class="pt-16">
+<!-- Hero Section (Asymmetric Editorial Style) -->
+<section class="relative w-full h-[397px] overflow-hidden">
+<div class="absolute inset-0 bg-cover bg-center editorial-image-mask" data-alt="A breathtaking, wide-angle interior shot of a luxury wedding ballroom. Crystal chandeliers hang from a vaulted ceiling, casting a warm, romantic glow over a sea of white linens and gold-rimmed glassware. Large floor-to-ceiling windows reveal a soft, sunset sky in shades of pale lavender and peach, perfectly aligning with the Luminous Grace aesthetic. The composition is elegant and expansive, evoking a sense of high-end wedding grandeur." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCtq5lBeHk5sOqlzu-NgtovOlwLhGeYfqry__h38I3mgvVL8jW-wtoCJNA8F1n7LGclsb-4VtLMVaZc7pF3lQveLbp_vBkso3TIJJUngfzQgRuJhCV_bUGME8VZrxFvXtOHZaEXTZSKO4s-zghikW8bQoPqPosf0vPoecfYzVKogwgqn3mBP_0V1xRRv-fqi_EfSHR7WrvFDplSbScokJuqEZmL-T0f7moZ3mWHDYCNz-_xBjLxb78a')">
+</div>
+<div class="absolute bottom-6 left-container-padding">
+<div class="inline-flex items-center px-4 py-1 rounded-full bg-secondary-container text-on-secondary-container font-label-caps text-label-caps">
+<span class="material-symbols-outlined text-sm mr-1" data-icon="verified" style="font-variation-settings: 'FILL' 1;">verified</span>
+                    Booked
+                </div>
+</div>
+</section>
+<!-- Content Canvas -->
+<div class="px-container-padding -mt-8 relative z-10 space-y-stack-lg">
+<!-- Bento-style Vendor Info Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-gutter">
+<!-- Contact Card -->
+<div class="bg-surface-container-lowest p-stack-md rounded-xl card-shadow flex flex-col justify-between space-y-stack-md border border-outline-variant/30">
+<div>
+<h2 class="font-headline-md text-headline-md-mobile text-on-surface mb-stack-sm">Venue Contact</h2>
+<div class="space-y-stack-sm">
+<div class="flex items-center space-x-3 text-on-surface-variant">
+<span class="material-symbols-outlined text-primary" data-icon="mail">mail</span>
+<span class="font-body-sm text-body-sm">events@grandballroom.com</span>
+</div>
+<div class="flex items-center space-x-3 text-on-surface-variant">
+<span class="material-symbols-outlined text-primary" data-icon="call">call</span>
+<span class="font-body-sm text-body-sm">+1 (555) 234-8900</span>
+</div>
+<div class="flex items-center space-x-3 text-on-surface-variant">
+<span class="material-symbols-outlined text-primary" data-icon="location_on">location_on</span>
+<span class="font-body-sm text-body-sm" data-location="San Francisco, California">123 Heritage Way, Downtown</span>
+</div>
+</div>
+</div>
+<button class="w-full h-12 bg-primary-container text-on-primary-container font-label-caps text-label-caps rounded-lg hover:opacity-90 transition-all lavender-glow flex items-center justify-center">
+                        Message Venue
+                    </button>
+</div>
+<!-- Payment Summary Card -->
+<div class="bg-surface-container-lowest p-stack-md rounded-xl card-shadow border border-outline-variant/30">
+<h2 class="font-headline-md text-headline-md-mobile text-on-surface mb-stack-md">Financials</h2>
+<div class="space-y-stack-md">
+<div class="flex justify-between items-center">
+<span class="font-body-sm text-outline">Total Quote</span>
+<span class="font-body-lg text-body-lg font-bold text-on-surface">$12,500.00</span>
+</div>
+<div class="flex justify-between items-center">
+<span class="font-body-sm text-outline">Deposit Paid</span>
+<span class="font-body-sm text-body-sm text-secondary font-medium">-$5,000.00</span>
+</div>
+<div class="pt-stack-sm border-t border-outline-variant/30 flex justify-between items-center">
+<span class="font-body-md text-body-md font-semibold text-on-surface">Balance Remaining</span>
+<span class="font-headline-md text-headline-md text-primary font-bold">$7,500.00</span>
+</div>
+<!-- Soft-Bar Progress Indicator -->
+<div class="space-y-1">
+<div class="flex justify-between text-[10px] font-label-caps uppercase tracking-wider text-outline">
+<span>Payment Progress</span>
+<span>40%</span>
+</div>
+<div class="w-full h-1.5 bg-surface-container-high rounded-full overflow-hidden">
+<div class="h-full bg-secondary transition-all duration-1000" style="width: 40%;"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Notes & Contract Section -->
+<div class="bg-surface-container-lowest p-container-padding rounded-xl card-shadow border border-outline-variant/30">
+<div class="flex justify-between items-center mb-stack-md">
+<h2 class="font-headline-md text-headline-md-mobile text-on-surface">Planning Notes</h2>
+<button class="text-primary hover:opacity-70 transition-opacity">
+<span class="material-symbols-outlined" data-icon="edit">edit</span>
+</button>
+</div>
+<div class="space-y-stack-md">
+<div class="p-stack-md rounded-lg bg-surface-container-low border-l-4 border-primary">
+<p class="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">
+                            "Last meeting confirmed the floral arch installation at the entrance. Need to send the updated guest count by August 15th. Venue provides white linens; we are bringing custom Sage Green runners."
+                        </p>
+<span class="block mt-2 text-[11px] font-label-caps text-outline">Updated June 18, 2024</span>
+</div>
+<div class="grid grid-cols-2 gap-stack-md">
+<div class="flex items-center p-3 rounded-lg border border-outline-variant hover:bg-surface-container-high transition-colors cursor-pointer group">
+<span class="material-symbols-outlined text-primary mr-3" data-icon="description">description</span>
+<div class="overflow-hidden">
+<p class="text-[12px] font-semibold text-on-surface truncate">Venue_Contract_V2.pdf</p>
+<p class="text-[10px] text-outline">2.4 MB</p>
+</div>
+</div>
+<div class="flex items-center p-3 rounded-lg border border-outline-variant hover:bg-surface-container-high transition-colors cursor-pointer group">
+<span class="material-symbols-outlined text-primary mr-3" data-icon="photo_library">photo_library</span>
+<div class="overflow-hidden">
+<p class="text-[12px] font-semibold text-on-surface truncate">Gallery_Inspo.zip</p>
+<p class="text-[10px] text-outline">15.8 MB</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Upcoming Milestones -->
+<div class="space-y-stack-md pb-stack-lg">
+<h3 class="font-label-caps text-label-caps text-outline uppercase tracking-widest">Next Steps</h3>
+<div class="space-y-stack-sm">
+<div class="flex items-center p-stack-md bg-surface rounded-lg border border-outline-variant/30 card-shadow hover:border-primary/30 transition-all cursor-pointer">
+<span class="material-symbols-outlined text-outline mr-4" data-icon="check_box_outline_blank">check_box_outline_blank</span>
+<div class="flex-grow">
+<p class="font-body-md text-on-surface">Menu Tasting &amp; Final Selection</p>
+<p class="font-body-sm text-outline">Due: July 12, 2024</p>
+</div>
+<span class="material-symbols-outlined text-outline-variant" data-icon="chevron_right">chevron_right</span>
+</div>
+<div class="flex items-center p-stack-md bg-surface rounded-lg border border-outline-variant/30 card-shadow opacity-60">
+<span class="material-symbols-outlined text-secondary mr-4" data-icon="check_circle" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+<div class="flex-grow">
+<p class="font-body-md text-on-surface line-through">Security Deposit Payment</p>
+<p class="font-body-sm text-outline">Completed June 01</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- BottomNavBar (Suppressed for focused detail view per mandate, but present in JSON for structural guide - technically this is a sub-page, so navigation is suppressed) -->
+<script>
+        // Micro-interactions
+        document.querySelectorAll('.card-shadow').forEach(card => {
+            card.addEventListener('mouseenter', () => {
+                card.style.transform = 'translateY(-2px)';
+                card.style.transition = 'transform 0.3s ease';
+            });
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = 'translateY(0)';
+            });
+        });
+    </script>
+</body></html>

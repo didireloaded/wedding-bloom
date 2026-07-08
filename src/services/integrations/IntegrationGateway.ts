@@ -14,7 +14,7 @@ export interface SMSNotificationProvider {
 }
 
 export interface EmailNotificationProvider {
-  sendEmail(to: string, subject: string, htmlBody?: string): Promise<{ success: boolean; messageId?: string; error?: string }>;
+  sendEmail(toOrPayload: string | { to: string; subject: string; html?: string }, subject?: string, htmlBody?: string): Promise<{ success: boolean; messageId?: string; error?: string }>;
 }
 
 export interface PaymentGatewayProvider {
@@ -88,8 +88,10 @@ class DefaultMockIntegrationAdapter
     return { success: true, messageId: `sms_${Date.now()}` };
   }
 
-  async sendEmail(to: string, subject: string): Promise<{ success: boolean; messageId?: string; error?: string }> {
-    console.log(`[IntegrationGateway:Email (Resend)] Dispatching Email to ${to} [Subject: ${subject}]`);
+  async sendEmail(toOrPayload: string | { to: string; subject: string; html?: string }, subject?: string, htmlBody?: string): Promise<{ success: boolean; messageId?: string; error?: string }> {
+    const to = typeof toOrPayload === "string" ? toOrPayload : toOrPayload.to;
+    const subj = typeof toOrPayload === "string" ? (subject || "") : toOrPayload.subject;
+    console.log(`[IntegrationGateway:Email (Resend)] Dispatching Email to ${to} [Subject: ${subj}]`);
     return { success: true, messageId: `email_${Date.now()}` };
   }
 

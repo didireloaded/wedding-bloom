@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Venue Management - Forever Vow</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Playfair+Display:wght@600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "inverse-surface": "#303030",
+                        "error": "#ba1a1a",
+                        "surface-container": "#f0eded",
+                        "secondary-container": "#f9d8d8",
+                        "error-container": "#ffdad6",
+                        "surface-container-lowest": "#ffffff",
+                        "tertiary-fixed-dim": "#b5cdb5",
+                        "outline-variant": "#d0c5af",
+                        "surface-container-high": "#eae7e7",
+                        "on-tertiary": "#ffffff",
+                        "background": "#fcf9f8",
+                        "primary-container": "#d4af37",
+                        "primary": "#735c00",
+                        "on-background": "#1b1c1c",
+                        "on-secondary-container": "#755d5d",
+                        "on-primary-fixed-variant": "#574500",
+                        "surface": "#fcf9f8",
+                        "secondary-fixed-dim": "#dfbfbf",
+                        "surface-bright": "#fcf9f8",
+                        "outline": "#7f7663",
+                        "surface-variant": "#e5e2e1",
+                        "primary-fixed": "#ffe088",
+                        "on-secondary": "#ffffff",
+                        "on-secondary-fixed": "#281717",
+                        "on-error-container": "#93000a",
+                        "on-surface-variant": "#4d4635",
+                        "surface-tint": "#735c00",
+                        "surface-container-highest": "#e5e2e1",
+                        "tertiary-container": "#a2b9a2",
+                        "surface-container-low": "#f6f3f2",
+                        "surface-dim": "#dcd9d9",
+                        "primary-fixed-dim": "#e9c349",
+                        "tertiary": "#4f6450",
+                        "on-tertiary-fixed": "#0c1f11",
+                        "on-secondary-fixed-variant": "#584142",
+                        "on-primary-container": "#554300",
+                        "secondary-fixed": "#fcdbdb",
+                        "on-tertiary-container": "#364a38",
+                        "secondary": "#715859",
+                        "inverse-primary": "#e9c349",
+                        "tertiary-fixed": "#d1e9d0",
+                        "on-surface": "#1b1c1c",
+                        "on-primary-fixed": "#241a00",
+                        "on-error": "#ffffff",
+                        "on-primary": "#ffffff",
+                        "inverse-on-surface": "#f3f0ef",
+                        "on-tertiary-fixed-variant": "#374c3a"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "1rem",
+                        "lg": "2rem",
+                        "xl": "3rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "stack-md": "24px",
+                        "unit": "8px",
+                        "gutter": "24px",
+                        "margin-desktop": "64px",
+                        "stack-lg": "48px",
+                        "container-max": "1280px",
+                        "stack-sm": "12px",
+                        "margin-mobile": "20px"
+                    },
+                    "fontFamily": {
+                        "label-sm": ["Inter"],
+                        "headline-sm": ["Playfair Display"],
+                        "body-lg": ["Inter"],
+                        "body-md": ["Inter"],
+                        "display-lg-mobile": ["Playfair Display"],
+                        "headline-md": ["Playfair Display"],
+                        "display-lg": ["Playfair Display"],
+                        "label-md": ["Inter"]
+                    },
+                    "fontSize": {
+                        "label-sm": ["12px", { "lineHeight": "1.2", "fontWeight": "500" }],
+                        "headline-sm": ["24px", { "lineHeight": "1.4", "fontWeight": "600" }],
+                        "body-lg": ["18px", { "lineHeight": "1.6", "letterSpacing": "-0.01em", "fontWeight": "400" }],
+                        "body-md": ["16px", { "lineHeight": "1.5", "fontWeight": "400" }],
+                        "display-lg-mobile": ["36px", { "lineHeight": "1.2", "fontWeight": "700" }],
+                        "headline-md": ["32px", { "lineHeight": "1.3", "fontWeight": "600" }],
+                        "display-lg": ["48px", { "lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "label-md": ["14px", { "lineHeight": "1.2", "letterSpacing": "0.05em", "fontWeight": "600" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body {
+            background-color: #FAF7F2;
+            overflow-x: hidden;
+        }
+        .luxury-shadow {
+            box-shadow: 0 20px 40px rgba(34, 34, 34, 0.05);
+        }
+        .pb-safe {
+            padding-bottom: env(safe-area-inset-bottom, 20px);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="text-on-background font-body-md antialiased pt-20 pb-32 md:pb-20 md:pt-24 min-h-screen flex flex-col">
+<!-- TopAppBar -->
+<header class="bg-surface/80 dark:bg-surface/80 backdrop-blur-xl fixed top-0 w-full z-50 bg-surface/80 backdrop-blur-xl border-b border-outline-variant/20 shadow-sm flex items-center justify-between px-margin-mobile md:px-margin-desktop h-16 w-full">
+<button class="text-primary dark:text-primary-fixed hover:opacity-80 transition-opacity Active: scale-95 transition-transform duration-200 p-2 -ml-2 rounded-full focus:outline-none focus:ring-2 focus:ring-primary-container">
+<span class="material-symbols-outlined font-label-md text-label-md">menu</span>
+</button>
+<h1 class="font-headline-md text-headline-md text-primary dark:text-primary-fixed tracking-tight truncate flex-1 text-center">Forever Vow</h1>
+<button class="text-primary dark:text-primary-fixed hover:opacity-80 transition-opacity Active: scale-95 transition-transform duration-200 p-2 -mr-2 rounded-full focus:outline-none focus:ring-2 focus:ring-primary-container">
+<span class="material-symbols-outlined font-label-md text-label-md">account_circle</span>
+</button>
+</header>
+<!-- Main Content Container -->
+<main class="flex-1 w-full max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop mt-stack-md flex flex-col gap-stack-lg">
+<!-- Header Section -->
+<section class="flex flex-col md:flex-row md:items-end justify-between gap-stack-md">
+<div class="flex flex-col gap-unit">
+<h2 class="font-display-lg-mobile md:font-display-lg text-display-lg-mobile md:text-display-lg text-on-surface">Curated Spaces</h2>
+<p class="font-body-lg text-body-lg text-on-surface-variant max-w-2xl">Manage your portfolio of luxury venues. Review availability and configure details for upcoming cinematic experiences.</p>
+</div>
+<!-- FAB Desktop Equivalent -->
+<button class="hidden md:flex items-center gap-2 bg-primary-container text-on-primary-container px-6 py-4 rounded-full font-label-md text-label-md hover:scale-[1.02] transition-transform luxury-shadow focus:outline-none focus:ring-4 focus:ring-primary-container/50">
+<span class="material-symbols-outlined">add</span>
+                Add New Venue
+            </button>
+</section>
+<!-- Bento Grid / Venue List -->
+<section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-gutter">
+<!-- Card 1 -->
+<article class="bg-surface-container-lowest rounded-[24px] border border-[#F0EBE0] overflow-hidden flex flex-col group luxury-shadow hover:-translate-y-1 transition-transform duration-300">
+<div class="relative w-full h-64 md:h-72 overflow-hidden rounded-t-[24px]">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-in-out" data-alt="A sweeping, cinematic shot of a grand ballroom in a historic European estate. The room features immense crystal chandeliers casting a warm, champagne glow. The architecture is ornate with ivory columns and gold leaf accents. High-key lighting, luxurious and pristine aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA0rd_q0vIwNbhi0F__8hvXR82elo4jhntccRtRMOIGcN6Hvh4d4_7iLnTe1BU3p6uIwUZ9wld4QEJ01yuTyeHL2L3nHU0Klhyu7n9Fgc_3P6x_6NtTVEvFiDw-gbrczA3g40m8gnCubfxIJRc36wBzhFp7V6htWsgKLe70LtKjiXUhfR_68EiXIIRdwVKGtDWJDKXz4DlO1Gqcu4kGIVRKWJku4v0jQuexiB8EP54l1DGBCqOq2dDG"/>
+<div class="absolute top-4 right-4 bg-surface/90 backdrop-blur-md rounded-full px-4 py-1.5 border border-outline-variant/30 flex items-center gap-1">
+<span class="w-2 h-2 rounded-full bg-[#A2B9A2]"></span>
+<span class="font-label-sm text-label-sm text-on-surface">Available</span>
+</div>
+</div>
+<div class="p-stack-md flex flex-col gap-stack-sm flex-1">
+<div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface group-hover:text-primary transition-colors">The Grand Conservatory</h3>
+<div class="flex items-center gap-1 text-on-surface-variant mt-1">
+<span class="material-symbols-outlined text-sm">location_on</span>
+<p class="font-body-md text-body-md">Lake Como, Italy</p>
+</div>
+</div>
+<div class="flex flex-wrap gap-2 mt-auto pt-stack-sm border-t border-surface-variant">
+<span class="px-3 py-1 bg-surface-container rounded-full font-label-sm text-label-sm text-on-surface-variant flex items-center gap-1"><span class="material-symbols-outlined text-sm">group</span> 350 Guests</span>
+<span class="px-3 py-1 bg-surface-container rounded-full font-label-sm text-label-sm text-on-surface-variant flex items-center gap-1"><span class="material-symbols-outlined text-sm">square_foot</span> 12,000 sqft</span>
+</div>
+</div>
+</article>
+<!-- Card 2 -->
+<article class="bg-surface-container-lowest rounded-[24px] border border-[#F0EBE0] overflow-hidden flex flex-col group luxury-shadow hover:-translate-y-1 transition-transform duration-300">
+<div class="relative w-full h-64 md:h-72 overflow-hidden rounded-t-[24px]">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-in-out" data-alt="An ethereal outdoor wedding venue in a sun-drenched vineyard valley. Rows of lush green vines stretch toward rolling hills under a clear blue sky. A sophisticated, minimalist clear-top tent is visible in the foreground. Soft, warm sunlight, luxurious rustic aesthetic, ivory and sage palette." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBWwgeae01uHk3KzZqsjCsjXjYkCa9Kf3qsR2rdw5ihk0Jxza1kjxsu550NigOP6cAzlIap21A0HnpGCsYnQ3z0hW1qULXlud2_a202jBaNNkj40TASVkQEnt_wurDhNwJBcSbG4mOdpu9T0R0sLoUvEDbeJH5n9xxByRO5-Oe7klNGXBnWz8fBxZxbpaOyZ2PDSHAadKsV5la7XK5FcSdP3mvwnRcRtFoEL6QyRwzGGPODByxQ2Lfg"/>
+<div class="absolute top-4 right-4 bg-surface/90 backdrop-blur-md rounded-full px-4 py-1.5 border border-outline-variant/30 flex items-center gap-1">
+<span class="w-2 h-2 rounded-full bg-[#E9C349]"></span>
+<span class="font-label-sm text-label-sm text-on-surface">Reserved</span>
+</div>
+</div>
+<div class="p-stack-md flex flex-col gap-stack-sm flex-1">
+<div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface group-hover:text-primary transition-colors">Vines &amp; Vows Estate</h3>
+<div class="flex items-center gap-1 text-on-surface-variant mt-1">
+<span class="material-symbols-outlined text-sm">location_on</span>
+<p class="font-body-md text-body-md">Napa Valley, CA</p>
+</div>
+</div>
+<div class="flex flex-wrap gap-2 mt-auto pt-stack-sm border-t border-surface-variant">
+<span class="px-3 py-1 bg-surface-container rounded-full font-label-sm text-label-sm text-on-surface-variant flex items-center gap-1"><span class="material-symbols-outlined text-sm">group</span> 150 Guests</span>
+<span class="px-3 py-1 bg-surface-container rounded-full font-label-sm text-label-sm text-on-surface-variant flex items-center gap-1"><span class="material-symbols-outlined text-sm">park</span> Outdoor</span>
+</div>
+</div>
+</article>
+<!-- Card 3 -->
+<article class="bg-surface-container-lowest rounded-[24px] border border-[#F0EBE0] overflow-hidden flex flex-col group luxury-shadow hover:-translate-y-1 transition-transform duration-300">
+<div class="relative w-full h-64 md:h-72 overflow-hidden rounded-t-[24px]">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-in-out" data-alt="A highly modern, architectural art gallery space used as a wedding venue. Soaring ceilings with dramatic skylights, stark white walls, and polished concrete floors. The space is sparsely decorated with minimalist floral arrangements in champagne and ivory. Cool, even natural light, high-end contemporary aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBznP1aMi6N1lHAKipPXCrU-7aiDG8mT3tXVXqIiqg0u8dWcDRqSx03nP0hP9GVJc35uVkJyUc98RTnkocfk4n9RE0r4-xkNIop4wlyf5aYx2iZ-Wub02ngCxrlWUMxkQBvbQfZkvYfKU3H-lgu27YmHYagm40Wd5_t09GMNz7PmnfGZeDsYGxookEDpL1lvN3oI1mErt8VnJ7SAc5Wss-BPo1Cl78WlftxRtJZzk73aYzrMEIczo2p"/>
+<div class="absolute top-4 right-4 bg-surface/90 backdrop-blur-md rounded-full px-4 py-1.5 border border-outline-variant/30 flex items-center gap-1">
+<span class="w-2 h-2 rounded-full bg-[#BA1A1A]"></span>
+<span class="font-label-sm text-label-sm text-on-surface">Booked</span>
+</div>
+</div>
+<div class="p-stack-md flex flex-col gap-stack-sm flex-1">
+<div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface group-hover:text-primary transition-colors">The Modernist Gallery</h3>
+<div class="flex items-center gap-1 text-on-surface-variant mt-1">
+<span class="material-symbols-outlined text-sm">location_on</span>
+<p class="font-body-md text-body-md">Manhattan, NY</p>
+</div>
+</div>
+<div class="flex flex-wrap gap-2 mt-auto pt-stack-sm border-t border-surface-variant">
+<span class="px-3 py-1 bg-surface-container rounded-full font-label-sm text-label-sm text-on-surface-variant flex items-center gap-1"><span class="material-symbols-outlined text-sm">group</span> 200 Guests</span>
+<span class="px-3 py-1 bg-surface-container rounded-full font-label-sm text-label-sm text-on-surface-variant flex items-center gap-1"><span class="material-symbols-outlined text-sm">museum</span> Urban</span>
+</div>
+</div>
+</article>
+</section>
+</main>
+<!-- Floating Action Button (Mobile) -->
+<button class="md:hidden fixed bottom-24 right-margin-mobile bg-primary-container text-on-primary-container w-14 h-14 rounded-full flex items-center justify-center luxury-shadow hover:scale-[1.02] transition-transform z-40 focus:outline-none focus:ring-4 focus:ring-primary-container/50">
+<span class="material-symbols-outlined">add</span>
+</button>
+<!-- BottomNavBar -->
+<nav class="md:hidden bg-surface/80 dark:bg-inverse-surface/80 backdrop-blur-xl fixed bottom-0 w-full z-50 rounded-t-lg bg-surface/80 backdrop-blur-xl border-t border-outline-variant/20 shadow-lg flex justify-around items-center h-20 pb-safe px-4">
+<button class="flex flex-col items-center justify-center text-on-surface-variant/70 hover:text-primary transition-colors w-16 focus:outline-none">
+<span class="material-symbols-outlined">history</span>
+<span class="font-label-sm text-label-sm mt-1">Activity</span>
+</button>
+<button class="flex flex-col items-center justify-center text-primary dark:text-primary-fixed scale-105 hover:text-primary transition-colors Active: scale-90 transition-transform duration-150 w-16 focus:outline-none">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">location_on</span>
+<span class="font-label-sm text-label-sm mt-1">Venues</span>
+</button>
+<button class="flex flex-col items-center justify-center text-on-surface-variant/70 hover:text-primary transition-colors w-16 focus:outline-none">
+<span class="material-symbols-outlined">bed</span>
+<span class="font-label-sm text-label-sm mt-1">Lodging</span>
+</button>
+<button class="flex flex-col items-center justify-center text-on-surface-variant/70 hover:text-primary transition-colors w-16 focus:outline-none">
+<span class="material-symbols-outlined">qr_code</span>
+<span class="font-label-sm text-label-sm mt-1">Invites</span>
+</button>
+</nav>
+</body></html>

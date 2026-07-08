@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Forever Vow - Gallery Manager</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Playfair+Display:ital,wght@0,600;0,700;1,600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "on-secondary-fixed": "#281717",
+                      "on-error-container": "#93000a",
+                      "on-surface-variant": "#4d4635",
+                      "surface-bright": "#fcf9f8",
+                      "outline": "#7f7663",
+                      "primary-fixed": "#ffe088",
+                      "on-secondary": "#ffffff",
+                      "surface-variant": "#e5e2e1",
+                      "secondary-fixed-dim": "#dfbfbf",
+                      "on-secondary-container": "#755d5d",
+                      "surface": "#fcf9f8",
+                      "on-primary-fixed-variant": "#574500",
+                      "primary-container": "#d4af37",
+                      "surface-container-high": "#eae7e7",
+                      "on-tertiary": "#ffffff",
+                      "background": "#fcf9f8",
+                      "on-background": "#1b1c1c",
+                      "primary": "#735c00",
+                      "error-container": "#ffdad6",
+                      "tertiary-fixed-dim": "#b5cdb5",
+                      "outline-variant": "#d0c5af",
+                      "surface-container-lowest": "#ffffff",
+                      "inverse-surface": "#303030",
+                      "error": "#ba1a1a",
+                      "secondary-container": "#f9d8d8",
+                      "surface-container": "#f0eded",
+                      "on-tertiary-fixed-variant": "#374c3a",
+                      "inverse-on-surface": "#f3f0ef",
+                      "on-primary": "#ffffff",
+                      "on-error": "#ffffff",
+                      "tertiary-fixed": "#d1e9d0",
+                      "on-surface": "#1b1c1c",
+                      "on-primary-fixed": "#241a00",
+                      "secondary": "#715859",
+                      "inverse-primary": "#e9c349",
+                      "on-tertiary-container": "#364a38",
+                      "secondary-fixed": "#fcdbdb",
+                      "on-secondary-fixed-variant": "#584142",
+                      "on-primary-container": "#554300",
+                      "surface-dim": "#dcd9d9",
+                      "tertiary": "#4f6450",
+                      "on-tertiary-fixed": "#0c1f11",
+                      "primary-fixed-dim": "#e9c349",
+                      "surface-tint": "#735c00",
+                      "tertiary-container": "#a2b9a2",
+                      "surface-container-low": "#f6f3f2",
+                      "surface-container-highest": "#e5e2e1"
+              },
+              "borderRadius": {
+                      "DEFAULT": "1rem",
+                      "lg": "2rem",
+                      "xl": "3rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "stack-md": "24px",
+                      "unit": "8px",
+                      "gutter": "24px",
+                      "margin-desktop": "64px",
+                      "stack-lg": "48px",
+                      "container-max": "1280px",
+                      "stack-sm": "12px",
+                      "margin-mobile": "20px"
+              },
+              "fontFamily": {
+                      "headline-sm": [
+                              "Playfair Display"
+                      ],
+                      "label-sm": [
+                              "Inter"
+                      ],
+                      "body-md": [
+                              "Inter"
+                      ],
+                      "body-lg": [
+                              "Inter"
+                      ],
+                      "display-lg-mobile": [
+                              "Playfair Display"
+                      ],
+                      "label-md": [
+                              "Inter"
+                      ],
+                      "headline-md": [
+                              "Playfair Display"
+                      ],
+                      "display-lg": [
+                              "Playfair Display"
+                      ]
+              },
+              "fontSize": {
+                      "headline-sm": [
+                              "24px",
+                              {
+                                      "lineHeight": "1.4",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "label-sm": [
+                              "12px",
+                              {
+                                      "lineHeight": "1.2",
+                                      "fontWeight": "500"
+                              }
+                      ],
+                      "body-md": [
+                              "16px",
+                              {
+                                      "lineHeight": "1.5",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "body-lg": [
+                              "18px",
+                              {
+                                      "lineHeight": "1.6",
+                                      "letterSpacing": "-0.01em",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "display-lg-mobile": [
+                              "36px",
+                              {
+                                      "lineHeight": "1.2",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "label-md": [
+                              "14px",
+                              {
+                                      "lineHeight": "1.2",
+                                      "letterSpacing": "0.05em",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "headline-md": [
+                              "32px",
+                              {
+                                      "lineHeight": "1.3",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "display-lg": [
+                              "48px",
+                              {
+                                      "lineHeight": "1.1",
+                                      "letterSpacing": "-0.02em",
+                                      "fontWeight": "700"
+                              }
+                      ]
+              }
+      },
+          },
+        }
+    </script>
+<style>
+        /* Custom scrollbar for gallery */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #d0c5af;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #7f7663;
+        }
+        
+        .bento-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 24px;
+            grid-auto-rows: 250px;
+            grid-auto-flow: dense;
+        }
+        .bento-wide { grid-column: span 2; }
+        .bento-tall { grid-row: span 2; }
+        .bento-large { grid-column: span 2; grid-row: span 2; }
+        
+        @media (max-width: 768px) {
+            .bento-wide, .bento-large { grid-column: span 1; }
+            .bento-tall, .bento-large { grid-row: span 1; }
+            .bento-grid { grid-auto-rows: 200px; }
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid #F0EBE0;
+        }
+
+        .glass-overlay {
+            background: linear-gradient(to top, rgba(27, 28, 28, 0.8) 0%, rgba(27, 28, 28, 0) 100%);
+        }
+
+        .moderation-overlay {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(8px);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .photo-card:hover .moderation-overlay {
+            opacity: 1;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background min-h-screen antialiased selection:bg-primary-container selection:text-on-primary-container">
+<!-- TopAppBar -->
+<header class="bg-surface/80 dark:bg-surface/80 backdrop-blur-xl fixed top-0 w-full z-50 shadow-sm border-b border-outline-variant/20">
+<div class="flex items-center justify-between px-margin-mobile h-16 w-full max-w-container-max mx-auto">
+<button aria-label="Menu" class="text-primary dark:text-primary-fixed hover:opacity-80 transition-opacity active:scale-95 duration-200 p-2 -ml-2">
+<span class="material-symbols-outlined" data-icon="menu">menu</span>
+</button>
+<h1 class="font-headline-sm text-headline-sm-mobile md:text-headline-sm text-primary dark:text-primary-fixed italic absolute left-1/2 -translate-x-1/2">
+                Forever Vow
+            </h1>
+<div class="flex items-center gap-4">
+<button class="hidden md:flex items-center gap-2 bg-primary-container text-on-primary-container px-4 py-2 rounded-full font-label-md hover:scale-[1.02] transition-transform shadow-[0_4px_14px_rgba(212,175,55,0.2)]">
+<span class="material-symbols-outlined text-[18px]">upload</span>
+                    Upload Media
+                </button>
+<div class="w-8 h-8 rounded-full overflow-hidden border border-outline-variant/30">
+<img alt="User profile photo" class="w-full h-full object-cover" data-alt="A small circular profile avatar picture showing a young elegant couple smiling naturally outdoors in soft morning light, highly professional photography." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCeB9godDMxH9srocLiomInm_e9dJX65xj82zkDisVHfWtCxJyyx9Oa4TjPUz-uYUwPgMiDIvD9Jb893N1amg9BM5bamUfCqcDoCQumrYjaNWKLKrcG_VzU9pwI3KbeuquIfMV7ExsHHqKg6sHtpZuy0YBYzd6G4T_y_nopTCNMCgWZsNEbLJPNqipsgsZUZui8oI702qaZVZeZ8wcsUYZlG8DI0F6LFmFSIuBPjIG7pICtl37y9KdO"/>
+</div>
+</div>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="pt-24 pb-32 md:pb-24 px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto w-full flex flex-col gap-stack-lg">
+<!-- Header & Storage Metics -->
+<section class="flex flex-col md:flex-row justify-between items-start md:items-end gap-stack-md">
+<div>
+<h2 class="font-display-lg-mobile md:font-display-lg text-display-lg-mobile md:text-display-lg text-on-background mb-2">Gallery Manager</h2>
+<p class="font-body-lg text-body-lg text-on-surface-variant">Curate your cinematic wedding memories.</p>
+</div>
+<div class="glass-card rounded-xl p-4 flex flex-col gap-2 min-w-[250px] shadow-[0_20px_40px_rgba(34,34,34,0.05)]">
+<div class="flex justify-between items-center">
+<span class="font-label-md text-label-md text-on-surface">Storage Used</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">45 GB / 100 GB</span>
+</div>
+<div class="w-full bg-surface-container-high h-1.5 rounded-full overflow-hidden">
+<div class="bg-primary-container h-full rounded-full" style="width: 45%;"></div>
+</div>
+<p class="font-label-sm text-label-sm text-on-surface-variant mt-1">1,243 Photos • 12 Videos</p>
+</div>
+</section>
+<!-- Categories / Collections -->
+<section class="flex flex-col gap-stack-sm">
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Collections</h3>
+<div class="grid grid-cols-2 md:grid-cols-4 gap-gutter">
+<!-- Engagement -->
+<div class="group relative h-40 rounded-xl overflow-hidden cursor-pointer shadow-[0_20px_40px_rgba(34,34,34,0.05)]">
+<div class="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105" data-alt="A soft focus, wide shot of an engagement photoshoot taking place in a lush, sun-dappled forest, capturing a serene and deeply romantic mood. The color palette is earthy greens mixed with warm, golden hour sunlight. Cinematic luxury aesthetic, high resolution." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCIWKPm5XRNjdE1McxTq91Af9-_gg9JvE4fwAKNXlPry0SLAbLm2ac2NeL_0zwkjf2yCj9Pew76vGzS_66M5kPbbzpWGWGGy8R8HvxtgoahoQO1wrxTSlZIJ2TAVwzEJtHoP1YbMXJnXkgmYaQwuFAKLfCoWOnF0KMHYOHkx4O9M3YxEpOws9AAYgp-OCsnsZFno1NOv3vJQ0o1Q9dD2iK53A62IuJLwYgfsOXLqjDM984lh1LbSvZQ')"></div>
+<div class="absolute inset-0 glass-overlay flex flex-col justify-end p-4">
+<span class="font-label-md text-label-md text-on-primary">Engagement</span>
+<span class="font-label-sm text-label-sm text-on-primary/80">120 Items</span>
+</div>
+</div>
+<!-- Ceremony -->
+<div class="group relative h-40 rounded-xl overflow-hidden cursor-pointer shadow-[0_20px_40px_rgba(34,34,34,0.05)]">
+<div class="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105" data-alt="A breathtaking, cinematic view down a beautifully decorated wedding aisle in a grand stone cathedral, softly illuminated by stained glass window light. The atmosphere is solemn, elegant, and grand. Soft ivory and champagne tones dominate the scene." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBxT4-c-SZxbPffEsd4MWxqc9dPQIvh0NRnDuHQ0-ZmcGKh8QGMUSjBRwwjCUnRRxF2lQWY5W22vGWswe3vnTDV75z7nslzH53dK9CN-VoDuIrHptSWkDJok5g2IKR_bir7odavDTxBmJR-V3bHN-fM27GhmebUukGJJMtcvNIg-49YmIc37rSPphRzgx1-11KF7L7q4edIdMUcEo1wqV28QzMS5zVlHJzI8XrxSw_lWbfT3b5TImri')"></div>
+<div class="absolute inset-0 glass-overlay flex flex-col justify-end p-4">
+<span class="font-label-md text-label-md text-on-primary">Ceremony</span>
+<span class="font-label-sm text-label-sm text-on-primary/80">345 Items</span>
+</div>
+</div>
+<!-- Reception -->
+<div class="group relative h-40 rounded-xl overflow-hidden cursor-pointer shadow-[0_20px_40px_rgba(34,34,34,0.05)]">
+<div class="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105" data-alt="A lively, high-end wedding reception space at night, featuring a polished dance floor, sparkling crystal chandeliers, and tables adorned with elaborate white floral centerpieces. The lighting is warm and festive, casting a sophisticated, celebratory mood." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCT5_KGZ-Jnwiao9PhuJdE62n_1cE2N3QpBPbrv-fHNxvgwh2SuE5cymu5Qzuiblgwvx6nUUp99nJxKzD9ww28m21yUeL5nTLbQwzZGAhO_w3iBe3-Ev5pLSHT3TPwIuf-Bqxpm45zXSKIF3nUHzUq4BdSF2rvRsGxFbXCzm97PKab_ZwyIizY218aG1FI1JnZqE7dOaaOvtoIDYA6FS8nh9qwVmdZ-GRCvOEZHLqI1HxtSxyXeadzK')"></div>
+<div class="absolute inset-0 glass-overlay flex flex-col justify-end p-4">
+<span class="font-label-md text-label-md text-on-primary">Reception</span>
+<span class="font-label-sm text-label-sm text-on-primary/80">520 Items</span>
+</div>
+</div>
+<!-- Guest Uploads (Requires Attention) -->
+<div class="group relative h-40 rounded-xl overflow-hidden cursor-pointer shadow-[0_20px_40px_rgba(34,34,34,0.05)] border-2 border-primary-container/50">
+<div class="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105 opacity-80" data-alt="A collage-like abstract representation of candid party photos, slightly blurred to imply motion and spontaneity. The overall tone is joyful and warm, featuring a mix of indoor lighting styles typical of a late-night wedding celebration. Luxury aesthetic." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDu9r-bkc2DtLF-a5JB0-lqA6qL5Cqup7H2xvlzhx7ak119d8qky2zbm8J06OyOz_RKfjJpAhPc9M7OViITJtCOTmg18Qu3yeR6vy58qmmNrBTUeZGqvm-sBiUnetmr_iUt0Ux1d1RoivLyEh2YtcXCjJd88gQLHbUz28536z6iaKI8b3sQSjxJZgtnUUlgYaYNXOseufHysuqmpA-kgRiWtCDUjgqV-fHcPtB_bRIIsNWb-IuipaN2')"></div>
+<div class="absolute inset-0 glass-overlay flex flex-col justify-between p-4">
+<div class="self-end">
+<span class="bg-error-container text-on-error-container font-label-sm text-[10px] px-2 py-1 rounded-full flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">notifications_active</span>
+                                24 New
+                            </span>
+</div>
+<div>
+<span class="font-label-md text-label-md text-on-primary">Guest Uploads</span>
+<span class="font-label-sm text-label-sm text-on-primary/80">Review Queue</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Moderation Grid (Guest Uploads Focus) -->
+<section class="flex flex-col gap-stack-md">
+<div class="flex justify-between items-center">
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Recent Guest Uploads</h3>
+<button class="font-label-md text-label-md text-primary hover:underline underline-offset-4">View All</button>
+</div>
+<div class="bento-grid">
+<!-- Large Feature Photo -->
+<div class="photo-card bento-large relative rounded-[24px] overflow-hidden group shadow-[0_20px_40px_rgba(34,34,34,0.05)]">
+<img class="w-full h-full object-cover" data-alt="A high-quality candid shot of the bride and groom laughing together while cutting an elegant, multi-tiered white wedding cake. Warm ambient lighting, cinematic composition, capturing a moment of pure joy against a luxurious reception backdrop." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCrCoFdMkm0s4VmEcfD39v2Y3KLp_Gvwz6zzAx79PgEe_3XLqji4_wlq6qYEFjKwdqzK2mmT4isDb0zr-K2FvT0krG1_B-W1c3uMVsGXXfzb25Pgexy92DUEACGJ51hQTFTTM0sjOS9Rw4ayKCSNRqzdpIJI2R5cTkTRu7y2hlmwSoiQeAUNMT_VUhyzRP9yvYRNNT9TcbdOSyIetQnUyMF8e_Y1lpGdgbL85OcPnh9YHjIe9skwihg"/>
+<div class="moderation-overlay absolute inset-0 flex flex-col items-center justify-center gap-4">
+<p class="font-body-md text-body-md text-on-surface text-center px-4 mb-2">Uploaded by Sarah J.<br/><span class="text-sm text-on-surface-variant">2 hours ago</span></p>
+<div class="flex gap-4">
+<button aria-label="Reject" class="w-12 h-12 rounded-full bg-error-container text-on-error-container flex items-center justify-center hover:scale-110 transition-transform shadow-md">
+<span class="material-symbols-outlined" data-icon="close">close</span>
+</button>
+<button aria-label="Approve" class="w-12 h-12 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center hover:scale-110 transition-transform shadow-md">
+<span class="material-symbols-outlined" data-icon="check">check</span>
+</button>
+</div>
+</div>
+<div class="absolute bottom-4 left-4 bg-surface/80 backdrop-blur-md px-3 py-1 rounded-full text-xs font-medium text-on-surface">
+                        High Res
+                    </div>
+</div>
+<!-- Standard Tall Photo -->
+<div class="photo-card bento-tall relative rounded-[24px] overflow-hidden group shadow-[0_20px_40px_rgba(34,34,34,0.05)]">
+<img class="w-full h-full object-cover" data-alt="A vertical portrait orientation photo of a beautifully arranged table setting at a wedding reception. Details include gold chargers, crystal glassware, and white floral arrangements. Shallow depth of field, elegant and refined lighting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB6-pqNaXYf44fbCFFedtPw3F5asK1rjo3sIGk01CP46ZORz_JCTwG6OSwzsvbIbjAqVwr2Cbdcofp5l8Od1sxaGyDeFoGNa30K_zoFMrYh3e8f-QOJ_bGMFRXv9NbpWgeWo12Mr7ogNZ8zFWvJ21eg9WTkJ_HnBFuIyNrZVR1VTu2wVh3RiSQZYUPKRCPiIj8eBG2BEIU5dRn4r1OHzhDl2pYAb7dKklcCKgzHMhSwyvqoBA13_gFp"/>
+<div class="moderation-overlay absolute inset-0 flex flex-col items-center justify-center gap-4">
+<div class="flex gap-4">
+<button class="w-10 h-10 rounded-full bg-error-container text-on-error-container flex items-center justify-center hover:scale-110 transition-transform shadow-md">
+<span class="material-symbols-outlined text-[20px]" data-icon="close">close</span>
+</button>
+<button class="w-10 h-10 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center hover:scale-110 transition-transform shadow-md">
+<span class="material-symbols-outlined text-[20px]" data-icon="check">check</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Standard Wide Photo -->
+<div class="photo-card bento-wide relative rounded-[24px] overflow-hidden group shadow-[0_20px_40px_rgba(34,34,34,0.05)]">
+<img class="w-full h-full object-cover" data-alt="A wide panoramic shot of guests dancing enthusiastically on the dance floor under warm string lights. The image captures movement and celebration in a high-end, sophisticated evening setting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAiDodj1xTxFSLXKfA_Lx4Yp0z-E1LW9nJ4FCt-QEXsIWp3B6t7l1Yi7n17FsQg7R73yNl7JfFmU2On2A9Zt1b7fQA6l5Ab4Ga95xECaL9FLWwsusRf9UQRwgm39jOnbXJO45g-8Q_7p-uywwPImg9NiJG6pAuOu6jkJ_EaXi-TtSRrVddx4BbUrlSRj2r1Blvk_sMlAx7H1fE2dPdXxlsbxqOMIq12-r4z9jqgVf3iAxYbvOdHvEj_"/>
+<div class="moderation-overlay absolute inset-0 flex flex-col items-center justify-center gap-4">
+<div class="flex gap-4">
+<button class="w-10 h-10 rounded-full bg-error-container text-on-error-container flex items-center justify-center hover:scale-110 transition-transform shadow-md">
+<span class="material-symbols-outlined text-[20px]" data-icon="close">close</span>
+</button>
+<button class="w-10 h-10 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center hover:scale-110 transition-transform shadow-md">
+<span class="material-symbols-outlined text-[20px]" data-icon="check">check</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Standard Square Photo -->
+<div class="photo-card relative rounded-[24px] overflow-hidden group shadow-[0_20px_40px_rgba(34,34,34,0.05)]">
+<img class="w-full h-full object-cover" data-alt="A close-up shot of the wedding rings resting on a soft, textured ivory fabric. Elegant lighting highlights the sparkle of the diamonds. High luxury aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBw_JKouIUROd0thKQiiMNjdy80hljKwR9hy6i6N5aqodL2-gQecqWx0oQ1AlN98ikvEQCS7Ld7-0Irw40wawGyKFZ9sq0-NCjtkw-BliIafoHvK2d2Zw1ht3aqufHpsxlRyzcMKjuT-fLez-_ReNiNNM8zxPxMINdk4JkYGfj1AHZk7OtiFeSMwGGiMxmphdDU4x1hKgKs2QliqUchaAWF3wLEkFra8P2vdzI_MMAMZIg5tRmNWx_Q"/>
+<div class="moderation-overlay absolute inset-0 flex flex-col items-center justify-center gap-4">
+<div class="flex gap-4">
+<button class="w-10 h-10 rounded-full bg-error-container text-on-error-container flex items-center justify-center hover:scale-110 transition-transform shadow-md">
+<span class="material-symbols-outlined text-[20px]" data-icon="close">close</span>
+</button>
+<button class="w-10 h-10 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center hover:scale-110 transition-transform shadow-md">
+<span class="material-symbols-outlined text-[20px]" data-icon="check">check</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Standard Square Photo -->
+<div class="photo-card relative rounded-[24px] overflow-hidden group shadow-[0_20px_40px_rgba(34,34,34,0.05)]">
+<img class="w-full h-full object-cover" data-alt="A candid photo of a group of elegantly dressed guests clinking champagne glasses in a toast. Soft background blur, warm lighting, conveying celebration and luxury." src="https://lh3.googleusercontent.com/aida-public/AB6AXuALc1yWPw2XuQfRmWP1C3phT-KVGhuovEmXachKifnf76J9JhFhQEvVSA75CNQlEOtICyA6GWZN1dPa67eDjhfstLdnBvrVjuN9CqFgRAhvWwLyDQZZfQ75sVDHRIzdTWLwyCerg-895as5dfBK0tnek85MjPOfcvfHfVvqugTeVhnC631AvICw3Psoq386e8dnp7l-zpp3EPZO-mo7Pe6KcB0xQ3ZxLoETuN10zggii-3yBoPfsxPi"/>
+<div class="moderation-overlay absolute inset-0 flex flex-col items-center justify-center gap-4">
+<div class="flex gap-4">
+<button class="w-10 h-10 rounded-full bg-error-container text-on-error-container flex items-center justify-center hover:scale-110 transition-transform shadow-md">
+<span class="material-symbols-outlined text-[20px]" data-icon="close">close</span>
+</button>
+<button class="w-10 h-10 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center hover:scale-110 transition-transform shadow-md">
+<span class="material-symbols-outlined text-[20px]" data-icon="check">check</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- BottomNavBar (Mobile Only) -->
+<nav class="md:hidden bg-surface/80 dark:bg-surface/80 backdrop-blur-xl fixed bottom-0 w-full z-50 rounded-t-lg shadow-[0_-10px_30px_rgba(34,34,34,0.03)] border-t border-outline-variant/20 flex justify-around items-center h-20 px-4 pb-safe">
+<a class="flex flex-col items-center justify-center text-outline hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="event_upcoming">event_upcoming</span>
+<span class="font-label-sm text-label-sm mt-1">Plan</span>
+</a>
+<a class="flex flex-col items-center justify-center text-outline hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="auto_awesome">auto_awesome</span>
+<span class="font-label-sm text-label-sm mt-1">Vendors</span>
+</a>
+<!-- Active Tab: Assuming 'Registry' is closest to a Gallery/Gifts/Memories concept in this specific app ecosystem if 'Gallery' isn't explicitly listed, but 'Plan' or 'Settings' could also be argued. Let's stick to the active logic rules. If none fit perfectly, it's a destination. I will use 'Plan' as a fallback, but 'Settings' is often used for management. Wait, the rule says: "ONLY use semantic intent if there is no direct match". Gallery management feels like a feature within the ecosystem. Let's make 'Plan' active as it's part of planning/managing the wedding. -->
+<a class="flex flex-col items-center justify-center text-primary bg-primary-container/30 rounded-full px-4 py-1 active:scale-110 duration-300 ease-out" href="#">
+<span class="material-symbols-outlined" data-icon="event_upcoming" style="font-variation-settings: 'FILL' 1;">event_upcoming</span>
+<span class="font-label-sm text-label-sm mt-1 font-bold">Plan</span>
+</a>
+<a class="flex flex-col items-center justify-center text-outline hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="group">group</span>
+<span class="font-label-sm text-label-sm mt-1">Guests</span>
+</a>
+<a class="flex flex-col items-center justify-center text-outline hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="font-label-sm text-label-sm mt-1">Settings</span>
+</a>
+</nav>
+</body></html>

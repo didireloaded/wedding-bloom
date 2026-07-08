@@ -10,7 +10,9 @@ export type Wedding = {
   venue_address: string | null;
   venue_map_url: string | null;
   cover_image: string | null;
+  cover_image_url?: string | null;
   hero_image: string | null;
+  hero_image_url?: string | null;
   story: string | null;
   story_image?: string | null;
   rsvp_image?: string | null;
@@ -18,6 +20,8 @@ export type Wedding = {
   hashtag: string | null;
   published: boolean;
   legacy_mode: boolean;
+  archived?: boolean;
+  guest_count?: number;
   soundtrack_url: string | null;
   theme: Record<string, string>;
   schedule?: any;
@@ -30,9 +34,10 @@ export type WeddingEvent = {
   title: string;
   description: string | null;
   location: string | null;
-  event_date: string;
+  event_date: string | null;
   event_time: string | null;
-  sort_order: number;
+  sort_order?: number;
+  created_at?: string;
 };
 
 export type Accommodation = {
@@ -319,7 +324,8 @@ export type QRCodeItem = {
   label: string;
   target_url: string;
   code_data: string;
-  scan_count: number;
+  scans?: number;
+  scan_count?: number;
   is_active: boolean;
   created_at: string;
 };
@@ -328,9 +334,12 @@ export type InvitationLink = {
   id: string;
   wedding_id: string;
   guest_id?: string | null;
-  unique_token: string;
+  label?: string | null;
+  token?: string;
+  unique_token?: string;
   url: string;
-  open_count: number;
+  clicks?: number;
+  open_count?: number;
   last_opened_at?: string | null;
   created_at: string;
 };

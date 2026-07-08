@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Wedding Bloom Admin - System Settings</title>
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Playfair+Display:wght@600;700&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-secondary": "#ffffff",
+                        "surface-container": "#f1edee",
+                        "tertiary-fixed": "#fbdbde",
+                        "secondary": "#635f40",
+                        "tertiary": "#70585b",
+                        "tertiary-container": "#ffe0e3",
+                        "outline": "#77767d",
+                        "on-tertiary-fixed": "#281719",
+                        "on-surface": "#1c1b1c",
+                        "on-secondary-fixed": "#1f1c04",
+                        "on-error-container": "#93000a",
+                        "surface": "#fcf8fa",
+                        "inverse-on-surface": "#f3f0f1",
+                        "on-secondary-fixed-variant": "#4b472b",
+                        "surface-variant": "#e5e1e3",
+                        "surface-tint": "#5c5d6e",
+                        "primary-fixed": "#e1e1f5",
+                        "secondary-fixed-dim": "#cec7a2",
+                        "secondary-container": "#e8e0ba",
+                        "on-primary": "#ffffff",
+                        "secondary-fixed": "#eae3bc",
+                        "error": "#ba1a1a",
+                        "surface-container-lowest": "#ffffff",
+                        "on-tertiary-container": "#7a6164",
+                        "inverse-surface": "#313031",
+                        "tertiary-fixed-dim": "#debfc2",
+                        "error-container": "#ffdad6",
+                        "outline-variant": "#c7c5cc",
+                        "on-primary-fixed": "#191b29",
+                        "on-primary-container": "#656677",
+                        "surface-container-low": "#f6f3f4",
+                        "on-error": "#ffffff",
+                        "on-background": "#1c1b1c",
+                        "surface-container-highest": "#e5e1e3",
+                        "surface-container-high": "#ebe7e8",
+                        "on-tertiary-fixed-variant": "#574144",
+                        "surface-dim": "#dcd9da",
+                        "on-surface-variant": "#46464c",
+                        "background": "#fcf8fa",
+                        "surface-bright": "#fcf8fa",
+                        "primary-container": "#e6e6fa",
+                        "on-primary-fixed-variant": "#444655",
+                        "primary": "#5c5d6e",
+                        "inverse-primary": "#c5c5d8",
+                        "primary-fixed-dim": "#c5c5d8",
+                        "on-secondary-container": "#686344",
+                        "on-tertiary": "#ffffff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "unit": "4px",
+                        "stack-sm": "8px",
+                        "stack-lg": "32px",
+                        "gutter": "16px",
+                        "stack-md": "16px",
+                        "container-padding": "24px"
+                    },
+                    "fontFamily": {
+                        "label-caps": ["Inter"],
+                        "headline-md": ["Playfair Display"],
+                        "headline-lg": ["Playfair Display"],
+                        "headline-xl": ["Playfair Display"],
+                        "headline-lg-mobile": ["Playfair Display"],
+                        "body-lg": ["Inter"],
+                        "body-sm": ["Inter"],
+                        "body-md": ["Inter"]
+                    },
+                    "fontSize": {
+                        "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                        "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                        "headline-lg": ["32px", {"lineHeight": "40px", "fontWeight": "600"}],
+                        "headline-xl": ["40px", {"lineHeight": "48px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "headline-lg-mobile": ["28px", {"lineHeight": "36px", "fontWeight": "600"}],
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                        "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .toggle-checkbox:checked {
+            right: 0;
+            border-color: #5c5d6e;
+        }
+        .toggle-checkbox:checked + .toggle-label {
+            background-color: #e6e6fa;
+        }
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #fcf8fa;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #e5e1e3;
+            border-radius: 10px;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-surface font-body-md selection:bg-primary-container selection:text-on-primary-container">
+<!-- TopAppBar -->
+<header class="bg-surface shadow-[0_4px_20px_rgba(0,0,0,0.04)] fixed top-0 left-0 w-full z-40 flex justify-between items-center px-container-padding h-16">
+<div class="flex items-center gap-4">
+<button class="hover:bg-surface-container-low transition-colors p-2 rounded-full active:scale-95 transition-transform duration-200">
+<span class="material-symbols-outlined text-primary" data-icon="menu">menu</span>
+</button>
+<h1 class="font-headline-md text-headline-md text-primary">System Settings</h1>
+</div>
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full border border-outline-variant overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="A professional high-end studio portrait of a modern administrator in an airy, sun-drenched minimalist office. The style is clean and editorial, using a soft color palette of whites and warm greys. Lighting is soft and diffused, highlighting a sense of calm authority and luxury service consistent with a premium wedding planning brand." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCw-iUI3yKOan1-OEcsif65fa0Lj-am_UrEYcCQYJRcXFEm0WyMxjg3PTOBFjQ0sCq-zkCSfha0QxkEVKjnsHWu_-x6ZT1dQrWyJmHk_YiBnUoLug6dr66Dca-5SwvOgUoCTqwru9oCeE5aqMYBv6WxQqcxE-ePFSzr4AtAbYxN9SOznU0JSYod7T9x1FXefUs202E-ncc5xH4nz3SgdjnuqmAtObMRg74TXC3LzRtfoVf3_PMj6C9i"/>
+</div>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="pt-24 pb-32 px-container-padding max-w-lg mx-auto">
+<!-- Introduction Header -->
+<div class="mb-stack-lg">
+<p class="font-body-md text-on-surface-variant mb-unit">Platform Management</p>
+<h2 class="font-headline-lg-mobile text-headline-lg-mobile text-primary">Refine Your Workspace</h2>
+<div class="w-12 h-1 bg-secondary-fixed-dim mt-2 rounded-full"></div>
+</div>
+<!-- Settings Section: General -->
+<section class="bg-surface-container-lowest rounded-xl p-container-padding shadow-[0_4px_20px_rgba(0,0,0,0.04)] mb-stack-lg">
+<div class="flex items-center gap-3 mb-stack-md">
+<span class="material-symbols-outlined text-primary" data-icon="settings">settings</span>
+<h3 class="font-headline-md text-primary">General</h3>
+</div>
+<div class="space-y-stack-md">
+<div class="flex flex-col gap-1">
+<label class="font-body-sm text-on-surface-variant px-1">Platform Name</label>
+<input class="w-full bg-surface border-0 border-b border-outline-variant focus:border-primary focus:ring-0 transition-colors py-2 font-body-md text-on-surface" type="text" value="Wedding Bloom"/>
+</div>
+<div class="flex flex-col gap-1">
+<label class="font-body-sm text-on-surface-variant px-1">Contact Email</label>
+<input class="w-full bg-surface border-0 border-b border-outline-variant focus:border-primary focus:ring-0 transition-colors py-2 font-body-md text-on-surface" type="email" value="admin@weddingbloom.com"/>
+</div>
+</div>
+</section>
+<!-- Settings Section: Notifications -->
+<section class="bg-surface-container-lowest rounded-xl p-container-padding shadow-[0_4px_20px_rgba(0,0,0,0.04)] mb-stack-lg">
+<div class="flex items-center gap-3 mb-stack-md">
+<span class="material-symbols-outlined text-primary" data-icon="notifications">notifications</span>
+<h3 class="font-headline-md text-primary">Notifications</h3>
+</div>
+<div class="space-y-stack-md">
+<div class="flex items-center justify-between py-2 border-b border-outline-variant">
+<div>
+<p class="font-body-md text-on-surface">System Alerts</p>
+<p class="font-body-sm text-on-surface-variant">Real-time platform health notifications</p>
+</div>
+<div class="relative inline-block w-10 mr-2 align-middle select-none">
+<input checked="" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-2 border-outline-variant appearance-none cursor-pointer transition-all duration-300 right-4" id="toggle-alerts" name="toggle" type="checkbox"/>
+<label class="toggle-label block overflow-hidden h-6 rounded-full bg-surface-container cursor-pointer transition-colors duration-300" for="toggle-alerts"></label>
+</div>
+</div>
+<div class="flex items-center justify-between py-2">
+<div>
+<p class="font-body-md text-on-surface">Email Templates</p>
+<p class="font-body-sm text-on-surface-variant">Customize automated guest responses</p>
+</div>
+<button class="text-primary hover:bg-surface-container-low p-2 rounded-full transition-colors active:scale-95">
+<span class="material-symbols-outlined" data-icon="chevron_right">chevron_right</span>
+</button>
+</div>
+</div>
+</section>
+<!-- Settings Section: Payments -->
+<section class="bg-surface-container-lowest rounded-xl p-container-padding shadow-[0_4px_20px_rgba(0,0,0,0.04)] mb-stack-lg">
+<div class="flex items-center gap-3 mb-stack-md">
+<span class="material-symbols-outlined text-primary" data-icon="payments">payments</span>
+<h3 class="font-headline-md text-primary">Payments</h3>
+</div>
+<div class="space-y-stack-md">
+<div class="flex flex-col gap-1">
+<label class="font-body-sm text-on-surface-variant px-1">Transaction Fees (%)</label>
+<input class="w-full bg-surface border-0 border-b border-outline-variant focus:border-primary focus:ring-0 transition-colors py-2 font-body-md text-on-surface" step="0.1" type="number" value="2.5"/>
+</div>
+<div class="flex flex-col gap-1">
+<label class="font-body-sm text-on-surface-variant px-1">Payout Schedule</label>
+<select class="w-full bg-surface border-0 border-b border-outline-variant focus:border-primary focus:ring-0 transition-colors py-2 font-body-md text-on-surface appearance-none">
+<option>Daily</option>
+<option selected="">Weekly (Mondays)</option>
+<option>Monthly (1st)</option>
+</select>
+</div>
+</div>
+</section>
+<!-- Settings Section: Maintenance -->
+<section class="bg-surface-container-lowest rounded-xl p-container-padding shadow-[0_4px_20px_rgba(0,0,0,0.04)] mb-stack-lg border border-error-container/30">
+<div class="flex items-center justify-between mb-unit">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-error" data-icon="construction">construction</span>
+<h3 class="font-headline-md text-on-surface">Maintenance Mode</h3>
+</div>
+<div class="relative inline-block w-10 mr-2 align-middle select-none">
+<input class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-2 border-outline-variant appearance-none cursor-pointer transition-all duration-300 right-4" id="toggle-maintenance" name="toggle" type="checkbox"/>
+<label class="toggle-label block overflow-hidden h-6 rounded-full bg-surface-container cursor-pointer transition-colors duration-300" for="toggle-maintenance"></label>
+</div>
+</div>
+<p class="font-body-sm text-on-surface-variant">When enabled, the platform will be inaccessible to vendors and couples. Use during critical updates.</p>
+</section>
+<!-- Action Buttons -->
+<div class="flex flex-col gap-stack-md mt-stack-lg">
+<button class="bg-primary text-on-primary h-12 rounded-xl font-body-md font-bold shadow-md active:scale-[0.98] transition-transform hover:opacity-90">
+                Save Changes
+            </button>
+<button class="border border-outline-variant text-on-surface-variant h-12 rounded-xl font-body-md active:scale-[0.98] transition-transform hover:bg-surface-container-low">
+                Reset to Default
+            </button>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-gutter py-stack-sm bg-surface shadow-[0_-4px_20px_rgba(0,0,0,0.04)] rounded-t-xl md:hidden">
+<button class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-1 hover:opacity-80 active:scale-90 transition-transform">
+<span class="material-symbols-outlined mb-1" data-icon="home">home</span>
+<span class="font-label-caps text-label-caps">Home</span>
+</button>
+<button class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-1 hover:opacity-80 active:scale-90 transition-transform">
+<span class="material-symbols-outlined mb-1" data-icon="list_alt">list_alt</span>
+<span class="font-label-caps text-label-caps">Vendors</span>
+</button>
+<button class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-1 hover:opacity-80 active:scale-90 transition-transform">
+<span class="material-symbols-outlined mb-1" data-icon="group">group</span>
+<span class="font-label-caps text-label-caps">Users</span>
+</button>
+<button class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-2xl px-4 py-1 active:scale-90 transition-transform">
+<span class="material-symbols-outlined mb-1" data-icon="settings" style="font-variation-settings: 'FILL' 1;">settings</span>
+<span class="font-label-caps text-label-caps font-bold">Settings</span>
+</button>
+</nav>
+<script>
+        // Simple micro-interaction for save button
+        document.querySelector('button.bg-primary').addEventListener('click', function() {
+            const originalText = this.innerText;
+            this.innerText = 'Saving...';
+            this.disabled = true;
+            this.style.opacity = '0.7';
+            
+            setTimeout(() => {
+                this.innerText = 'Settings Saved';
+                this.classList.remove('bg-primary');
+                this.classList.add('bg-secondary');
+                
+                setTimeout(() => {
+                    this.innerText = originalText;
+                    this.classList.remove('bg-secondary');
+                    this.classList.add('bg-primary');
+                    this.disabled = false;
+                    this.style.opacity = '1';
+                }, 2000);
+            }, 1000);
+        });
+
+        // Toggle Visual Logic
+        const toggles = document.querySelectorAll('.toggle-checkbox');
+        toggles.forEach(toggle => {
+            toggle.addEventListener('change', function() {
+                const parent = this.parentElement.parentElement;
+                if(this.checked) {
+                    console.log('Toggle on');
+                } else {
+                    console.log('Toggle off');
+                }
+            });
+        });
+    </script>
+</body></html>

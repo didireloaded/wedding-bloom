@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Forever Vow - Invitations</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "inverse-surface": "#303030",
+                        "error": "#ba1a1a",
+                        "surface-container": "#f0eded",
+                        "secondary-container": "#f9d8d8",
+                        "error-container": "#ffdad6",
+                        "surface-container-lowest": "#ffffff",
+                        "tertiary-fixed-dim": "#b5cdb5",
+                        "outline-variant": "#d0c5af",
+                        "surface-container-high": "#eae7e7",
+                        "on-tertiary": "#ffffff",
+                        "background": "#fcf9f8",
+                        "primary-container": "#d4af37",
+                        "primary": "#735c00",
+                        "on-background": "#1b1c1c",
+                        "on-secondary-container": "#755d5d",
+                        "on-primary-fixed-variant": "#574500",
+                        "surface": "#fcf9f8",
+                        "secondary-fixed-dim": "#dfbfbf",
+                        "surface-bright": "#fcf9f8",
+                        "outline": "#7f7663",
+                        "surface-variant": "#e5e2e1",
+                        "primary-fixed": "#ffe088",
+                        "on-secondary": "#ffffff",
+                        "on-secondary-fixed": "#281717",
+                        "on-error-container": "#93000a",
+                        "on-surface-variant": "#4d4635",
+                        "surface-tint": "#735c00",
+                        "surface-container-highest": "#e5e2e1",
+                        "tertiary-container": "#a2b9a2",
+                        "surface-container-low": "#f6f3f2",
+                        "surface-dim": "#dcd9d9",
+                        "primary-fixed-dim": "#e9c349",
+                        "tertiary": "#4f6450",
+                        "on-tertiary-fixed": "#0c1f11",
+                        "on-secondary-fixed-variant": "#584142",
+                        "on-primary-container": "#554300",
+                        "secondary-fixed": "#fcdbdb",
+                        "on-tertiary-container": "#364a38",
+                        "secondary": "#715859",
+                        "inverse-primary": "#e9c349",
+                        "tertiary-fixed": "#d1e9d0",
+                        "on-surface": "#1b1c1c",
+                        "on-primary-fixed": "#241a00",
+                        "on-error": "#ffffff",
+                        "on-primary": "#ffffff",
+                        "inverse-on-surface": "#f3f0ef",
+                        "on-tertiary-fixed-variant": "#374c3a"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "1rem",
+                        "lg": "2rem",
+                        "xl": "3rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "stack-md": "24px",
+                        "unit": "8px",
+                        "gutter": "24px",
+                        "margin-desktop": "64px",
+                        "stack-lg": "48px",
+                        "container-max": "1280px",
+                        "stack-sm": "12px",
+                        "margin-mobile": "20px"
+                    },
+                    "fontFamily": {
+                        "label-sm": ["Inter"],
+                        "headline-sm": ["Playfair Display"],
+                        "body-lg": ["Inter"],
+                        "body-md": ["Inter"],
+                        "display-lg-mobile": ["Playfair Display"],
+                        "headline-md": ["Playfair Display"],
+                        "display-lg": ["Playfair Display"],
+                        "label-md": ["Inter"]
+                    },
+                    "fontSize": {
+                        "label-sm": ["12px", { "lineHeight": "1.2", "fontWeight": "500" }],
+                        "headline-sm": ["24px", { "lineHeight": "1.4", "fontWeight": "600" }],
+                        "body-lg": ["18px", { "lineHeight": "1.6", "letterSpacing": "-0.01em", "fontWeight": "400" }],
+                        "body-md": ["16px", { "lineHeight": "1.5", "fontWeight": "400" }],
+                        "display-lg-mobile": ["36px", { "lineHeight": "1.2", "fontWeight": "700" }],
+                        "headline-md": ["32px", { "lineHeight": "1.3", "fontWeight": "600" }],
+                        "display-lg": ["48px", { "lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "label-md": ["14px", { "lineHeight": "1.2", "letterSpacing": "0.05em", "fontWeight": "600" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body { background-color: #fcf9f8; }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(208, 197, 175, 0.2);
+        }
+        .ambient-shadow {
+            box-shadow: 0 20px 40px rgba(34, 34, 34, 0.05);
+        }
+        .qr-frame {
+            border: 2px solid #d4af37;
+            padding: 12px;
+            border-radius: 1.5rem;
+            background: white;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="text-on-background min-h-screen flex flex-col pb-24 md:pb-0">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-surface/80 dark:bg-surface/80 backdrop-blur-xl border-b border-outline-variant/20 shadow-sm flex items-center justify-between px-margin-mobile md:px-margin-desktop h-16 transition-all duration-300">
+<button class="p-2 text-primary dark:text-primary-fixed hover:opacity-80 transition-opacity flex items-center justify-center">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">menu</span>
+</button>
+<h1 class="font-headline-md text-headline-md text-primary dark:text-primary-fixed tracking-tight">Forever Vow</h1>
+<button class="w-8 h-8 rounded-full overflow-hidden hover:opacity-80 transition-opacity border border-outline-variant/30 flex items-center justify-center bg-surface-container">
+<span class="material-symbols-outlined text-on-surface-variant text-sm" style="font-variation-settings: 'FILL' 1;">person</span>
+</button>
+</header>
+<!-- Main Content -->
+<main class="flex-grow pt-24 px-margin-mobile md:px-margin-desktop max-w-[1280px] mx-auto w-full flex flex-col items-center">
+<div class="text-center mb-stack-md w-full max-w-2xl">
+<h2 class="font-display-lg-mobile md:font-display-lg text-primary mb-unit">Invitation &amp; Access</h2>
+<p class="font-body-md text-on-surface-variant">Share your bespoke digital invitation or use the QR code for seamless guest entry at the venue.</p>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-gutter w-full w-full max-w-5xl">
+<!-- Digital Invite Preview -->
+<div class="glass-panel rounded-lg p-stack-sm ambient-shadow flex flex-col">
+<div class="flex justify-between items-center mb-stack-sm px-unit">
+<h3 class="font-headline-sm text-headline-sm text-on-background">Preview</h3>
+<button class="text-primary hover:opacity-80 transition-opacity">
+<span class="material-symbols-outlined">edit</span>
+</button>
+</div>
+<div class="relative w-full aspect-[3/4] rounded-DEFAULT overflow-hidden ambient-shadow bg-surface-container">
+<img class="w-full h-full object-cover" data-alt="A highly elegant, cinematic preview of a digital wedding invitation card. The card features minimalist typography with a delicate, handwritten script for the couple's names. The background is a soft, textured ivory cardstock with subtle gold foil accents around the edges. A light, ethereal bloom of white roses and green foliage accents the top corner. The lighting is soft and natural, casting delicate shadows that emphasize the tactile, high-end print magazine quality of the design. The overall mood is luxurious, calm, and deeply romantic, fitting a premium wedding brand." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD4WspBLrIvU4weBH2vex-rHp4DuCPRro0G66kWn3zT24SBY5OAvpoTUidTxKP_-UsuDT8dsCDJsjgPUkkvRd3635lv1FhjJoROAEcajaGy_eRcFQT5Pco0vmNAyZ4gDivWwcS6z1TY_4HF-oq9PFdLE4qFDfZ6tNJWdwDZzlLO-9fQjj3gzsQQ1cdRO0sURYPv1zuB2ARR9gMILN5ko1m8DPGu0oxG1NeTrvVZ8WStp-NLc4oIBdEO"/>
+</div>
+</div>
+<!-- Sharing & QR Actions -->
+<div class="flex flex-col gap-stack-md">
+<!-- QR Code Section -->
+<div class="glass-panel rounded-lg p-stack-md ambient-shadow flex flex-col items-center text-center">
+<div class="w-16 h-16 rounded-full bg-primary-container/20 flex items-center justify-center mb-stack-sm">
+<span class="material-symbols-outlined text-primary text-3xl">qr_code_scanner</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-on-background mb-unit">Scan to Enter</h3>
+<p class="font-body-md text-on-surface-variant mb-stack-md max-w-sm">Provide this code to your venue concierges for instant guest verification.</p>
+<div class="qr-frame mb-stack-md">
+<img class="w-48 h-48 object-cover rounded-DEFAULT" data-alt="A close-up, high-resolution rendering of a stylized QR code. The QR code pattern is sharply defined in deep charcoal against a pure white background. The code is framed by a delicate, geometric gold border that adds a touch of modern luxury. The lighting is bright and clean, mimicking an Apple-inspired minimalist aesthetic. The image conveys technological precision combined with high-end editorial elegance, perfect for a premium digital boutique experience." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDEsO9VFMFdZrK1C5U7xP-ViaQIoHWv-dTiF0TeRn_GT0ALi1OL15O_msVMWoJkftbmIiezHrBl5_JBnJ7oHM7k_RCp8eenZ22CkDwMTHo3dSALdOw5ZDhl0_PQ-aCt_kazdETn9PTixi8fu6Vz6uDh14Rdw6waCukqPzzY3Zo5ZiO860dnyc3zAs6UwDC8r7dPiAlHlk9SRNTg0AXwIdhp5UBIrM5GPYRaAVe-cGIDvof_TuaFZmtl"/>
+</div>
+<button class="flex items-center gap-2 text-primary font-label-md text-label-md hover:opacity-80 transition-opacity">
+<span class="material-symbols-outlined text-sm">download</span>
+                        Download High-Res
+                    </button>
+</div>
+<!-- Action Buttons -->
+<div class="glass-panel rounded-lg p-stack-sm ambient-shadow flex flex-col gap-unit">
+<button class="w-full py-3 px-6 rounded-full bg-primary-container text-on-primary-container font-label-md text-label-md hover:scale-[1.02] hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-sm">sms</span>
+                        Share via SMS
+                    </button>
+<button class="w-full py-3 px-6 rounded-full bg-surface text-on-surface border border-outline-variant/50 font-label-md text-label-md hover:bg-surface-container-low transition-all duration-200 flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-sm">mail</span>
+                        Email Guest List
+                    </button>
+<button class="w-full py-3 px-6 rounded-full bg-surface text-on-surface border border-outline-variant/50 font-label-md text-label-md hover:bg-surface-container-low transition-all duration-200 flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-sm">folder_zip</span>
+                        Download QR Kit
+                    </button>
+</div>
+</div>
+</div>
+</main>
+<!-- BottomNavBar (Mobile Only) -->
+<nav class="md:hidden fixed bottom-0 w-full z-50 rounded-t-lg bg-surface/80 dark:bg-inverse-surface/80 backdrop-blur-xl border-t border-outline-variant/20 shadow-lg flex justify-around items-center h-20 pb-safe px-4">
+<a class="flex flex-col items-center justify-center text-on-surface-variant/70 hover:text-primary transition-colors w-16" href="#">
+<span class="material-symbols-outlined mb-1" style="font-variation-settings: 'FILL' 0;">history</span>
+<span class="font-label-sm text-label-sm">Activity</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant/70 hover:text-primary transition-colors w-16" href="#">
+<span class="material-symbols-outlined mb-1" style="font-variation-settings: 'FILL' 0;">location_on</span>
+<span class="font-label-sm text-label-sm">Venues</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant/70 hover:text-primary transition-colors w-16" href="#">
+<span class="material-symbols-outlined mb-1" style="font-variation-settings: 'FILL' 0;">bed</span>
+<span class="font-label-sm text-label-sm">Lodging</span>
+</a>
+<a class="flex flex-col items-center justify-center text-primary dark:text-primary-fixed scale-105 hover:text-primary transition-colors w-16" href="#">
+<span class="material-symbols-outlined mb-1" style="font-variation-settings: 'FILL' 1;">qr_code</span>
+<span class="font-label-sm text-label-sm font-bold">Invites</span>
+</a>
+</nav>
+</body></html>

@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Forever Vow - Our Timeline</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "primary": "#735c00",
+                      "surface-container-lowest": "#ffffff",
+                      "secondary": "#715859",
+                      "surface-container-highest": "#e5e2e1",
+                      "on-tertiary-container": "#364a38",
+                      "surface": "#fcf9f8",
+                      "tertiary-fixed": "#d1e9d0",
+                      "on-error-container": "#93000a",
+                      "background": "#fcf9f8",
+                      "surface-container-low": "#f6f3f2",
+                      "error-container": "#ffdad6",
+                      "primary-fixed": "#ffe088",
+                      "surface-bright": "#fcf9f8",
+                      "on-secondary-fixed": "#281717",
+                      "outline-variant": "#d0c5af",
+                      "secondary-fixed-dim": "#dfbfbf",
+                      "error": "#ba1a1a",
+                      "on-secondary-container": "#755d5d",
+                      "on-background": "#1b1c1c",
+                      "surface-container": "#f0eded",
+                      "secondary-container": "#f9d8d8",
+                      "primary-fixed-dim": "#e9c349",
+                      "primary-container": "#d4af37",
+                      "on-primary-fixed-variant": "#574500",
+                      "inverse-primary": "#e9c349",
+                      "surface-tint": "#735c00",
+                      "surface-container-high": "#eae7e7",
+                      "on-primary-fixed": "#241a00",
+                      "tertiary": "#4f6450",
+                      "on-tertiary-fixed": "#0c1f11",
+                      "inverse-on-surface": "#f3f0ef",
+                      "surface-dim": "#dcd9d9",
+                      "on-secondary-fixed-variant": "#584142",
+                      "outline": "#7f7663",
+                      "on-secondary": "#ffffff",
+                      "on-surface": "#1b1c1c",
+                      "on-primary": "#ffffff",
+                      "tertiary-fixed-dim": "#b5cdb5",
+                      "tertiary-container": "#a2b9a2",
+                      "on-surface-variant": "#4d4635",
+                      "on-primary-container": "#554300",
+                      "inverse-surface": "#303030",
+                      "surface-variant": "#e5e2e1",
+                      "on-error": "#ffffff",
+                      "on-tertiary-fixed-variant": "#374c3a",
+                      "secondary-fixed": "#fcdbdb",
+                      "on-tertiary": "#ffffff"
+              },
+              "borderRadius": {
+                      "DEFAULT": "1rem",
+                      "lg": "2rem",
+                      "xl": "3rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "stack-md": "24px",
+                      "margin-mobile": "20px",
+                      "stack-sm": "12px",
+                      "margin-desktop": "64px",
+                      "gutter": "24px",
+                      "stack-lg": "48px",
+                      "container-max": "1280px",
+                      "unit": "8px"
+              },
+              "fontFamily": {
+                      "headline-md": [
+                              "Playfair Display"
+                      ],
+                      "body-lg": [
+                              "Inter"
+                      ],
+                      "display-lg-mobile": [
+                              "Playfair Display"
+                      ],
+                      "display-lg": [
+                              "Playfair Display"
+                      ],
+                      "headline-sm": [
+                              "Playfair Display"
+                      ],
+                      "body-md": [
+                              "Inter"
+                      ],
+                      "label-sm": [
+                              "Inter"
+                      ],
+                      "label-md": [
+                              "Inter"
+                      ]
+              },
+              "fontSize": {
+                      "headline-md": [
+                              "32px",
+                              {
+                                      "lineHeight": "1.3",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "body-lg": [
+                              "18px",
+                              {
+                                      "lineHeight": "1.6",
+                                      "letterSpacing": "-0.01em",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "display-lg-mobile": [
+                              "36px",
+                              {
+                                      "lineHeight": "1.2",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "display-lg": [
+                              "48px",
+                              {
+                                      "lineHeight": "1.1",
+                                      "letterSpacing": "-0.02em",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "headline-sm": [
+                              "24px",
+                              {
+                                      "lineHeight": "1.4",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "body-md": [
+                              "16px",
+                              {
+                                      "lineHeight": "1.5",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "label-sm": [
+                              "12px",
+                              {
+                                      "lineHeight": "1.2",
+                                      "fontWeight": "500"
+                              }
+                      ],
+                      "label-md": [
+                              "14px",
+                              {
+                                      "lineHeight": "1.2",
+                                      "letterSpacing": "0.05em",
+                                      "fontWeight": "600"
+                              }
+                      ]
+              }
+      },
+          },
+        }
+    </script>
+<style>
+        body {
+            background-color: #FAF7F2;
+        }
+        .timeline-line {
+            width: 2px;
+            background: linear-gradient(to bottom, #d4af37 0%, #d4af37 50%, rgba(212, 175, 55, 0.2) 100%);
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(240, 235, 224, 0.8);
+            box-shadow: 0 20px 40px rgba(34, 34, 34, 0.05);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="text-on-background font-body-md antialiased pb-32">
+<!-- TopAppBar (from JSON) -->
+<header class="fixed top-0 w-full z-50 bg-white/70 dark:bg-black/70 backdrop-blur-xl border-b border-outline-variant/20 shadow-[0_20px_40px_rgba(34,34,34,0.05)]">
+<div class="flex items-center justify-between px-margin-mobile h-16 max-w-[1280px] mx-auto w-full">
+<button class="text-primary dark:text-primary-fixed-dim hover:opacity-80 transition-opacity active:scale-95 transition-transform flex items-center justify-center p-2 rounded-full focus:outline-none focus:ring-2 focus:ring-primary/50">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">menu</span>
+</button>
+<h1 class="font-headline-md text-headline-md text-primary dark:text-primary-fixed-dim tracking-tight">Forever Vow</h1>
+<button class="hover:opacity-80 transition-opacity active:scale-95 transition-transform flex items-center justify-center rounded-full focus:outline-none focus:ring-2 focus:ring-primary/50 overflow-hidden w-10 h-10 border border-outline-variant/30">
+<img alt="User Profile" class="w-full h-full object-cover" data-alt="A close-up, soft-focus profile picture of an elegant person in natural light. The aesthetic is bright, high-end, and cinematic, fitting a luxury wedding planning application." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDz89poN_VKpt_Wq_JHPHbx-0bl_cs-krXIIoLW86XvSvVmxVOjBl9DyGQY5bKKi1bg30SG_XV4DROTXSgF8c-VEp0DHqX3KCpVLEvhBJ3jlSsl5hHRJkaFBqVKl-dI4NvKkxp2xQL3KMJdE9RlnUI7-poZccBe5ZyT-3UaqHLiKkXNV-iV1XRqDwo1Q-CfWZ2D2Lk_1QgpW66wjGXseB0e3B51gE07CZdkIJC2dU7JbCsAGq1DTrxp"/>
+</button>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="max-w-[1280px] mx-auto px-margin-mobile md:px-margin-desktop pt-32">
+<div class="text-center mb-stack-lg">
+<h2 class="font-display-lg-mobile md:font-display-lg text-display-lg-mobile md:text-display-lg text-primary mb-stack-sm">Our Journey</h2>
+<p class="font-body-lg text-body-lg text-on-surface-variant max-w-2xl mx-auto">Every beautiful story has its chapters. This is ours, unfolding beautifully towards forever.</p>
+</div>
+<div class="relative max-w-4xl mx-auto">
+<!-- Continuous Vertical Line -->
+<div class="absolute left-6 md:left-1/2 top-0 bottom-0 timeline-line md:-translate-x-1/2"></div>
+<!-- Milestone 1: Engagement (Completed) -->
+<div class="relative flex flex-col md:flex-row items-start md:items-center justify-between mb-stack-lg group">
+<!-- Mobile Connector -->
+<div class="absolute left-6 top-8 w-6 h-0.5 bg-primary-container md:hidden"></div>
+<!-- Timeline Node -->
+<div class="absolute left-6 md:left-1/2 w-4 h-4 rounded-full bg-primary-container border-4 border-surface -translate-x-1/2 md:translate-x-[-50%] top-8 md:top-auto md:relative shadow-[0_0_10px_rgba(212,175,55,0.4)] z-10 flex-shrink-0">
+<div class="absolute inset-[-4px] rounded-full border border-primary-container opacity-50 animate-ping"></div>
+</div>
+<!-- Content Panel (Left) -->
+<div class="w-full md:w-[calc(50%-48px)] pl-20 md:pl-0 md:pr-12 pt-4 md:pt-0 text-left md:text-right">
+<span class="inline-block px-3 py-1 bg-surface-container rounded-full font-label-sm text-label-sm text-on-surface-variant mb-2">Dec 24, 2023</span>
+<h3 class="font-headline-sm text-headline-sm text-primary mb-2">The Proposal</h3>
+<p class="font-body-md text-body-md text-on-surface-variant/80">Under a canopy of fairy lights, a simple question marked the beginning of our forever.</p>
+</div>
+<!-- Image Panel (Right) -->
+<div class="w-full md:w-[calc(50%-48px)] pl-20 md:pl-12 mt-4 md:mt-0">
+<div class="glass-card rounded-[24px] p-2 overflow-hidden transform transition duration-500 hover:scale-[1.02]">
+<div class="aspect-[4/3] rounded-[16px] overflow-hidden">
+<img alt="The Proposal" class="w-full h-full object-cover" data-alt="A cinematic, high-fidelity photograph of a romantic proposal moment under soft, glowing fairy lights in a snowy setting. The lighting is warm and magical against a cool twilight background. The aesthetic is premium, emotive, and high-end wedding photography." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCrgkREhU3vPTjW4PUqqwc3O7HKrarx6XOpGwSY8dJisV638dXQfef2FIDF52TJFuuezJsbpzIVq3APv0W1ysUIKeh_GO7_DlnZG7F7EYSjIFtKE-vwGXWwSIi1XD3aCnXETXVxRCF1KZSOBQ9ynfprdcEYyQy907NCvwk7-s2RzQ6eTtoXMM_KhUNT3RUAxe-eyX20JXFE7EgvMoaal3EsJdoj2erBcKAOp8qNprAfa3cWKqbz8C8t"/>
+</div>
+</div>
+</div>
+</div>
+<!-- Milestone 2: Venue (Current) -->
+<div class="relative flex flex-col md:flex-row-reverse items-start md:items-center justify-between mb-stack-lg group">
+<!-- Mobile Connector -->
+<div class="absolute left-6 top-8 w-6 h-0.5 bg-primary-container md:hidden"></div>
+<!-- Timeline Node -->
+<div class="absolute left-6 md:left-1/2 w-6 h-6 rounded-full bg-white border-2 border-primary-container -translate-x-1/2 md:translate-x-[-50%] top-8 md:top-auto md:relative shadow-[0_0_15px_rgba(212,175,55,0.3)] z-10 flex items-center justify-center flex-shrink-0">
+<div class="w-2 h-2 rounded-full bg-primary-container"></div>
+</div>
+<!-- Content Panel (Right) -->
+<div class="w-full md:w-[calc(50%-48px)] pl-20 md:pl-12 pt-4 md:pt-0 text-left">
+<span class="inline-block px-3 py-1 bg-primary-container/20 rounded-full font-label-sm text-label-sm text-primary-container mb-2 ring-1 ring-primary-container/30">Current Step</span>
+<h3 class="font-headline-sm text-headline-sm text-primary mb-2">Venue Secured</h3>
+<p class="font-body-md text-body-md text-on-surface-variant/80">We found the perfect canvas for our celebration. An elegant estate with sprawling gardens.</p>
+</div>
+<!-- Image Panel (Left) -->
+<div class="w-full md:w-[calc(50%-48px)] pl-20 md:pl-0 md:pr-12 mt-4 md:mt-0">
+<div class="glass-card rounded-[24px] p-2 overflow-hidden transform transition duration-500 hover:scale-[1.02]">
+<div class="aspect-[4/3] rounded-[16px] overflow-hidden">
+<img alt="Venue Secured" class="w-full h-full object-cover" data-alt="A wide, sweeping photograph of a luxurious estate venue featuring meticulously manicured gardens, classic architecture, and soft, golden-hour sunlight. The image is bright, airy, and conveys a sense of serene exclusivity suitable for a high-end wedding." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBBLiWVdqu9abfTbqwIEgrIkxSpY1Rly8447eqoYzHjV31lfZB6wdZvq8UijJTzJjphV0qGYdBOCAjscT6yZWEkz58ZqPEkPtwpF-fjMXfSw1upZ-S3JnQQxXxOj3A5pRqG9PDCIGsb5ZBKmIVoEqZnEIIH9Tfw3-OiyHLMcszUC5vb-ncegYDpoJs7RBggzUsPwOB992Tmem_fEvZ7NhGCRp4fRapL8sqonqZfREiduNSJEPucIcI4"/>
+</div>
+</div>
+</div>
+</div>
+<!-- Milestone 3: Big Day (Upcoming) -->
+<div class="relative flex flex-col md:flex-row items-start md:items-center justify-between mb-stack-lg group opacity-70 hover:opacity-100 transition-opacity duration-300">
+<!-- Mobile Connector -->
+<div class="absolute left-6 top-8 w-6 h-0.5 bg-outline-variant md:hidden"></div>
+<!-- Timeline Node -->
+<div class="absolute left-6 md:left-1/2 w-4 h-4 rounded-full bg-surface border-2 border-outline-variant -translate-x-1/2 md:translate-x-[-50%] top-8 md:top-auto md:relative z-10 flex-shrink-0"></div>
+<!-- Content Panel (Left) -->
+<div class="w-full md:w-[calc(50%-48px)] pl-20 md:pl-0 md:pr-12 pt-4 md:pt-0 text-left md:text-right">
+<span class="inline-block px-3 py-1 bg-surface-container rounded-full font-label-sm text-label-sm text-outline mb-2">Oct 12, 2024</span>
+<h3 class="font-headline-sm text-headline-sm text-outline mb-2">The Big Day</h3>
+<p class="font-body-md text-body-md text-on-surface-variant/60">The culmination of our planning. Friends, family, and a lifetime of promises.</p>
+</div>
+<!-- Image Panel (Right) -->
+<div class="w-full md:w-[calc(50%-48px)] pl-20 md:pl-12 mt-4 md:mt-0">
+<div class="glass-card rounded-[24px] p-2 overflow-hidden opacity-80 filter grayscale-[20%]">
+<div class="aspect-[4/3] rounded-[16px] overflow-hidden bg-surface-container-high flex items-center justify-center">
+<span class="material-symbols-outlined text-outline text-[48px]" style="font-variation-settings: 'FILL' 0;">favorite</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- BottomNavBar (from JSON) -->
+<nav class="md:hidden fixed bottom-0 w-full z-50 rounded-t-lg bg-white/80 dark:bg-black/80 backdrop-blur-2xl shadow-[0_-10px_30px_rgba(34,34,34,0.03)] border-t border-outline-variant/10">
+<div class="flex justify-around items-center h-20 px-4 pb-safe">
+<!-- Plan (Active based on Intent: Timeline is part of Planning) -->
+<button class="flex flex-col items-center justify-center text-primary dark:text-primary-fixed-dim font-bold scale-105 active:scale-90 transition-all duration-300 ease-out hover:text-primary/80 focus:outline-none">
+<span class="material-symbols-outlined mb-1" style="font-variation-settings: 'FILL' 1;">calendar_meal</span>
+<span class="font-label-md text-label-md">Plan</span>
+</button>
+<!-- Vendors -->
+<button class="flex flex-col items-center justify-center text-on-surface-variant/60 dark:text-surface-variant/60 active:scale-90 transition-all duration-300 ease-out hover:text-primary/80 focus:outline-none">
+<span class="material-symbols-outlined mb-1" style="font-variation-settings: 'FILL' 0;">storefront</span>
+<span class="font-label-md text-label-md">Vendors</span>
+</button>
+<!-- Guests -->
+<button class="flex flex-col items-center justify-center text-on-surface-variant/60 dark:text-surface-variant/60 active:scale-90 transition-all duration-300 ease-out hover:text-primary/80 focus:outline-none">
+<span class="material-symbols-outlined mb-1" style="font-variation-settings: 'FILL' 0;">group</span>
+<span class="font-label-md text-label-md">Guests</span>
+</button>
+<!-- Profile -->
+<button class="flex flex-col items-center justify-center text-on-surface-variant/60 dark:text-surface-variant/60 active:scale-90 transition-all duration-300 ease-out hover:text-primary/80 focus:outline-none">
+<span class="material-symbols-outlined mb-1" style="font-variation-settings: 'FILL' 0;">person</span>
+<span class="font-label-md text-label-md">Profile</span>
+</button>
+</div>
+</nav>
+</body></html>

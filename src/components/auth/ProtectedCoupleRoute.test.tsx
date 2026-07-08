@@ -7,11 +7,13 @@ import { AuthService } from "@/services";
 vi.mock("@/services", () => ({
   AuthService: {
     verifyCoupleSessionForSlug: vi.fn(),
+    verifyCoupleSessionForSlugWithTimeout: vi.fn(),
   },
 }));
 
 function renderWithRouter(slug: string, isAuthorized: boolean | Promise<boolean>) {
   vi.mocked(AuthService.verifyCoupleSessionForSlug).mockImplementation(() => Promise.resolve(isAuthorized));
+  vi.mocked(AuthService.verifyCoupleSessionForSlugWithTimeout).mockImplementation(() => Promise.resolve(isAuthorized));
 
   return render(
     <MemoryRouter initialEntries={[`/couple/${slug}/dashboard`]}>
