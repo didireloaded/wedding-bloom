@@ -1,42 +1,18 @@
 import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
-import type { Wedding } from "@/types/wedding";
 import { Link, useNavigate } from "react-router-dom";
 import { format, formatDistanceToNow, isAfter, isBefore, differenceInDays } from "date-fns";
 import Papa from "papaparse";
 import {
-  Archive, BarChart3, Bell, Briefcase, Calendar, Camera, CheckCircle2, ChevronRight, Copy,
-  DollarSign, Download, Edit3, ExternalLink, Eye, EyeOff, FileSpreadsheet, FileText,
-  Flower2, Gauge, HardDrive, Image, Layers, LayoutTemplate, LogOut, Megaphone, MessageCircle,
-  MoreHorizontal, Plus, QrCode, Search, Settings, Shield, Sparkles,
-  Trash2, Upload, Users, Wand2, X, Zap, Check, AlertCircle, TrendingUp,
-  KeyRound, Share2, Send
+  Archive, BarChart3, Bell, Calendar, CheckCircle2, ChevronRight, Copy,
+  Download, Edit3, ExternalLink, Eye, EyeOff, FileSpreadsheet,
+  Flower2, Gauge, HardDrive, Image, Layers, LayoutTemplate, LogOut,
+  MoreHorizontal, Plus, QrCode, Search, Settings, Shield,
+  Trash2, Upload, Users, Wand2, X, Zap
 } from "lucide-react";
 import { toast } from "sonner";
 import { store } from "@/store/weddingStore";
-import { ConfirmModal } from "@/components/ui/ConfirmModal";
-import { GlassCard } from "@/components/ui/GlassCard";
-import { MobileBottomNav } from "@/components/nav/MobileBottomNav";
-import { QRCodeModal } from "@/components/wedding/QRCodeModal";
-import { CreateWeddingWizard, SystemHealthModule } from "@/components/admin";
-import {
-  AdminOverviewView,
-  AdminUserManagementView,
-  AdminVendorDirectoryView,
-  AdminWeddingDetailsView,
-  AdminAnalyticsReportsView,
-  AdminSettingsView,
-} from "@/features/admin/views";
-import { supabase } from "@/utils/supabase";
-import { WeddingService } from "@/services";
-import { getStatusStyle } from "@/utils/designSystem";
 
 type StatusFilter = "all" | "draft" | "published" | "upcoming" | "completed" | "archived";
-
-function generateCoupleCode(names: string): string {
-  const cleanName = (names.split(/[\s&+,]+/)[0] || "COUPLE").replace(/[^a-zA-Z]/g, "").toUpperCase().slice(0, 8);
-  const digits = Math.floor(1000 + Math.random() * 9000);
-  return `${cleanName || "COUPLE"}${digits}`;
-}
 
 const templateLibrary = [
   { name: "Classic Wedding", color: "#c9a87a", image: "https://images.pexels.com/photos/37828118/pexels-photo-37828118.jpeg?auto=compress&cs=tinysrgb&w=800" },
@@ -44,6 +20,15 @@ const templateLibrary = [
   { name: "Garden Wedding", color: "#7b8a62", image: "https://images.pexels.com/photos/35629338/pexels-photo-35629338.jpeg?auto=compress&cs=tinysrgb&w=800" },
   { name: "Beach Wedding", color: "#5f8ca3", image: "https://images.pexels.com/photos/28584778/pexels-photo-28584778.jpeg?auto=compress&cs=tinysrgb&w=800" },
 ];
+
+const statusStyles: Record<string, string> = {
+  Draft: "bg-[#f8eee0] text-[#b0743c] border-[#e8d2b6]",
+  Published: "bg-[#eff6ee] text-[#4f7a56] border-[#d2e2d0]",
+  "Wedding Week": "bg-[#eef4ff] text-[#3f67a8] border-[#d7e4ff]",
+  Live: "bg-[#fde9e6] text-[#a64838] border-[#f3c9c2]",
+  Completed: "bg-[#f3edf6] text-[#7a5a8f] border-[#e5d7eb]",
+  Archived: "bg-[#f0e9e0] text-[#6b5d4f] border-[#e0ccb2]",
+};
 
 function getWeddingStage(wedding: any) {
   if (wedding.archived) return "Archived";
@@ -66,35 +51,31 @@ function weddingGuestCount(weddingId: string) {
 function rsvpProgress(weddingId: string) {
   const rsvps = store.where("rsvps", (r: any) => r.wedding_id === weddingId);
   if (!rsvps.length) return 0;
-  const responded = rsvps.filter((r: any) => r.attending === "confirmed" || r.attending === "declined").length;
+  const responded = rsvps.filter((r: any) => r.attending === "confirmed" || r.attending === "declined" || r.attending === true || r.attending === false).length;
   return Math.round((responded / rsvps.length) * 100);
 }
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
   const fileRef = useRef<HTMLInputElement>(null);
-  const [activeTab, setActiveTab] = useState<"overview" | "users" | "vendors" | "reports" | "settings">("overview");
   const [weddings, setWeddings] = useState<any[]>([]);
   const [showCreate, setShowCreate] = useState(false);
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<StatusFilter>("all");
-  const [viewMode, setViewMode] = useState<"table" | "cards" | "timeline">("cards");
   const [spotlightOpen, setSpotlightOpen] = useState(false);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [detailWedding, setDetailWedding] = useState<any | null>(null);
-  const [importPanel, setImportPanel] = useState<any | null>(null);
-  const [toolPanel, setToolPanel] = useState<"templates" | "themes" | "assets" | "reports" | "users" | "settings" | "health" | null>(null);
   const [template, setTemplate] = useState(templateLibrary[0].name);
   const [newCouple, setNewCouple] = useState("");
   const [newSlug, setNewSlug] = useState("");
   const [newDate, setNewDate] = useState("");
   const [newVenue, setNewVenue] = useState("");
-  const [deleteWeddingConfirm, setDeleteWeddingConfirm] = useState<any | null>(null);
-  const [qrWedding, setQrWedding] = useState<any | null>(null);
 
   useEffect(() => {
-    // ProtectedAdminRoute already verified the Supabase session + admin role.
-    // Refresh data here.
+    if (!sessionStorage.getItem("wb_admin") && !localStorage.getItem("wb_admin")) {
+      navigate("/admin/login");
+      return;
+    }
     refresh();
     const offWeddings = store.subscribe("weddings", refresh);
     const offRsvps = store.subscribe("rsvps", refresh);
@@ -124,9 +105,8 @@ export default function AdminDashboard() {
     const active = weddings.filter(w => ["Published", "Wedding Week", "Live"].includes(getWeddingStage(w))).length;
     const upcoming = weddings.filter(w => w.wedding_date && isAfter(new Date(w.wedding_date), now)).length;
     const completed = weddings.filter(w => getWeddingStage(w) === "Completed").length;
-    const allAnalytics = store.all("analytics");
-    const views = allAnalytics.filter((r: Record<string, unknown>) => r.event_type === "page_view").length;
-    const qr = allAnalytics.filter((r: Record<string, unknown>) => r.event_type === "qr_scan").length;
+    const views = weddings.reduce((sum, w) => sum + Number(localStorage.getItem(`wb_viewed_${w.id}`) || 0), 0);
+    const qr = weddings.reduce((sum, w) => sum + Number(localStorage.getItem(`wb_qr_${w.id}`) || 0), 0);
     return {
       total: weddings.length,
       active,
@@ -140,10 +120,6 @@ export default function AdminDashboard() {
       messages: moments.length,
       views,
       qr,
-      revenue: `$${(weddings.length * 24.5).toFixed(1)}k`,
-      pendingInvoices: `$${(Math.max(1, weddings.filter(w => !w.published).length) * 4.5).toFixed(1)}k`,
-      unreadClientMessages: Math.max(1, moments.length % 5 || 3),
-      pendingContracts: Math.max(1, weddings.filter(w => !w.published).length || 2),
     };
   }, [weddings]);
 
@@ -157,165 +133,119 @@ export default function AdminDashboard() {
         (filter === "completed" && stage === "completed") ||
         (filter === "archived" && stage === "archived") ||
         (filter === "upcoming" && w.wedding_date && isAfter(new Date(w.wedding_date), new Date()));
-      const weddingRsvps = store.where("rsvps", (r: any) => r.wedding_id === w.id);
-      const guestText = weddingRsvps.map((r: any) => `${r.guest_name || ""} ${r.email || ""} ${r.phone || ""} ${r.message || ""}`).join(" ");
-      const searchable = `${w.couple_names} ${w.slug} ${w.access_code} ${w.ceremony_venue || ""} ${w.venue_address || ""} ${stage} ${guestText}`.toLowerCase();
+      const searchable = `${w.couple_names} ${w.slug} ${w.access_code} ${w.ceremony_venue || ""} ${w.venue_address || ""} ${stage}`.toLowerCase();
       return matchesFilter && (!term || searchable.includes(term));
     });
   }, [weddings, query, filter]);
 
   const activity = useMemo(() => {
     const items: { text: string; sub: string; ts: number; wedding?: any; icon: ReactNode }[] = [];
-    weddings.forEach(w => items.push({ text: `${w.couple_names} started planning their wedding`, sub: "New wedding created", ts: new Date(w.created_at || Date.now()).getTime(), wedding: w, icon: <Sparkles size={14} className="text-[#D4A853]" /> }));
+    weddings.forEach(w => items.push({ text: "Wedding Created", sub: w.couple_names, ts: new Date(w.created_at || Date.now()).getTime(), wedding: w, icon: <Flower2 size={14} /> }));
     store.all("rsvps").forEach((r: any) => {
       const wedding = weddings.find(w => w.id === r.wedding_id);
-      items.push({ text: `${r.guest_name} confirmed attendance`, sub: wedding ? wedding.couple_names : "Guest RSVP", ts: new Date(r.submitted_at || r.created_at || Date.now()).getTime(), wedding, icon: <CheckCircle2 size={14} className="text-[#A8A29E]" /> });
+      items.push({ text: "Guest RSVP Received", sub: `${r.guest_name}${wedding ? ` · ${wedding.couple_names}` : ""}`, ts: new Date(r.submitted_at || r.created_at || Date.now()).getTime(), wedding, icon: <Users size={14} /> });
     });
     store.all("guest_photos").forEach((p: any) => {
       const wedding = weddings.find(w => w.id === p.wedding_id);
-      items.push({ text: `${p.guest_name || "A guest"} uploaded gallery photos`, sub: wedding ? wedding.couple_names : "Wedding Media", ts: new Date(p.created_at || Date.now()).getTime(), wedding, icon: <Camera size={14} className="text-[#D4A853]/80" /> });
+      items.push({ text: "Guest Uploaded Photo", sub: `${p.guest_name}${wedding ? ` · ${wedding.couple_names}` : ""}`, ts: new Date(p.created_at || Date.now()).getTime(), wedding, icon: <Image size={14} /> });
     });
     store.all("updates").forEach((u: any) => {
       const wedding = weddings.find(w => w.id === u.wedding_id);
-      items.push({ text: `Published announcement: "${u.title}"`, sub: wedding ? wedding.couple_names : "Live update", ts: new Date(u.created_at || Date.now()).getTime(), wedding, icon: <Megaphone size={14} className="text-[#A8A29E]" /> });
+      items.push({ text: "Wedding Update Published", sub: `${u.title}${wedding ? ` · ${wedding.couple_names}` : ""}`, ts: new Date(u.created_at || Date.now()).getTime(), wedding, icon: <Bell size={14} /> });
     });
     return items.sort((a, b) => b.ts - a.ts).slice(0, 12);
   }, [weddings]);
 
-  const createWedding = async (event: React.FormEvent) => {
+  const createWedding = (event: React.FormEvent) => {
     event.preventDefault();
     if (!newCouple.trim()) return;
     const slug = (newSlug.trim() || newCouple.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")).slice(0, 60);
+    const code = Math.random().toString(16).slice(2, 10).toUpperCase();
     const selectedTemplate = templateLibrary.find(t => t.name === template) || templateLibrary[0];
-    
-    const { data: wedding, error } = await WeddingService.createWeddingWithDefaults({
+    const wedding = store.insert("weddings", {
       slug,
+      access_code: code,
       couple_names: newCouple.trim(),
       wedding_date: newDate || null,
       ceremony_time: "16:00",
       ceremony_venue: newVenue || null,
+      venue_address: null,
+      venue_map_url: null,
       cover_image: selectedTemplate.image,
       hero_image: selectedTemplate.image,
-    }, template);
-
-    if (error || !wedding) {
-      toast.error(error || "Failed to create wedding");
-      return;
-    }
-
-    toast.success(`Celebration created! Access Code: ${wedding.access_code}`);
+      story: "Tell your story here.",
+      dress_code: "Garden formal",
+      hashtag: newCouple.replace(/[^a-zA-Z]/g, ""),
+      published: false,
+      legacy_mode: false,
+      soundtrack_url: null,
+      theme: { background: "38 35% 97%", foreground: "30 20% 15%", primary: "30 55% 42%", accent: "30 55% 52%", template },
+    });
+    toast.success(`Wedding created. Couple code: ${code}`);
     setDetailWedding(wedding);
     setNewCouple(""); setNewSlug(""); setNewDate(""); setNewVenue(""); setShowCreate(false);
-    refresh();
   };
 
-  const duplicateWedding = async (w: any) => {
-    const copyNames = `${w.couple_names} Copy`;
-    const { data: newWedding, error } = await WeddingService.duplicateWedding(w.id, copyNames);
-    if (error || !newWedding) {
-      toast.error(error || "Failed to duplicate celebration");
-      return;
-    }
-    toast.success(`Duplicated celebration: ${copyNames}`);
+  const duplicateWedding = (w: any) => {
+    const copySlug = `${w.slug}-copy-${Date.now().toString().slice(-4)}`;
+    const newWedding = store.insert("weddings", {
+      ...w,
+      id: undefined,
+      slug: copySlug,
+      access_code: Math.random().toString(16).slice(2, 10).toUpperCase(),
+      couple_names: `${w.couple_names} Copy`,
+      published: false,
+      created_at: new Date().toISOString(),
+    });
+    toast.success(`Duplicated ${w.couple_names}`);
     setDetailWedding(newWedding);
-    refresh();
   };
 
-  const archiveWedding = async (w: any) => {
-    await WeddingService.archiveWedding(w.id);
+  const archiveWedding = (w: any) => {
+    store.update("weddings", w.id, { archived: true, published: false });
     toast.success(`${w.couple_names} archived`);
     refresh();
   };
 
-  const togglePublish = async (w: any) => {
-    if (w.published) {
-      await WeddingService.archiveWedding(w.id);
-      toast.success("Wedding unpublished");
-    } else {
-      await WeddingService.publishWedding(w.id);
-      toast.success("Wedding published");
-    }
+  const togglePublish = (w: any) => {
+    store.update("weddings", w.id, { published: !w.published, archived: false });
+    toast.success(w.published ? "Wedding unpublished" : "Wedding published");
     refresh();
   };
 
   const deleteWedding = (w: any) => {
-    setDeleteWeddingConfirm(w);
-  };
-
-  const performDeleteWedding = async (w: any) => {
-    const { success, error } = await WeddingService.deleteWedding(w.id);
-    if (!success) {
-      toast.error(error || "Failed to delete wedding");
-      return;
-    }
+    if (!confirm(`Delete "${w.couple_names}"? This removes all linked data.`)) return;
+    store.remove("weddings", w.id);
+    ["events", "gallery", "guest_photos", "rsvps", "guest_moments", "checkins", "updates", "accommodations", "venue_markers"].forEach(t => {
+      store.where(t as any, (row: any) => row.wedding_id === w.id).forEach((row: any) => store.remove(t as any, row.id));
+    });
     toast.success("Wedding deleted");
     refresh();
   };
 
-  const shareCoupleAccess = (w: any) => {
-    const loginUrl = `${window.location.origin}/couple-login`;
-    const directUrl = `${window.location.origin}/couple/${w.slug}/dashboard`;
-    const message = `Welcome to ForeverVow! Here are your Couple Dashboard access details for ${w.couple_names}:\n\nDirect Dashboard Link: ${directUrl}\nLogin Portal: ${loginUrl}\nAccess Code: ${w.access_code}`;
-    navigator.clipboard.writeText(message);
-    toast.success(`Copied Couple Link & Code (${w.access_code}) for ${w.couple_names}!`);
-  };
-
   const importCSV = (file: File) => {
-    const targetWeddingId = filteredWeddings[0]?.id || weddings[0]?.id;
-    if (!targetWeddingId) { toast.error("Create a wedding before importing guests"); return; }
-
     Papa.parse(file, {
       header: true,
-      skipEmptyLines: true,
       complete: (results) => {
-        try {
-          const rows = (results.data as any[]).filter(Boolean);
-          if (!rows.length) { toast.error("CSV is empty."); return; }
-
-          const headers = Object.keys(rows[0]);
-          const detected = detectSchema(headers, rows);
-          const mapping = buildMapping(headers, detected);
-          const normalized = rows.map(row => normalizeRow(row, mapping));
-          const validation = validateRows(normalized, mapping);
-
-          let count = 0;
-          normalized.forEach((guest: any) => {
-            if (!guest.guest_name) return;
-            store.insert("rsvps", {
-              wedding_id: targetWeddingId,
-              guest_name: guest.guest_name,
-              email: guest.email || null,
-              attending: guest.attending || "pending",
-              guest_count: guest.guest_count || 1,
-              dietary_preference: guest.dietary_preference || null,
-              message: guest.message || null,
-              submitted_at: new Date().toISOString(),
-            });
-            count++;
+        let count = 0;
+        const weddingId = filteredWeddings[0]?.id || weddings[0]?.id;
+        if (!weddingId) { toast.error("Create a wedding before importing guests"); return; }
+        (results.data as any[]).forEach((row) => {
+          if (!row.guest_name) return;
+          store.insert("rsvps", {
+            wedding_id: weddingId,
+            guest_name: row.guest_name,
+            email: row.email || null,
+            attending: row.attending || "pending",
+            guest_count: Number(row.guest_count) || 1,
+            dietary_preference: row.dietary_preference || null,
+            message: row.message || null,
+            submitted_at: new Date().toISOString(),
           });
-
-          const history = JSON.parse(localStorage.getItem("fv_csv_import_history") || "[]");
-          localStorage.setItem("fv_csv_import_history", JSON.stringify([
-            {
-              id: Date.now(),
-              count,
-              status: validation.errors.length ? "Imported with warnings" : "Success",
-              file: file.name,
-              wedding: targetWeddingId,
-              confidence: mapping.confidence,
-              warnings: validation.warnings,
-              errors: validation.errors,
-              created_at: new Date().toISOString(),
-            },
-            ...history,
-          ].slice(0, 20)));
-
-          setImportPanel({ file: file.name, count, mapping, validation, headers });
-          toast.success(`Imported ${count} guests · AI confidence ${mapping.confidence}%`);
-          refresh();
-        } catch (error) {
-          toast.error("Import failed. Please check the file and try again.");
-        }
+          count++;
+        });
+        toast.success(`CSV import completed: ${count} guests`);
+        refresh();
       },
     });
   };
@@ -328,96 +258,6 @@ export default function AdminDashboard() {
     a.href = url; a.download = "forevervow-rsvps.csv"; a.click();
     toast.success("RSVP report exported");
   };
-
-  const FIELD_ALIASES: Record<string, string[]> = {
-    guest_name: ["name", "full name", "guest", "attendee", "first name", "last name", "first name(s)"],
-    email: ["email", "e-mail", "email address", "mail"],
-    attending: ["attending", "rsvp", "status", "response", "will attend", "attendance"],
-    guest_count: ["guests", "count", "party size", "party", "plus one", "number of guests"],
-    dietary_preference: ["dietary", "diet", "food", "meal", "allergies", "dietary preference"],
-    message: ["message", "note", "comment", "notes", "special request", "song"],
-  };
-
-  function findHeader(headers: string[], regex: RegExp) {
-    return headers.find((header) => regex.test(header));
-  }
-
-  function detectSchema(headers: string[], rows: any[]) {
-    const detected: Record<string, string> = {};
-    headers.forEach((header) => {
-      const normalized = header.toLowerCase().replace(/[_-]/g, " ").trim();
-      for (const target of Object.keys(FIELD_ALIASES)) {
-        if (FIELD_ALIASES[target].some((alias) => normalized === alias || normalized.includes(alias))) {
-          detected[target] = header;
-          break;
-        }
-      }
-      if (!Object.values(detected).includes(header) && /name/i.test(header)) {
-        detected.guest_name = header;
-      }
-    });
-
-    const sample = rows.slice(0, 5);
-    const sampleText = JSON.stringify(sample).toLowerCase();
-    if (!detected.attending && /yes|no|pending|declined|maybe/.test(sampleText)) {
-      detected.attending = findHeader(headers, /status|attending|rsvp/i) || detected.attending;
-    }
-    if (!detected.dietary_preference && /vegan|vegetarian|halal|gluten/.test(sampleText)) {
-      detected.dietary_preference = findHeader(headers, /diet|food|meal/i) || detected.dietary_preference;
-    }
-    if (!detected.guest_count && /\b[1-9]\b/.test(sampleText)) {
-      detected.guest_count = findHeader(headers, /count|size|number|guests|party/i) || detected.guest_count;
-    }
-    return detected;
-  }
-
-  function buildMapping(headers: string[], detected: Record<string, string>) {
-    const matches: { from: string; to: string; confidence: number }[] = [];
-    Object.entries(detected).forEach(([target, source]) => {
-      if (!source) return;
-      const confidence = target === "guest_name" ? 95 : target === "attending" ? 88 : 90;
-      matches.push({ from: source, to: target, confidence });
-    });
-    const overall = matches.length ? Math.round(matches.reduce((sum, m) => sum + m.confidence, 0) / matches.length) : 0;
-    return { matches, confidence: overall, headers };
-  }
-
-  function normalizeRow(row: any, mapping: any) {
-    const guest: any = { guest_count: 1 };
-    mapping.matches.forEach((m: any) => {
-      const value = row[m.from];
-      if (value === undefined || value === null || value === "") return;
-      if (m.to === "attending") {
-        const lower = String(value).toLowerCase();
-        if (["yes", "y", "true", "1", "confirmed", "attending"].includes(lower)) guest.attending = "confirmed";
-        else if (["no", "n", "false", "0", "declined"].includes(lower)) guest.attending = "declined";
-        else if (["maybe", "?", "unsure"].includes(lower)) guest.attending = "maybe";
-        else guest.attending = "pending";
-      } else if (m.to === "guest_count") {
-        const n = parseInt(String(value).replace(/[^\d]/g, ""), 10);
-        guest.guest_count = n > 0 ? n : 1;
-      } else {
-        guest[m.to] = String(value).trim();
-      }
-    });
-    if (!guest.guest_name) {
-      const nameCandidates = Object.values(row).filter((value) => typeof value === "string" && String(value).trim().length > 1);
-      if (nameCandidates.length) guest.guest_name = String(nameCandidates[0]).trim();
-    }
-    return guest;
-  }
-
-  function validateRows(rows: any[], mapping: any) {
-    const warnings: string[] = [];
-    const errors: string[] = [];
-    const missingNames = rows.filter((r) => !r.guest_name).length;
-    if (missingNames > 0) warnings.push(`${missingNames} rows missing a name were skipped.`);
-    if (!mapping.matches.find((m: any) => m.to === "attending")) warnings.push("No RSVP status column detected — defaulting to Pending.");
-    if (!mapping.matches.find((m: any) => m.to === "email")) warnings.push("No email column detected — guests will not receive email updates.");
-    if (mapping.confidence < 70) warnings.push("AI mapping confidence is low — review results before publishing.");
-    if (!rows.length) errors.push("CSV contained no usable rows.");
-    return { warnings, errors };
-  }
 
   const bulkAction = (action: "publish" | "unpublish" | "archive" | "delete") => {
     selectedIds.forEach(id => {
@@ -433,331 +273,340 @@ export default function AdminDashboard() {
     refresh();
   };
 
-  const logout = async () => {
-    await supabase.auth.signOut();
+  const logout = () => {
     sessionStorage.removeItem("wb_admin");
     localStorage.removeItem("wb_admin");
     navigate("/admin/login");
   };
 
   const platformCards = [
-    { label: "Season Revenue", value: stats.revenue, icon: <DollarSign size={16} />, filter: "all" as StatusFilter },
-    { label: "Pending Invoices", value: stats.pendingInvoices, icon: <FileText size={16} />, filter: "draft" as StatusFilter },
+    { label: "Total Weddings", value: stats.total, icon: <Flower2 size={16} />, filter: "all" as StatusFilter },
     { label: "Active Weddings", value: stats.active, icon: <Zap size={16} />, filter: "published" as StatusFilter },
-    { label: "Upcoming Weddings", value: stats.upcoming, icon: <Calendar size={16} />, filter: "upcoming" as StatusFilter },
-    { label: "Ready to Publish", value: stats.draft, icon: <Edit3 size={16} />, filter: "draft" as StatusFilter },
+    { label: "Upcoming", value: stats.upcoming, icon: <Calendar size={16} />, filter: "upcoming" as StatusFilter },
     { label: "Completed", value: stats.completed, icon: <CheckCircle2 size={16} />, filter: "completed" as StatusFilter },
+    { label: "Draft", value: stats.draft, icon: <Edit3 size={16} />, filter: "draft" as StatusFilter },
+    { label: "Published", value: stats.published, icon: <Eye size={16} />, filter: "published" as StatusFilter },
     { label: "Total Guests", value: stats.guests, icon: <Users size={16} />, filter: "all" as StatusFilter },
-    { label: "Confirmed RSVPs", value: stats.rsvps, icon: <FileSpreadsheet size={16} />, filter: "all" as StatusFilter },
-    { label: "Wedding Media", value: stats.photos, icon: <Image size={16} />, filter: "all" as StatusFilter },
-    { label: "Guest Messages", value: stats.messages, icon: <Bell size={16} />, filter: "all" as StatusFilter },
+    { label: "Total RSVPs", value: stats.rsvps, icon: <FileSpreadsheet size={16} />, filter: "all" as StatusFilter },
+    { label: "Guest Photos", value: stats.photos, icon: <Image size={16} />, filter: "all" as StatusFilter },
+    { label: "Messages", value: stats.messages, icon: <Bell size={16} />, filter: "all" as StatusFilter },
+    { label: "Wedding Views", value: stats.views, icon: <BarChart3 size={16} />, filter: "all" as StatusFilter },
+    { label: "QR Scans", value: stats.qr, icon: <QrCode size={16} />, filter: "all" as StatusFilter },
   ];
 
-  const mostViewed = weddings.slice().sort((a, b) => {
-    const bViews = store.all("analytics").filter((r: Record<string, unknown>) => r.wedding_id === b.id && r.event_type === "page_view").length;
-    const aViews = store.all("analytics").filter((r: Record<string, unknown>) => r.wedding_id === a.id && r.event_type === "page_view").length;
-    return bViews - aViews;
-  })[0];
+  const mostViewed = weddings.slice().sort((a, b) => Number(localStorage.getItem(`wb_viewed_${b.id}`) || 0) - Number(localStorage.getItem(`wb_viewed_${a.id}`) || 0))[0];
   const avgGuests = weddings.length ? Math.round(stats.guests / weddings.length) : 0;
   const avgRsvp = weddings.length ? Math.round(weddings.reduce((sum, w) => sum + rsvpProgress(w.id), 0) / weddings.length) : 0;
-  const csvHistory = JSON.parse(localStorage.getItem("fv_csv_import_history") || "[]") as any[];
-  const adminGreeting = new Date().getHours() < 12 ? "Good Morning" : new Date().getHours() < 18 ? "Good Afternoon" : "Good Evening";
-  const platformNotifications = [
-    { title: "Wedding Published", sub: weddings.find(w => w.published)?.couple_names || "No published weddings yet", tone: "green" },
-    { title: "CSV Import", sub: csvHistory[0] ? `${csvHistory[0].count} records · ${csvHistory[0].status}` : "No imports recorded", tone: "gold" },
-    { title: "Storage", sub: `${Math.min(96, 28 + stats.photos * 6)}% used`, tone: stats.photos > 8 ? "gold" : "green" },
-    { title: "Wedding Tomorrow", sub: weddings.find(w => w.wedding_date && differenceInDays(new Date(w.wedding_date), new Date()) === 1)?.couple_names || "None scheduled", tone: "blue" },
-  ];
 
   return (
-    <div className="min-h-screen bg-[#0C0A09] text-[#FAF7F2] pb-24 md:pb-20">
-      {/* Floating Top Navigation */}
-      <header className="sticky top-4 z-40 mx-auto max-w-[1520px] px-4 md:px-8">
-        <div className="glass-obsidian rounded-full h-[70px] px-6 flex items-center justify-between border border-white/[0.1] shadow-2xl">
-          <div className="flex items-center gap-3.5 min-w-0">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#D4A853]/30 to-[#B8872E]/10 border border-[#D4A853]/30 flex items-center justify-center text-[#D4A853]">
-              <Shield size={18} />
-            </div>
+    <div className="min-h-screen bg-[#f7f3ed]" style={{ fontFamily: '"Manrope", system-ui, sans-serif' }}>
+      <style>{`.display{font-family:"Cormorant Garamond",Georgia,serif}.wedding-label{letter-spacing:.26em;text-transform:uppercase;font-size:11px;color:#b7834c}`}</style>
+
+      <header className="sticky top-0 z-30 bg-white/90 backdrop-blur-xl border-b border-[#e6d4be]">
+        <div className="mx-auto max-w-[1500px] px-5 md:px-8 h-[72px] flex items-center gap-4">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-10 h-10 rounded-[14px] bg-[#2b2723] text-[#f9f2e8] flex items-center justify-center"><Shield size={17} /></div>
             <div className="hidden sm:block">
-              <div className="text-[10px] uppercase tracking-[0.25em] text-[#D4A853] font-semibold">ForeverVow Studio</div>
-              <div className="display text-[18px] text-[#FAF7F2] -mt-0.5 font-medium">Wedding Home</div>
+              <div className="wedding-label">ForeverVow Admin</div>
+              <div className="display text-[17px] text-[#2a231d] -mt-0.5">Platform Command Center</div>
             </div>
           </div>
 
-          {/* Desktop Wide Spotlight Search Pill */}
-          <button
-            onClick={() => setSpotlightOpen(true)}
-            className="mx-4 hidden md:flex flex-1 max-w-lg items-center gap-3 px-4.5 py-2.5 rounded-full bg-white/[0.04] border border-white/[0.08] text-[#A8A29E] text-[13px] hover:bg-white/[0.08] hover:border-[#D4A853]/40 transition-all group min-h-[44px]"
-          >
-            <Search size={15} className="text-[#D4A853]" />
-            <span className="font-medium text-[#FAF7F2]/80 group-hover:text-[#FAF7F2]">Search weddings, couples, guests, emails, or codes...</span>
-            <span className="ml-auto text-[10px] font-mono px-2 py-0.5 rounded-md bg-white/[0.06] border border-white/[0.1] text-[#A8A29E]">
-              ⌘K
-            </span>
+          <button onClick={() => setSpotlightOpen(true)} className="mx-auto hidden md:flex flex-1 max-w-xl items-center gap-3 px-4 py-2.5 rounded-[16px] bg-[#f7f3ed] border border-[#e6d4be] text-[#8d7962] text-[13.5px] hover:bg-white transition">
+            <Search size={15} /> Search weddings, guests, venues, codes...
+            <span className="ml-auto text-[11px] px-2 py-0.5 rounded-md bg-white border border-[#e6d4be]">⌘K</span>
           </button>
 
-          {/* Mobile Collapsed Search Magnifying Glass Icon */}
-          <button
-            onClick={() => setSpotlightOpen(true)}
-            className="flex md:hidden w-11 h-11 min-w-[44px] min-h-[44px] rounded-full bg-white/[0.04] border border-white/[0.08] hover:bg-white/[0.1] items-center justify-center text-[#D4A853] transition ml-auto mr-2 shrink-0"
-            title="Search Weddings"
-          >
-            <Search size={16} />
-          </button>
-
-          <div className="flex items-center gap-2.5">
-            {/* Client Communication Alerts Bell */}
-            <button
-              onClick={() => toast.info(`${stats.unreadClientMessages} unread client messages across active celebrations`)}
-              className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-full bg-white/[0.04] border border-white/[0.08] hover:bg-white/[0.1] flex items-center justify-center text-[#A8A29E] hover:text-[#FAF7F2] relative transition shrink-0"
-              title="Client Communication Alerts"
-            >
+          <div className="ml-auto flex items-center gap-2">
+            <button className="relative w-10 h-10 rounded-[14px] border border-[#e6d4be] bg-white flex items-center justify-center text-[#5a4735]">
               <Bell size={16} />
-              <span className="w-2.5 h-2.5 rounded-full bg-[#D4A853] border-2 border-[#0C0A09] absolute top-2 right-2 animate-pulse" />
+              <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-[#b0743c] text-white text-[10px] flex items-center justify-center">3</span>
             </button>
-
-            {/* Create Button: Full text on desktop, '+' gold circle on mobile */}
-            <button
-              onClick={() => setShowCreate(true)}
-              className="fv-btn-primary !py-2.5 !px-5 text-[12px] hidden sm:inline-flex min-h-[44px] items-center gap-1.5 shrink-0"
-            >
-              <Plus size={15} /> Create Wedding
-            </button>
-            <button
-              onClick={() => setShowCreate(true)}
-              className="inline-flex sm:hidden w-11 h-11 min-w-[44px] min-h-[44px] rounded-full bg-gradient-to-br from-[#D4A853] to-[#B8872E] text-[#0C0A09] items-center justify-center shadow-lg hover:scale-105 transition shrink-0"
-              title="Create Wedding"
-            >
-              <Plus size={20} />
-            </button>
-
-            <button
-              onClick={logout}
-              className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-full bg-white/[0.04] border border-white/[0.08] hover:bg-white/[0.1] flex items-center justify-center text-[#A8A29E] hover:text-[#FAF7F2] transition shrink-0"
-              title="Sign Out"
-            >
-              <LogOut size={16} />
+            <button onClick={logout} className="inline-flex items-center gap-2 px-4 py-2.5 rounded-[14px] border border-[#d9c6ae] bg-white text-[#5a4735] text-[13px] hover:bg-[#fbf3e8]">
+              <LogOut size={14}/> Logout
             </button>
           </div>
         </div>
       </header>
 
-      <main className="mx-auto max-w-[1520px] px-4 md:px-8 pt-8 space-y-10">
-        {/* Top Suite Navigation Tabs */}
-        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar border-b border-white/[0.08] pb-4">
-          {[
-            { id: "overview", label: "Overview & Celebrations", icon: <Gauge size={16} /> },
-            { id: "users", label: "Studio & Couple Users", icon: <Users size={16} /> },
-            { id: "vendors", label: "Partner & Vendor Directory", icon: <Briefcase size={16} /> },
-            { id: "reports", label: "Analytics & Export Cockpit", icon: <BarChart3 size={16} /> },
-            { id: "settings", label: "Studio Governance Settings", icon: <Settings size={16} /> }
-          ].map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => {
-                setActiveTab(tab.id as any);
-                setToolPanel(null);
-              }}
-              className={`px-5 py-2.5 rounded-full text-[13px] font-semibold transition flex items-center gap-2 whitespace-nowrap border ${
-                activeTab === tab.id
-                  ? "bg-[#D4A853] text-[#0C0A09] border-[#D4A853] shadow-[0_0_20px_rgba(212,168,83,0.3)]"
-                  : "bg-white/[0.03] text-[#A8A29E] border-white/[0.08] hover:bg-white/[0.08] hover:text-[#FAF7F2]"
-              }`}
-            >
-              {tab.icon} {tab.label}
-            </button>
-          ))}
-        </div>
-
-        {activeTab === "overview" && (
-          <AdminOverviewView
-            weddings={weddings}
-            filteredWeddings={filteredWeddings}
-            stats={stats}
-            query={query}
-            onQueryChange={setQuery}
-            filter={filter}
-            onFilterChange={setFilter}
-            viewMode={viewMode}
-            onViewModeChange={setViewMode}
-            selectedIds={selectedIds}
-            onSelectedIdsChange={setSelectedIds}
-            onBulkAction={bulkAction}
-            onSelectWedding={setDetailWedding}
-            onShareWedding={shareCoupleAccess}
-            onTogglePublish={togglePublish}
-            onDuplicateWedding={duplicateWedding}
-            onDeleteWedding={(w) => setDeleteWeddingConfirm(w)}
-            onOpenQR={setQrWedding}
-            activity={activity}
-            csvHistory={csvHistory}
-            onShowCreate={() => setShowCreate(true)}
-            onImportClick={() => fileRef.current?.click()}
-            onOpenToolPanel={(panel) => {
-              if (panel === "reports") setActiveTab("reports");
-              else setToolPanel(panel as any);
-            }}
-            adminGreeting={adminGreeting}
-            platformCards={platformCards}
-            getWeddingStage={getWeddingStage}
-            weddingGuestCount={weddingGuestCount}
-            rsvpProgress={rsvpProgress}
-          />
-        )}
-
-        {activeTab === "users" && (
-          <AdminUserManagementView
-            weddings={weddings}
-            onSelectWedding={setDetailWedding}
-            onShareWedding={shareCoupleAccess}
-          />
-        )}
-
-        {activeTab === "vendors" && (
-          <AdminVendorDirectoryView
-            weddings={weddings}
-            onSelectWedding={setDetailWedding}
-          />
-        )}
-
-        {activeTab === "reports" && (
-          <AdminAnalyticsReportsView
-            weddings={weddings}
-            stats={stats}
-            onExportCsv={exportCsv}
-          />
-        )}
-
-        {activeTab === "settings" && (
-          <AdminSettingsView stats={stats} />
-        )}
-      </main>
-
-      {/* ────────────────── MODALS & OVERLAYS ────────────────── */}
-
-      {/* Create Wedding Wizard Modal */}
-      {showCreate && (
-        <CreateWeddingWizard
-          onClose={() => setShowCreate(false)}
-          onCreated={(newWed) => {
-            setShowCreate(false);
-            setDetailWedding(newWed);
-            refresh();
-          }}
-        />
-      )}
-
-      {/* Guest List CSV Import Panel */}
-      {importPanel && (
-        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-xl flex items-center justify-center p-4" onClick={() => setImportPanel(null)}>
-          <div className="w-full max-w-3xl glass-obsidian rounded-[32px] border border-white/[0.15] shadow-2xl overflow-hidden" onClick={e => e.stopPropagation()}>
-            <div className="p-6 border-b border-white/[0.08] flex items-center justify-between">
-              <div>
-                <div className="wedding-label text-[#D4A853]">Guest List Import</div>
-                <div className="display text-[26px] text-[#FAF7F2] mt-0.5">{importPanel.file}</div>
+      <main className="mx-auto max-w-[1500px] px-5 md:px-8 py-8 space-y-8">
+        <section className="grid lg:grid-cols-[1.4fr_.8fr] gap-6">
+          <div className="bg-[#2b2723] rounded-[30px] p-8 text-[#f9f2e8] relative overflow-hidden">
+            <div className="absolute -right-20 -top-20 w-72 h-72 rounded-full bg-[#b0743c]/25 blur-3xl" />
+            <div className="relative z-10">
+              <div className="wedding-label !text-[#c9a87a] mb-3">Platform Overview</div>
+              <h1 className="display text-[44px] md:text-[58px] leading-[0.95] text-white max-w-2xl">Understand the entire platform in seconds.</h1>
+              <p className="mt-5 text-[15px] leading-7 text-white/65 max-w-xl">Monitor wedding lifecycle, guest activity, imports, publishing, storage, QR usage, and operational health from one command center.</p>
+              <div className="mt-8 flex flex-wrap gap-3">
+                <button onClick={() => setShowCreate(true)} className="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-white text-[#2b2723] text-[13px] font-semibold"><Plus size={15}/> Create Wedding</button>
+                <button onClick={() => fileRef.current?.click()} className="inline-flex items-center gap-2 px-5 py-3 rounded-full border border-white/20 text-white text-[13px]"><Upload size={15}/> Import CSV</button>
+                <input ref={fileRef} type="file" accept=".csv" className="hidden" onChange={e => e.target.files?.[0] && importCSV(e.target.files[0])} />
               </div>
-              <button onClick={() => setImportPanel(null)} className="w-9 h-9 rounded-full bg-white/[0.06] flex items-center justify-center"><X size={15}/></button>
             </div>
+          </div>
 
-            <div className="p-6 space-y-6">
-              <div className="grid grid-cols-3 gap-4 text-center p-4 rounded-[20px] bg-white/[0.03] border border-white/[0.08]">
-                <div><div className="display text-[28px] text-[#FAF7F2]">{importPanel.count}</div><div className="text-[10px] uppercase tracking-wider text-[#78716C]">Imported Guests</div></div>
-                <div><div className="display text-[28px] text-[#D4A853]">{importPanel.mapping.confidence}%</div><div className="text-[10px] uppercase tracking-wider text-[#78716C]">Confidence Score</div></div>
-                <div><div className="display text-[28px] text-[#7A9E7E]">{importPanel.mapping.matches.length}</div><div className="text-[10px] uppercase tracking-wider text-[#78716C]">Mapped Columns</div></div>
-              </div>
-
-              <div>
-                <div className="wedding-label mb-3">Field Alignments</div>
-                <div className="space-y-2 max-h-[220px] overflow-y-auto pr-1">
-                  {importPanel.mapping.matches.map((m: any) => (
-                    <div key={m.from} className="flex items-center justify-between rounded-[14px] bg-white/[0.02] border border-white/[0.06] px-4 py-2.5 text-[13px]">
-                      <span className="font-semibold text-[#FAF7F2]">{m.from}</span>
-                      <span className="text-[#A8A29E]">→ {m.to.replace(/_/g, " ")}</span>
-                      <span className="text-[#D4A853] font-mono text-[12px]">{m.confidence}%</span>
-                    </div>
-                  ))}
+          <div className="grid sm:grid-cols-2 lg:grid-cols-1 gap-4">
+            <div className="bg-white rounded-[24px] border border-[#e6d4be] p-6">
+              <div className="wedding-label mb-4">System Status</div>
+              {["Database", "Storage", "Background Jobs", "Email Service", "QR Generation", "CSV Imports"].map((s, i) => (
+                <div key={s} className="flex items-center justify-between py-2.5 border-b border-[#f0e4d4] last:border-0">
+                  <span className="text-[13.5px] text-[#4b4037]">{s}</span>
+                  <span className={`text-[11px] px-2 py-1 rounded-full ${i === 2 ? "bg-[#fdf3e4] text-[#b0743c]" : "bg-[#eff6ee] text-[#4f7a56]"}`}>{i === 2 ? "Queued" : "Healthy"}</span>
                 </div>
+              ))}
+            </div>
+            <div className="bg-white rounded-[24px] border border-[#e6d4be] p-6">
+              <div className="wedding-label mb-3">Fast Reports</div>
+              <button onClick={exportCsv} className="w-full flex items-center justify-between px-4 py-3 rounded-[16px] bg-[#f8eee0] border border-[#e8d2b6] text-[#5a4735] text-[13px]"><span className="flex items-center gap-2"><Download size={15}/> Export RSVP Report</span><ChevronRight size={14}/></button>
+            </div>
+          </div>
+        </section>
+
+        <section>
+          <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-6 gap-4">
+            {platformCards.map(card => (
+              <button key={card.label} onClick={() => setFilter(card.filter)} className="text-left bg-white rounded-[22px] border border-[#e6d4be] p-5 hover:border-[#d3a76b] hover:-translate-y-0.5 hover:shadow-md transition">
+                <div className="w-10 h-10 rounded-[13px] bg-[#f8eee0] text-[#b0743c] flex items-center justify-center mb-3">{card.icon}</div>
+                <div className="display text-[30px] text-[#2a231d] leading-none">{card.value}</div>
+                <div className="text-[10.5px] uppercase tracking-[0.18em] text-[#8d7962] mt-2 font-semibold">{card.label}</div>
+              </button>
+            ))}
+          </div>
+        </section>
+
+        <section className="grid xl:grid-cols-[1fr_380px] gap-6">
+          <div className="space-y-6">
+            <div className="bg-white rounded-[28px] border border-[#e6d4be] overflow-hidden">
+              <div className="p-5 border-b border-[#e6d4be] flex flex-wrap items-center gap-3">
+                <div className="mr-auto">
+                  <div className="wedding-label">Wedding Management</div>
+                  <div className="text-[13px] text-[#8d7962] mt-1">{filteredWeddings.length} weddings shown</div>
+                </div>
+                <div className="relative min-w-[220px]">
+                  <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#a98a6b]" />
+                  <input value={query} onChange={e => setQuery(e.target.value)} placeholder="Search..." className="w-full rounded-[14px] border border-[#e6d4be] pl-9 pr-3 py-2.5 text-[13px] outline-none focus:border-[#d3a76b]" />
+                </div>
+                <select value={filter} onChange={e => setFilter(e.target.value as StatusFilter)} className="rounded-[14px] border border-[#e6d4be] px-3 py-2.5 text-[13px] bg-white outline-none">
+                  <option value="all">All statuses</option>
+                  <option value="draft">Draft</option>
+                  <option value="published">Published</option>
+                  <option value="upcoming">Upcoming</option>
+                  <option value="completed">Completed</option>
+                  <option value="archived">Archived</option>
+                </select>
               </div>
 
-              <div className="flex justify-end gap-3 pt-4 border-t border-white/[0.08]">
-                <button onClick={() => setImportPanel(null)} className="fv-btn-primary !py-2.5 !px-6 text-[12px]">Complete & Close</button>
+              {selectedIds.length > 0 && (
+                <div className="px-5 py-3 bg-[#f8eee0] border-b border-[#e8d2b6] flex flex-wrap items-center gap-2 text-[13px] text-[#5a4735]">
+                  <strong>{selectedIds.length}</strong> selected
+                  <button onClick={() => bulkAction("publish")} className="ml-auto px-3 py-1.5 rounded-full bg-[#2b2723] text-white">Publish</button>
+                  <button onClick={() => bulkAction("unpublish")} className="px-3 py-1.5 rounded-full border border-[#d6bc9c]">Unpublish</button>
+                  <button onClick={() => bulkAction("archive")} className="px-3 py-1.5 rounded-full border border-[#d6bc9c]">Archive</button>
+                  <button onClick={() => bulkAction("delete")} className="px-3 py-1.5 rounded-full border border-[#e0a09a] text-[#a64838]">Delete</button>
+                </div>
+              )}
+
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[980px] text-[13px]">
+                  <thead className="bg-[#fdf9f4] text-left">
+                    <tr className="text-[10.5px] uppercase tracking-[0.16em] text-[#8d7962]">
+                      <th className="p-4"><input type="checkbox" onChange={e => setSelectedIds(e.target.checked ? filteredWeddings.map(w => w.id) : [])} /></th>
+                      <th className="p-4">Wedding</th>
+                      <th className="p-4">Date</th>
+                      <th className="p-4">Lifecycle</th>
+                      <th className="p-4">Guests</th>
+                      <th className="p-4">RSVP</th>
+                      <th className="p-4">Website</th>
+                      <th className="p-4">Quick Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredWeddings.map(w => {
+                      const stage = getWeddingStage(w);
+                      const guestCount = weddingGuestCount(w.id);
+                      const progress = rsvpProgress(w.id);
+                      return (
+                        <tr key={w.id} className="border-t border-[#f0e4d4] hover:bg-[#fdf9f4] transition">
+                          <td className="p-4"><input type="checkbox" checked={selectedIds.includes(w.id)} onChange={() => setSelectedIds(ids => ids.includes(w.id) ? ids.filter(x => x !== w.id) : [...ids, w.id])} /></td>
+                          <td className="p-4">
+                            <div className="flex items-center gap-3 min-w-[240px]">
+                              <img src={w.cover_image || w.hero_image} alt="" className="w-14 h-14 rounded-[14px] object-cover border border-[#e6d4be]" />
+                              <div className="min-w-0">
+                                <button onClick={() => setDetailWedding(w)} className="display text-[20px] text-[#2a231d] hover:text-[#b0743c] truncate block text-left">{w.couple_names}</button>
+                                <div className="text-[11.5px] text-[#8d7962] truncate">/{w.slug} · {w.access_code}</div>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="p-4 text-[#5a4f45]">{w.wedding_date ? format(new Date(w.wedding_date), "d MMM yyyy") : "Not set"}</td>
+                          <td className="p-4"><span className={`inline-flex px-2.5 py-1 rounded-full border text-[11px] font-semibold ${statusStyles[stage]}`}>{stage}</span></td>
+                          <td className="p-4 text-[#5a4f45]">{guestCount}</td>
+                          <td className="p-4">
+                            <div className="w-[110px]">
+                              <div className="h-1.5 bg-[#f5efe7] rounded-full overflow-hidden"><div className="h-full bg-[#b0743c]" style={{ width: `${progress}%` }} /></div>
+                              <div className="text-[11px] text-[#8d7962] mt-1">{progress}% complete</div>
+                            </div>
+                          </td>
+                          <td className="p-4"><span className={`text-[11px] font-semibold ${w.published ? "text-[#4f7a56]" : "text-[#b0743c]"}`}>{w.published ? "Public" : "Private"}</span></td>
+                          <td className="p-4">
+                            <div className="flex items-center gap-1.5">
+                              <button title="Open Dashboard" onClick={() => { localStorage.setItem("couple_wedding_id", w.id); localStorage.setItem("couple_wedding_slug", w.slug); window.open(`/couple/${w.slug}/dashboard`, "_blank"); }} className="p-2 rounded-lg hover:bg-[#f5efe7]"><Gauge size={14}/></button>
+                              <Link title="Preview Website" to={`/wedding/${w.slug}?preview=1`} target="_blank" className="p-2 rounded-lg hover:bg-[#f5efe7]"><ExternalLink size={14}/></Link>
+                              <button title="Copy guest link" onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/wedding/${w.slug}`); toast.success("Guest link copied"); }} className="p-2 rounded-lg hover:bg-[#f5efe7]"><Copy size={14}/></button>
+                              <button title="Copy couple link" onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/couple/${w.slug}`); toast.success("Couple link copied"); }} className="p-2 rounded-lg hover:bg-[#f5efe7]"><QrCode size={14}/></button>
+                              <button title="Publish/unpublish" onClick={() => togglePublish(w)} className="p-2 rounded-lg hover:bg-[#f5efe7]">{w.published ? <EyeOff size={14}/> : <Eye size={14}/>}</button>
+                              <button title="Duplicate" onClick={() => duplicateWedding(w)} className="p-2 rounded-lg hover:bg-[#f5efe7]"><Layers size={14}/></button>
+                              <button title="Archive" onClick={() => archiveWedding(w)} className="p-2 rounded-lg hover:bg-[#f5efe7]"><Archive size={14}/></button>
+                              <button title="Delete" onClick={() => deleteWedding(w)} className="p-2 rounded-lg hover:bg-[#fde9e6] text-[#a64838]"><Trash2 size={14}/></button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
               </div>
             </div>
           </div>
-        </div>
-      )}
 
-      {/* Tool Module Panel */}
-      {toolPanel === "health" && (
-        <div className="fixed inset-0 z-50 bg-[#0C0A09] overflow-y-auto">
-          <div className="fixed top-6 right-6 z-50">
-            <button
-              onClick={() => setToolPanel(null)}
-              className="px-5 py-2.5 rounded-full bg-white/[0.1] hover:bg-white/[0.2] text-white font-bold text-sm flex items-center gap-2 border border-white/[0.2] backdrop-blur-md shadow-2xl transition"
-            >
-              <X size={18} /> Close Cockpit
-            </button>
-          </div>
-          <SystemHealthModule />
-        </div>
-      )}
-      {toolPanel && toolPanel !== "health" && (
-        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-xl flex items-center justify-center p-4" onClick={() => setToolPanel(null)}>
-          <div className="w-full max-w-3xl glass-obsidian rounded-[32px] border border-white/[0.15] p-8 shadow-2xl" onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between pb-6 border-b border-white/[0.08] mb-6">
-              <div><div className="wedding-label">Wedding Gallery</div><h2 className="display text-[28px] text-[#FAF7F2] capitalize">{toolPanel} Library</h2></div>
-              <button onClick={() => setToolPanel(null)} className="w-9 h-9 rounded-full bg-white/[0.06] flex items-center justify-center"><X size={15}/></button>
+          <aside className="space-y-6">
+            <div className="bg-white rounded-[24px] border border-[#e6d4be] p-6">
+              <div className="wedding-label mb-4">Quick Actions</div>
+              <div className="grid grid-cols-2 gap-3">
+                {[
+                  { label: "Create", icon: <Plus size={16}/>, action: () => setShowCreate(true) },
+                  { label: "Import", icon: <Upload size={16}/>, action: () => fileRef.current?.click() },
+                  { label: "Templates", icon: <LayoutTemplate size={16}/>, action: () => toast.info("Template library ready") },
+                  { label: "Themes", icon: <Wand2 size={16}/>, action: () => toast.info("Theme manager ready") },
+                  { label: "Assets", icon: <HardDrive size={16}/>, action: () => toast.info("Asset library ready") },
+                  { label: "Reports", icon: <Download size={16}/>, action: exportCsv },
+                  { label: "Users", icon: <Users size={16}/>, action: () => toast.info("User management ready") },
+                  { label: "Settings", icon: <Settings size={16}/>, action: () => toast.info("Platform settings ready") },
+                ].map(a => (
+                  <button key={a.label} onClick={a.action} className="p-4 rounded-[18px] bg-[#fcf7f1] border border-[#eadfd1] hover:bg-[#f8eee0] text-left transition">
+                    <div className="text-[#b0743c] mb-2">{a.icon}</div>
+                    <div className="text-[12.5px] font-semibold text-[#4b4037]">{a.label}</div>
+                  </button>
+                ))}
+              </div>
             </div>
-            <div className="grid sm:grid-cols-2 gap-4 max-h-[400px] overflow-y-auto">
+
+            <div className="bg-white rounded-[24px] border border-[#e6d4be] p-6">
+              <div className="wedding-label mb-4">Recent Activity</div>
+              <div className="space-y-4">
+                {activity.map((item, index) => (
+                  <button key={index} onClick={() => item.wedding && setDetailWedding(item.wedding)} className="w-full text-left flex gap-3 group">
+                    <div className="w-8 h-8 rounded-full bg-[#f8eee0] text-[#b0743c] flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition">{item.icon}</div>
+                    <div className="min-w-0">
+                      <div className="text-[13px] font-semibold text-[#2a231d] truncate">{item.text}</div>
+                      <div className="text-[12px] text-[#8d7962] truncate">{item.sub}</div>
+                      <div className="text-[11px] text-[#b0743c] mt-0.5">{formatDistanceToNow(new Date(item.ts), { addSuffix: true })}</div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </aside>
+        </section>
+
+        <section className="grid lg:grid-cols-3 gap-6">
+          <div className="bg-white rounded-[24px] border border-[#e6d4be] p-6">
+            <div className="wedding-label mb-4">Platform Insights</div>
+            {[
+              ["Most Viewed Wedding", mostViewed?.couple_names || "—"],
+              ["Most Popular Theme", "Garden Wedding"],
+              ["Average Guest Count", avgGuests],
+              ["Average RSVP Rate", `${avgRsvp}%`],
+              ["Average Photos/Wedding", weddings.length ? Math.round(stats.photos / weddings.length) : 0],
+              ["Wedding Views This Week", stats.views],
+            ].map(([label, value]) => (
+              <div key={label as string} className="flex items-center justify-between py-2.5 border-b border-[#f0e4d4] last:border-0">
+                <span className="text-[13px] text-[#6b5d4f]">{label}</span>
+                <span className="text-[13px] font-semibold text-[#2a231d] text-right">{value}</span>
+              </div>
+            ))}
+          </div>
+
+          <div className="bg-white rounded-[24px] border border-[#e6d4be] p-6">
+            <div className="wedding-label mb-4">Template Library</div>
+            <div className="grid grid-cols-2 gap-3">
               {templateLibrary.map(t => (
-                <div key={t.name} className="rounded-[20px] border border-white/[0.08] overflow-hidden bg-white/[0.02]">
-                  <img src={t.image} alt="" className="h-32 w-full object-cover" />
-                  <div className="p-4 font-semibold text-[14px] text-[#FAF7F2]">{t.name}</div>
+                <div key={t.name} className="rounded-[16px] overflow-hidden border border-[#e6d4be]">
+                  <img src={t.image} alt="" className="h-20 w-full object-cover" />
+                  <div className="p-3 text-[12px] font-semibold text-[#2a231d]">{t.name}</div>
                 </div>
               ))}
             </div>
           </div>
+
+          <div className="bg-white rounded-[24px] border border-[#e6d4be] p-6">
+            <div className="wedding-label mb-4">Asset Library</div>
+            <div className="grid grid-cols-3 gap-3">
+              {["Backgrounds", "Icons", "Logos", "Fonts", "Themes", "Decor"].map(asset => (
+                <button key={asset} className="aspect-square rounded-[16px] bg-[#fcf7f1] border border-[#eadfd1] flex flex-col items-center justify-center gap-2 text-[#5a4735] text-[11px] hover:bg-[#f8eee0]">
+                  <HardDrive size={16} className="text-[#b0743c]" /> {asset}
+                </button>
+              ))}
+            </div>
+          </div>
+        </section>
+      </main>
+
+      {showCreate && (
+        <div className="fixed inset-0 z-50 bg-black/35 backdrop-blur-sm flex items-center justify-center p-4">
+          <form onSubmit={createWedding} className="bg-white rounded-[28px] border border-[#e6d4be] p-6 w-full max-w-2xl shadow-2xl grid md:grid-cols-2 gap-4">
+            <div className="md:col-span-2 flex items-start justify-between gap-4">
+              <div><div className="wedding-label mb-2">Create Wedding</div><h2 className="display text-[34px] text-[#2a231d]">Start from a template.</h2></div>
+              <button type="button" onClick={() => setShowCreate(false)} className="w-9 h-9 rounded-full border border-[#e6d4be] flex items-center justify-center"><X size={15}/></button>
+            </div>
+            <div>
+              <label className="wedding-label block mb-2">Couple names</label>
+              <input required value={newCouple} onChange={e => setNewCouple(e.target.value)} placeholder="John & Anna" className="w-full rounded-[14px] border border-[#e0ccb2] px-4 py-3 outline-none focus:border-[#d3a76b]" />
+            </div>
+            <div>
+              <label className="wedding-label block mb-2">URL slug</label>
+              <input value={newSlug} onChange={e => setNewSlug(e.target.value)} placeholder="john-anna" className="w-full rounded-[14px] border border-[#e0ccb2] px-4 py-3 outline-none focus:border-[#d3a76b]" />
+            </div>
+            <div>
+              <label className="wedding-label block mb-2">Wedding date</label>
+              <input type="date" value={newDate} onChange={e => setNewDate(e.target.value)} className="w-full rounded-[14px] border border-[#e0ccb2] px-4 py-3 outline-none focus:border-[#d3a76b]" />
+            </div>
+            <div>
+              <label className="wedding-label block mb-2">Venue</label>
+              <input value={newVenue} onChange={e => setNewVenue(e.target.value)} placeholder="Villa Rosa Alba" className="w-full rounded-[14px] border border-[#e0ccb2] px-4 py-3 outline-none focus:border-[#d3a76b]" />
+            </div>
+            <div className="md:col-span-2">
+              <label className="wedding-label block mb-2">Template</label>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                {templateLibrary.map(t => (
+                  <button key={t.name} type="button" onClick={() => setTemplate(t.name)} className={`rounded-[16px] border overflow-hidden text-left ${template === t.name ? "border-[#b0743c] ring-4 ring-[#b0743c]/10" : "border-[#e6d4be]"}`}>
+                    <img src={t.image} alt="" className="h-20 w-full object-cover" />
+                    <div className="p-2 text-[11.5px] font-semibold text-[#2a231d]">{t.name}</div>
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="md:col-span-2 flex justify-end gap-3 pt-2">
+              <button type="button" onClick={() => setShowCreate(false)} className="px-5 py-3 rounded-full border border-[#d9c6ae] text-[#5a4735]">Cancel</button>
+              <button className="px-6 py-3 rounded-full bg-[#2b2723] text-[#f9f2e8]">Create Wedding</button>
+            </div>
+          </form>
         </div>
       )}
 
-      {/* Wedding Detail Slide-Over */}
-      {detailWedding && (
-        <AdminWeddingDetailsView
-          wedding={detailWedding}
-          onClose={() => setDetailWedding(null)}
-          onShareAccess={shareCoupleAccess}
-          onTogglePublish={togglePublish}
-          onDuplicate={duplicateWedding}
-          onDelete={(w) => deleteWedding(w)}
-          onOpenQR={setQrWedding}
-          getStage={getWeddingStage}
-          guestCount={weddingGuestCount(detailWedding.id)}
-          rsvpRate={rsvpProgress(detailWedding.id)}
-        />
-      )}
-
-      <QRCodeModal
-        open={!!qrWedding}
-        onClose={() => setQrWedding(null)}
-        slug={qrWedding?.slug || ""}
-        coupleNames={qrWedding?.couple_names}
-      />
-
-      {/* Spotlight Search Modal */}
       {spotlightOpen && (
-        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-xl flex items-start justify-center p-4 pt-[12vh]" onClick={() => setSpotlightOpen(false)}>
-          <div className="w-full max-w-xl glass-obsidian rounded-[28px] border border-white/[0.15] shadow-2xl overflow-hidden" onClick={e => e.stopPropagation()}>
-            <div className="p-5 border-b border-white/[0.08] flex items-center gap-3.5">
-              <Search size={18} className="text-[#D4A853]" />
-              <input autoFocus value={query} onChange={e => setQuery(e.target.value)} placeholder="Search celebrations, access codes, guests..." className="w-full bg-transparent text-[15px] text-[#FAF7F2] outline-none placeholder-[#78716C]" />
-              <button onClick={() => setSpotlightOpen(false)} className="w-8 h-8 rounded-full bg-white/[0.06] flex items-center justify-center"><X size={14}/></button>
+        <div className="fixed inset-0 z-50 bg-black/35 backdrop-blur-sm flex items-start justify-center p-4 pt-[10vh]" onClick={() => setSpotlightOpen(false)}>
+          <div className="w-full max-w-2xl bg-white rounded-[28px] border border-[#e6d4be] shadow-2xl overflow-hidden" onClick={e => e.stopPropagation()}>
+            <div className="p-4 border-b border-[#e6d4be] flex items-center gap-3">
+              <Search size={18} className="text-[#b0743c]" />
+              <input autoFocus value={query} onChange={e => setQuery(e.target.value)} placeholder="Search couples, slugs, venues, access codes..." className="flex-1 outline-none text-[15px]" />
+              <button onClick={() => setSpotlightOpen(false)} className="w-8 h-8 rounded-full border border-[#e6d4be] flex items-center justify-center"><X size={14}/></button>
             </div>
-            <div className="max-h-[380px] overflow-y-auto p-3 space-y-1.5">
-              {filteredWeddings.slice(0, 6).map(w => (
-                <button key={w.id} onClick={() => { setDetailWedding(w); setSpotlightOpen(false); }} className="w-full flex items-center gap-3.5 p-3 rounded-[16px] hover:bg-white/[0.06] text-left transition">
-                  <img src={w.cover_image || w.hero_image} alt="" className="w-10 h-10 rounded-[12px] object-cover" />
-                  <div className="flex-1 min-w-0"><div className="font-semibold text-[#FAF7F2] truncate">{w.couple_names}</div><div className="text-[11px] font-mono text-[#A8A29E]">/{w.slug}</div></div>
-                  <ChevronRight size={15} className="text-[#78716C]" />
+            <div className="max-h-[420px] overflow-y-auto p-2">
+              {filteredWeddings.slice(0, 8).map(w => (
+                <button key={w.id} onClick={() => { setDetailWedding(w); setSpotlightOpen(false); }} className="w-full flex items-center gap-3 p-3 rounded-[18px] hover:bg-[#fdf9f4] text-left">
+                  <img src={w.cover_image || w.hero_image} alt="" className="w-12 h-12 rounded-[14px] object-cover" />
+                  <div className="flex-1 min-w-0"><div className="font-semibold text-[#2a231d] truncate">{w.couple_names}</div><div className="text-[12px] text-[#8d7962] truncate">/{w.slug} · {w.access_code}</div></div>
+                  <ChevronRight size={15} className="text-[#b0743c]" />
                 </button>
               ))}
             </div>
@@ -765,29 +614,35 @@ export default function AdminDashboard() {
         </div>
       )}
 
-      <ConfirmModal
-        open={!!deleteWeddingConfirm}
-        title="Delete Wedding"
-        message={`Delete "${deleteWeddingConfirm?.couple_names}"? This removes all linked RSVPs, photos, and guestbook moments permanently.`}
-        destructive
-        confirmLabel="Delete Celebration"
-        onCancel={() => setDeleteWeddingConfirm(null)}
-        onConfirm={() => {
-          if (deleteWeddingConfirm) {
-            performDeleteWedding(deleteWeddingConfirm);
-            setDeleteWeddingConfirm(null);
-          }
-        }}
-      />
-      <MobileBottomNav
-        items={[
-          { id: "home", label: "Home", icon: <Gauge size={20} />, active: activeTab === "overview" && !toolPanel, onClick: () => { setActiveTab("overview"); setToolPanel(null); window.scrollTo({ top: 0, behavior: "smooth" }); } },
-          { id: "search", label: "Search", icon: <Search size={20} />, onClick: () => setSpotlightOpen(true) },
-          { id: "create", label: "Create", icon: <Plus size={22} />, accent: true, onClick: () => setShowCreate(true) },
-          { id: "reports", label: "Reports", icon: <BarChart3 size={20} />, active: activeTab === "reports", onClick: () => { setActiveTab("reports"); setToolPanel(null); window.scrollTo({ top: 0, behavior: "smooth" }); } },
-          { id: "signout", label: "Sign Out", icon: <LogOut size={20} />, onClick: logout },
-        ]}
-      />
+      {detailWedding && (
+        <div className="fixed inset-0 z-50 bg-black/35 backdrop-blur-sm flex justify-end" onClick={() => setDetailWedding(null)}>
+          <div className="w-full max-w-3xl bg-[#faf8f5] h-full overflow-y-auto shadow-2xl" onClick={e => e.stopPropagation()}>
+            <div className="sticky top-0 bg-white border-b border-[#e6d4be] p-5 flex items-center justify-between z-10">
+              <div><div className="wedding-label">Wedding Workspace</div><div className="display text-[28px] text-[#2a231d]">{detailWedding.couple_names}</div></div>
+              <button onClick={() => setDetailWedding(null)} className="w-10 h-10 rounded-full border border-[#e6d4be] flex items-center justify-center"><X size={16}/></button>
+            </div>
+            <div className="p-6 space-y-6">
+              <img src={detailWedding.cover_image || detailWedding.hero_image} alt="" className="w-full h-64 object-cover rounded-[24px] border border-[#e6d4be]" />
+              <div className="grid sm:grid-cols-3 gap-4">
+                {["Overview", "Couple Information", "Guest Management", "RSVPs", "Gallery", "Venue Map", "Accommodation", "Updates", "Analytics", "Settings"].map(section => (
+                  <button key={section} className="bg-white rounded-[18px] border border-[#e6d4be] p-4 text-left hover:bg-[#fdf9f4]">
+                    <MoreHorizontal size={16} className="text-[#b0743c] mb-2" />
+                    <div className="text-[13px] font-semibold text-[#2a231d]">{section}</div>
+                  </button>
+                ))}
+              </div>
+              <div className="bg-white rounded-[22px] border border-[#e6d4be] p-5">
+                <div className="wedding-label mb-3">Generated Links</div>
+                <div className="space-y-3 text-[13px]">
+                  <div className="flex items-center justify-between gap-3"><span className="text-[#6b5d4f]">Couple Dashboard</span><code className="truncate text-[#b0743c]">/couple/{detailWedding.slug}</code></div>
+                  <div className="flex items-center justify-between gap-3"><span className="text-[#6b5d4f]">Guest Website</span><code className="truncate text-[#b0743c]">/wedding/{detailWedding.slug}</code></div>
+                  <div className="flex items-center justify-between gap-3"><span className="text-[#6b5d4f]">Access Code</span><code className="tracking-[0.18em] text-[#2a231d]">{detailWedding.access_code}</code></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
