@@ -1,76 +1,46 @@
-import { useEffect, useState, useRef } from "react";
-import { WeddingService } from "@/services";
-import type { Wedding, WeddingEvent, GalleryItem, WeddingUpdate, Accommodation } from "@/types/wedding";
+import { useEffect, useState } from "react";
+import { store } from "@/store/weddingStore";
 
 /**
- * Pure service read hook for the public guest wedding page.
- * Includes timeout protection and error handling to guarantee loading state terminates.
+ * Drop-in equivalent of the original repo's useWeddingData hook.
+ * Reads from localStorage-backed store and subscribes to realtime-like updates.
  */
 export function useWeddingData(slug: string | undefined) {
-  const [wedding, setWedding] = useState<Wedding | null>(null);
-  const [events, setEvents] = useState<WeddingEvent[]>([]);
-  const [gallery, setGallery] = useState<GalleryItem[]>([]);
-  const [updates, setUpdates] = useState<WeddingUpdate[]>([]);
-  const [accommodations, setAccommodations] = useState<Accommodation[]>([]);
+  const [wedding, setWedding] = useState<any>(null);
+  const [events, setEvents] = useState<any[]>([]);
+  const [gallery, setGallery] = useState<any[]>([]);
+  const [updates, setUpdates] = useState<any[]>([]);
+  const [accommodations, setAccommodations] = useState<any[]>([]);
   const [markers, setMarkers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const loadingRef = useRef(true);
-  loadingRef.current = loading;
 
   useEffect(() => {
-    let cancelled = false;
-
-    const safetyTimer = setTimeout(() => {
-      if (!cancelled && loadingRef.current) {
-        console.warn(`[useWeddingData] Loading timed out for slug: ${slug}`);
-        setLoading(false);
-        loadingRef.current = false;
-      }
-    }, 3500);
-
-    async function run() {
-      if (!slug) { setLoading(false); loadingRef.current = false; return; }
-      setLoading(true);
-      loadingRef.current = true;
-      
-      try {
-        // Race the payload fetch against a 3s timeout
-        const res = await Promise.race([
-          WeddingService.getPublicWeddingPayload(slug),
-          new Promise<null>((resolve) => setTimeout(() => resolve(null), 3000))
-        ]);
-
-        if (cancelled) return;
-
-        if (res) {
-          setWedding(res.wedding);
-          setEvents(res.events);
-          setGallery(res.gallery);
-          setUpdates(res.updates);
-          setAccommodations(res.accommodations);
-        } else {
-          setWedding(null);
-        }
-      } catch (err) {
-        if (!cancelled) {
-          console.warn(`[useWeddingData] Error loading wedding ${slug}:`, err);
-          setWedding(null);
-        }
-      } finally {
-        if (!cancelled) {
-          setMarkers([]);
-          setLoading(false);
-          loadingRef.current = false;
-        }
-      }
+    if (!slug) { setLoading(false); return; }
+    const w = store.find<any>("weddings", (r) => r.slug === slug && r.published);
+    setWedding(w ?? null);
+    if (w) {
+      setEvents(store.where<any>("events", (r) => r.wedding_id === w.id).sort((a, b) => a.sort_order - b.sort_order));
+      setGallery(store.where<any>("gallery", (r) => r.wedding_id === w.id));
+      setUpdates(store.where<any>("updates", (r) => r.wedding_id === w.id));
+      setAccommodations(store.where<any>("accommodations", (r) => r.wedding_id === w.id));
+      setMarkers(store.where<any>("venue_markers", (r) => r.wedding_id === w.id));
     }
+    setLoading(false);
 
-    run();
+    const off1 = store.subscribe("events", () => {
+      if (w) setEvents(store.where<any>("events", (r) => r.wedding_id === w.id).sort((a, b) => a.sort_order - b.sort_order));
+    });
+    const off2 = store.subscribe("gallery", () => {
+      if (w) setGallery(store.where<any>("gallery", (r) => r.wedding_id === w.id));
+    });
+    const off3 = store.subscribe("updates", () => {
+      if (w) setUpdates(store.where<any>("updates", (r) => r.wedding_id === w.id));
+    });
+    const off4 = store.subscribe("weddings", (row: any, ev) => {
+      if (ev === "UPDATE" && row.slug === slug) setWedding(row);
+    });
 
-    return () => {
-      cancelled = true;
-      clearTimeout(safetyTimer);
-    };
+    return () => { off1(); off2(); off3(); off4(); };
   }, [slug]);
 
   return { wedding, events, gallery, updates, accommodations, markers, loading };
