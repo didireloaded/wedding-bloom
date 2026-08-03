@@ -2,7 +2,126 @@
 // To take ownership, delete this banner line; the plugin then leaves the file alone.
 // supabase function: mcp
 // Bundled from src/lib/mcp/index.ts by @lovable.dev/mcp-js.
+// src/lib/mcp/index.ts
+import { defineMcp } from "npm:@lovable.dev/mcp-js@0.20.0";
+
+// src/lib/mcp/tools/list-weddings.ts
+import { defineTool } from "npm:@lovable.dev/mcp-js@0.20.0";
+import { z } from "npm:zod@^4.4.3";
+function supabaseFetch(path) {
+  const url = process.env.SUPABASE_URL;
+  const key = process.env.SUPABASE_PUBLISHABLE_KEY;
+  if (!url || !key) throw new Error("Supabase env not configured");
+  return fetch(`${url}/rest/v1/${path}`, {
+    headers: { apikey: key, Authorization: `Bearer ${key}` }
+  });
+}
+var list_weddings_default = defineTool({
+  name: "list_weddings",
+  title: "List published weddings",
+  description: "List published weddings with couple names, date, venue, and slug.",
+  inputSchema: {
+    limit: z.number().int().min(1).max(50).optional().describe("Max results (default 20).")
+  },
+  annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
+  handler: async ({ limit }) => {
+    const n = limit ?? 20;
+    const res = await supabaseFetch(
+      `weddings?select=slug,couple_names,wedding_date,ceremony_venue,published&published=eq.true&order=wedding_date.asc&limit=${n}`
+    );
+    if (!res.ok) {
+      return { content: [{ type: "text", text: `Error: ${res.status} ${await res.text()}` }], isError: true };
+    }
+    const rows = await res.json();
+    return {
+      content: [{ type: "text", text: JSON.stringify(rows, null, 2) }],
+      structuredContent: { weddings: rows }
+    };
+  }
+});
+
+// src/lib/mcp/tools/get-wedding.ts
+import { defineTool as defineTool2 } from "npm:@lovable.dev/mcp-js@0.20.0";
+import { z as z2 } from "npm:zod@^4.4.3";
+function supabaseFetch2(path) {
+  const url = process.env.SUPABASE_URL;
+  const key = process.env.SUPABASE_PUBLISHABLE_KEY;
+  if (!url || !key) throw new Error("Supabase env not configured");
+  return fetch(`${url}/rest/v1/${path}`, {
+    headers: { apikey: key, Authorization: `Bearer ${key}` }
+  });
+}
+var get_wedding_default = defineTool2({
+  name: "get_wedding",
+  title: "Get wedding details",
+  description: "Fetch a published wedding by its slug, including story, date, and venue.",
+  inputSchema: {
+    slug: z2.string().min(1).describe("The wedding slug from the public URL (e.g. 'towa-mathew').")
+  },
+  annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
+  handler: async ({ slug }) => {
+    const res = await supabaseFetch2(
+      `weddings?select=slug,couple_names,wedding_date,ceremony_time,ceremony_venue,story,dress_code,published&slug=eq.${encodeURIComponent(slug)}&limit=1`
+    );
+    if (!res.ok) {
+      return { content: [{ type: "text", text: `Error: ${res.status} ${await res.text()}` }], isError: true };
+    }
+    const rows = await res.json();
+    if (!rows[0]) {
+      return { content: [{ type: "text", text: `No wedding found for slug '${slug}'.` }], isError: true };
+    }
+    return {
+      content: [{ type: "text", text: JSON.stringify(rows[0], null, 2) }],
+      structuredContent: { wedding: rows[0] }
+    };
+  }
+});
+
+// src/lib/mcp/tools/get-events.ts
+import { defineTool as defineTool3 } from "npm:@lovable.dev/mcp-js@0.20.0";
+import { z as z3 } from "npm:zod@^4.4.3";
+function supabaseFetch3(path) {
+  const url = process.env.SUPABASE_URL;
+  const key = process.env.SUPABASE_PUBLISHABLE_KEY;
+  if (!url || !key) throw new Error("Supabase env not configured");
+  return fetch(`${url}/rest/v1/${path}`, {
+    headers: { apikey: key, Authorization: `Bearer ${key}` }
+  });
+}
+var get_events_default = defineTool3({
+  name: "get_wedding_events",
+  title: "Get wedding event schedule",
+  description: "Return the schedule of events (ceremony, reception, etc.) for a wedding by slug.",
+  inputSchema: {
+    slug: z3.string().min(1).describe("The wedding slug.")
+  },
+  annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
+  handler: async ({ slug }) => {
+    const w = await supabaseFetch3(`weddings?select=id&slug=eq.${encodeURIComponent(slug)}&limit=1`);
+    if (!w.ok) return { content: [{ type: "text", text: `Error: ${w.status}` }], isError: true };
+    const [wedding] = await w.json();
+    if (!wedding) return { content: [{ type: "text", text: `No wedding for slug '${slug}'.` }], isError: true };
+    const res = await supabaseFetch3(
+      `events?select=title,event_time,location,description&wedding_id=eq.${wedding.id}&order=event_time.asc`
+    );
+    if (!res.ok) return { content: [{ type: "text", text: `Error: ${res.status}` }], isError: true };
+    const events = await res.json();
+    return {
+      content: [{ type: "text", text: JSON.stringify(events, null, 2) }],
+      structuredContent: { events }
+    };
+  }
+});
+
+// src/lib/mcp/index.ts
+var mcp_default = defineMcp({
+  name: "forevervow-mcp",
+  title: "ForeverVow MCP",
+  version: "0.1.0",
+  instructions: "Read-only tools for ForeverVow, a luxury digital wedding invitation platform. Use `list_weddings` to discover published weddings, `get_wedding` to fetch details by slug, and `get_wedding_events` for the ceremony/reception schedule.",
+  tools: [list_weddings_default, get_wedding_default, get_events_default]
+});
+
 // lovable-mcp-supabase-entry.ts
-import mcp from "npm:C:\\Users\\Origin booth\\Documents\\APPS\\wedding-bloom\\src\\lib\\mcp\\index.ts";
 import { createSupabaseHandler } from "npm:@lovable.dev/mcp-js@0.20.0/stacks/supabase";
-Deno.serve(createSupabaseHandler(mcp, { functionName: "mcp" }));
+Deno.serve(createSupabaseHandler(mcp_default, { functionName: "mcp" }));
