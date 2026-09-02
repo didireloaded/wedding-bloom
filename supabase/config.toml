@@ -3,20 +3,14 @@ project_id = "kmbcfpfzjzpidblgsvms"
 [functions.ai-wedding]
 verify_jwt = false
 
-[functions.delete-wedding]
-verify_jwt = true
-
-[functions.manage-moments]
+[functions.guestbook-moderate]
 verify_jwt = false
 
-[functions.couple-update-wedding]
+[functions.generate-daily-reports]
 verify_jwt = false
 
 [functions.analyze-csv-import]
 verify_jwt = false
 
 [functions.analyze-wedding-theme]
-verify_jwt = false
-
-[functions.analyze-image-focus]
 verify_jwt = false

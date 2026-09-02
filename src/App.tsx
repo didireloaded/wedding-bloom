@@ -1,49 +1,56 @@
+import { Suspense, lazy } from "react";
+import { Toaster } from "@/components/ui/toaster";
+import { Toaster as Sonner } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { Toaster } from "sonner";
-import { lazy, Suspense } from "react";
+import { HelmetProvider } from "react-helmet-async";
+import { AuthProvider } from "@/hooks/useAuth";
 
-const Index = lazy(() => import("@/pages/Index"));
-const WeddingPage = lazy(() => import("@/pages/WeddingPage"));
-const CoupleLogin = lazy(() => import("@/pages/CoupleLogin"));
-const CoupleEntry = lazy(() => import("@/pages/CoupleEntry"));
-const CoupleDashboard = lazy(() => import("@/pages/CoupleDashboard"));
-const AdminLogin = lazy(() => import("@/pages/AdminLogin"));
-const AdminDashboard = lazy(() => import("@/pages/AdminDashboard"));
-const WeddingCheckin = lazy(() => import("@/pages/WeddingCheckin"));
-const QRRedirect = lazy(() => import("@/pages/QRRedirect"));
-const NotFound = lazy(() => import("@/pages/NotFound"));
+const Index = lazy(() => import("./pages/Index"));
+const WeddingPage = lazy(() => import("./pages/WeddingPage"));
+const WeddingCheckin = lazy(() => import("./pages/WeddingCheckin"));
+const AdminLogin = lazy(() => import("./pages/AdminLogin"));
+const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
+const AdminWeddingEditor = lazy(() => import("./pages/AdminWeddingEditor"));
+const CoupleLogin = lazy(() => import("./pages/CoupleLogin"));
+const CoupleDashboard = lazy(() => import("./pages/CoupleDashboard"));
+const NotFound = lazy(() => import("./pages/NotFound"));
 
-const Loader = () => (
-  <div className="min-h-screen flex items-center justify-center bg-[#faf8f5]">
-    <div className="text-center">
-      <div className="w-12 h-12 mx-auto mb-4 border-2 border-[#c9a87a] border-t-transparent rounded-full animate-spin"></div>
-      <div className="text-[#8d7962] text-sm tracking-[0.18em] uppercase">Loading</div>
-    </div>
-  </div>
+const queryClient = new QueryClient();
+
+const App = () => (
+  <HelmetProvider>
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Suspense
+              fallback={
+                <div className="min-h-screen flex items-center justify-center bg-background">
+                  <p className="wedding-label">Loading...</p>
+                </div>
+              }
+            >
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/wedding/:slug" element={<WeddingPage />} />
+                <Route path="/wedding/:slug/checkin" element={<WeddingCheckin />} />
+                <Route path="/admin/login" element={<AdminLogin />} />
+                <Route path="/admin" element={<AdminDashboard />} />
+                <Route path="/admin/wedding/:id" element={<AdminWeddingEditor />} />
+                <Route path="/couple-login" element={<CoupleLogin />} />
+                <Route path="/couple-dashboard" element={<CoupleDashboard />} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </Suspense>
+          </BrowserRouter>
+        </TooltipProvider>
+      </AuthProvider>
+    </QueryClientProvider>
+  </HelmetProvider>
 );
 
-export default function App() {
-  return (
-    <BrowserRouter>
-      <Toaster position="top-right" theme="light" richColors />
-      <Suspense fallback={<Loader />}>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/wedding/:slug" element={<WeddingPage />} />
-          <Route path="/couple/:slug" element={<CoupleEntry />} />
-          <Route path="/couple/:slug/dashboard" element={<CoupleDashboard />} />
-          <Route path="/couple-login" element={<CoupleLogin />} />
-          <Route path="/couple-dashboard" element={<CoupleDashboard />} />
-          <Route path="/admin" element={<AdminLogin />} />
-          <Route path="/admin/login" element={<AdminLogin />} />
-          <Route path="/admin-login" element={<AdminLogin />} />
-          <Route path="/admin/dashboard" element={<AdminDashboard />} />
-          <Route path="/admin-dashboard" element={<AdminDashboard />} />
-          <Route path="/checkin/:slug" element={<WeddingCheckin />} />
-          <Route path="/q/:slug" element={<QRRedirect />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </Suspense>
-    </BrowserRouter>
-  );
-}
+export default App;

@@ -1,861 +1,687 @@
 import { useEffect, useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
-import { QRCodeSVG } from "qrcode.react";
-import { format } from "date-fns";
-import {
-  Flower2, Heart, Users, Camera, LogOut, ExternalLink,
-  Copy, CheckCircle2, Calendar, MapPin, Edit3, Trash2, Plus,
-  MessageCircle, Clock, UserCheck, Gift, Bell, Home, Image as ImageIcon,
-  Settings, Sparkles, Radio, Menu, X
-} from "lucide-react";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { BriefcaseBusiness, CalendarDays, Check, Clock, Copy, ExternalLink, Heart, Image, MapPin, MessageCircle, MoreHorizontal, Plus, ShieldCheck, Star, User, Users, X } from "lucide-react";
 import { toast } from "sonner";
-import { store } from "@/store/weddingStore";
-import {
-  CountdownWidget, HealthWidget, SummaryGrid, QuickActionsWidget,
-  ActivityTimeline, InsightsWidget, NotificationCenter, WorkspaceSearch, unreadCount,
-  CommandCenter
-} from "@/features/couple/widgets";
 
-export default function CoupleDashboard() {
+// Dashboard Components
+import DashboardLayout from "@/components/dashboard/DashboardLayout";
+import OverviewCards from "@/components/dashboard/OverviewCards";
+import AIInsightsPanel from "@/components/dashboard/AIInsightsPanel";
+import AISuggestions from "@/components/dashboard/AISuggestions";
+import ActivityFeed from "@/components/dashboard/ActivityFeed";
+import PhotoManager from "@/components/dashboard/PhotoManager";
+import GuestMessages from "@/components/dashboard/GuestMessages";
+import WeddingTools from "@/components/dashboard/WeddingTools";
+import DailyReport from "@/components/dashboard/DailyReport";
+import MomentsManager from "@/components/dashboard/MomentsManager";
+import ShareWeddingLink from "@/components/dashboard/ShareWeddingLink";
+import DashboardWalkthrough from "@/components/dashboard/DashboardWalkthrough";
+import SetupProgress from "@/components/dashboard/SetupProgress";
+import QuickActions from "@/components/dashboard/QuickActions";
+import EditWeddingDetails from "@/components/dashboard/EditWeddingDetails";
+
+const CoupleDashboard = () => {
   const navigate = useNavigate();
-  const weddingId = sessionStorage.getItem("couple_wedding_id") || localStorage.getItem("couple_wedding_id");
-  const slug = sessionStorage.getItem("couple_wedding_slug") || localStorage.getItem("couple_wedding_slug");
+  const [searchParams] = useSearchParams();
+  const [weddingId, setWeddingId] = useState(sessionStorage.getItem("couple_wedding_id") || "");
+  const [weddingSlug, setWeddingSlug] = useState(sessionStorage.getItem("couple_wedding_slug") || searchParams.get("slug") || "");
+  const [accessCode, setAccessCode] = useState(sessionStorage.getItem("couple_access_code") || "");
 
   const [wedding, setWedding] = useState<any>(null);
   const [rsvps, setRsvps] = useState<any[]>([]);
-  const [gallery, setGallery] = useState<any[]>([]);
+  const [galleryImages, setGalleryImages] = useState<any[]>([]);
   const [guestPhotos, setGuestPhotos] = useState<any[]>([]);
-  const [moments, setMoments] = useState<any[]>([]);
   const [checkins, setCheckins] = useState<any[]>([]);
+  const [guestbookMessages, setGuestbookMessages] = useState<any[]>([]);
+  const [moments, setMoments] = useState<any[]>([]);
   const [events, setEvents] = useState<any[]>([]);
-  const [accommodations, setAccommodations] = useState<any[]>([]);
-  const [markers, setMarkers] = useState<any[]>([]);
-  const [updates, setUpdates] = useState<any[]>([]);
-  type TabId = "workspace" | "overview" | "rsvp" | "events" | "map" | "accommodations" | "gallery" | "guest_photos" | "moments" | "updates" | "share";
-  const [tab, setTab] = useState<TabId>("workspace");
-  const [editingWedding, setEditingWedding] = useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [notifsOpen, setNotifsOpen] = useState(false);
-  const [unread, setUnread] = useState(0);
-  const [newEvent, setNewEvent] = useState({ title: "", description: "", location: "", event_date: "", event_time: "" });
-  const [showEventForm, setShowEventForm] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [showTour, setShowTour] = useState(false);
+  const [showEditDetails, setShowEditDetails] = useState(false);
+  const [activeTab, setActiveTab] = useState("home");
 
   useEffect(() => {
-    if (!weddingId) { navigate("/couple-login"); return; }
-    refresh();
-    const off1 = store.subscribe("rsvps", refresh);
-    const off2 = store.subscribe("guest_moments", refresh);
-    const off3 = store.subscribe("checkins", refresh);
-    const off4 = store.subscribe("gallery", refresh);
-    const off5 = store.subscribe("events", refresh);
-    const off6 = store.subscribe("guest_photos", refresh);
-    const off7 = store.subscribe("accommodations", refresh);
-    const off8 = store.subscribe("venue_markers", refresh);
-    const off9 = store.subscribe("updates", refresh);
-    return () => { off1(); off2(); off3(); off4(); off5(); off6(); off7(); off8(); off9(); };
+    if (!weddingId) {
+      void hydratePreviewWedding();
+      return;
+    }
+    fetchData();
+
+    // Realtime subscriptions
+    const checkinChannel = supabase
+      .channel(`checkins-${weddingId}`)
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "checkins", filter: `wedding_id=eq.${weddingId}` },
+        (payload) => setCheckins((prev) => [payload.new as any, ...prev])
+      )
+      .subscribe();
+
+    const rsvpChannel = supabase
+      .channel(`rsvps-${weddingId}`)
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "rsvps", filter: `wedding_id=eq.${weddingId}` },
+        (payload) => setRsvps((prev) => [payload.new as any, ...prev])
+      )
+      .subscribe();
+
+    const guestbookChannel = supabase
+      .channel(`guestbook-${weddingId}`)
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "guestbook", filter: `wedding_id=eq.${weddingId}` },
+        (payload) => setGuestbookMessages((prev) => [payload.new as any, ...prev])
+      )
+      .subscribe();
+
+    const momentsChannel = supabase
+      .channel(`moments-${weddingId}`)
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "wedding_moments", filter: `wedding_id=eq.${weddingId}` },
+        (payload) => setMoments((prev) => [payload.new as any, ...prev])
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(checkinChannel);
+      supabase.removeChannel(rsvpChannel);
+      supabase.removeChannel(guestbookChannel);
+      supabase.removeChannel(momentsChannel);
+    };
   }, [weddingId]);
 
-  const refresh = () => {
-    if (!weddingId) return;
-    const w = store.find("weddings", (r: any) => r.id === weddingId);
-    setWedding(w);
-    setRsvps(store.where("rsvps", (r: any) => r.wedding_id === weddingId));
-    setGallery(store.where("gallery", (r: any) => r.wedding_id === weddingId));
-    setGuestPhotos(store.where("guest_photos", (r: any) => r.wedding_id === weddingId));
-    setMoments(store.where("guest_moments", (r: any) => r.wedding_id === weddingId));
-    setAccommodations(store.where("accommodations", (r: any) => r.wedding_id === weddingId));
-    setMarkers(store.where("venue_markers", (r: any) => r.wedding_id === weddingId));
-    setUpdates(store.where("updates", (r: any) => r.wedding_id === weddingId));
-    setCheckins(store.where("checkins", (r: any) => r.wedding_id === weddingId));
-    setEvents(store.where("events", (r: any) => r.wedding_id === weddingId).sort((a: any, b: any) => a.sort_order - b.sort_order));
-    // Refresh notification count
-    const ww = store.find("weddings", (r: any) => r.id === weddingId);
-    if (ww) {
-      setUnread(unreadCount(
-        ww,
-        store.where("rsvps", (r: any) => r.wedding_id === weddingId),
-        store.where("guest_moments", (r: any) => r.wedding_id === weddingId),
-        store.where("guest_photos", (r: any) => r.wedding_id === weddingId)
-      ));
+  const hydratePreviewWedding = async () => {
+    setLoading(true);
+    const requestedSlug = weddingSlug || "john-anna";
+    const { data } = await supabase
+      .from("weddings")
+      .select("id, slug, access_code")
+      .eq("slug", requestedSlug)
+      .maybeSingle();
+
+    if (data) {
+      sessionStorage.setItem("couple_wedding_id", data.id);
+      sessionStorage.setItem("couple_wedding_slug", data.slug);
+      sessionStorage.setItem("couple_access_code", data.access_code || "");
+      setWeddingId(data.id);
+      setWeddingSlug(data.slug);
+      setAccessCode(data.access_code || "");
+      return;
     }
+
+    navigate("/couple-login");
   };
 
-  const logout = () => {
-    sessionStorage.removeItem("couple_wedding_id");
-    sessionStorage.removeItem("couple_wedding_slug");
-    sessionStorage.removeItem("couple_access_code");
-    localStorage.removeItem("couple_wedding_id");
-    localStorage.removeItem("couple_wedding_slug");
-    localStorage.removeItem("couple_access_code");
-    navigate(slug ? `/couple/${slug}` : "/couple-login");
+  const fetchData = async () => {
+    const [wRes, rRes, glRes, gpRes, cRes, gbRes, evRes] = await Promise.all([
+      supabase.from("weddings").select("*").eq("id", weddingId!).single(),
+      supabase.from("rsvps").select("*").eq("wedding_id", weddingId!).order("submitted_at", { ascending: false }),
+      supabase.from("gallery").select("*").eq("wedding_id", weddingId!).order("created_at", { ascending: false }),
+      supabase.from("guest_photos").select("*").eq("wedding_id", weddingId!).order("created_at", { ascending: false }),
+      supabase.from("checkins").select("*").eq("wedding_id", weddingId!).order("checkin_time", { ascending: false }),
+      supabase.from("guestbook").select("*").eq("wedding_id", weddingId!).order("created_at", { ascending: false }),
+      supabase.from("events").select("*").eq("wedding_id", weddingId!),
+    ]);
+    if (wRes.data) {
+      setWedding(wRes.data);
+      if (!(wRes.data as any).dashboard_tour_completed) {
+        setShowTour(true);
+      }
+    }
+    if (rRes.data) setRsvps(rRes.data);
+    if (glRes.data) setGalleryImages(glRes.data);
+    if (gpRes.data) setGuestPhotos(gpRes.data);
+    if (cRes.data) setCheckins(cRes.data);
+    if (gbRes.data) setGuestbookMessages(gbRes.data);
+    if (evRes.data) setEvents(evRes.data);
+
+    // Fetch moments via edge function to bypass RLS
+    try {
+      const momRes = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/manage-moments`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ wedding_id: weddingId, access_code: accessCode, action: "list" }),
+      });
+      const momData = momRes.ok ? await momRes.json() : { data: [] };
+      if (momData.data) setMoments(momData.data);
+    } catch {
+      setMoments([]);
+    }
+
+    setLoading(false);
   };
 
-  const copyLink = () => {
-    const url = `${window.location.origin}/wedding/${slug}`;
-    navigator.clipboard.writeText(url);
-    toast.success("Link copied to clipboard");
-  };
-
-  const saveWeddingEdits = (patch: any) => {
-    store.update("weddings", weddingId!, patch);
-    toast.success("Wedding updated");
-    setEditingWedding(false);
-    refresh();
-  };
-
-  const addEvent = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newEvent.title.trim()) { toast.error("Title required"); return; }
-    store.insert("events", {
-      wedding_id: weddingId,
-      title: newEvent.title,
-      description: newEvent.description || null,
-      location: newEvent.location || null,
-      event_date: newEvent.event_date || wedding.wedding_date,
-      event_time: newEvent.event_time || null,
-      sort_order: events.length + 1,
-    });
-    setNewEvent({ title: "", description: "", location: "", event_date: "", event_time: "" });
-    setShowEventForm(false);
-    toast.success("Event added");
-  };
-
-  if (!wedding) {
+  if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#faf8f5]">
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
-          <div className="w-12 h-12 mx-auto mb-4 border-2 border-[#c9a87a] border-t-transparent rounded-full animate-spin"></div>
-          <div className="text-[#8d7962] text-sm">Loading dashboard…</div>
+          <div className="w-8 h-8 border-2 border-foreground/20 border-t-foreground rounded-full animate-spin mx-auto mb-4" />
+          <p className="font-body text-xs tracking-[0.15em] text-muted-foreground uppercase">Loading dashboard...</p>
         </div>
       </div>
     );
   }
 
-  const confirmed = rsvps.filter(r => r.attending === true).length;
-  const pending = rsvps.filter(r => r.attending === null).length;
-  const totalGuests = rsvps.filter(r => r.attending === true).reduce((s, r) => s + (r.guest_count || 0), 0);
-  const dietary = rsvps
-    .filter(r => r.attending && r.dietary_preference && r.dietary_preference !== "No preference")
-    .reduce((acc, r) => { acc[r.dietary_preference] = (acc[r.dietary_preference] || 0) + 1; return acc; }, {} as Record<string, number>);
-  const weddingUrl = `${window.location.origin}/wedding/${slug}`;
+  if (!wedding) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <p className="font-body text-muted-foreground">Wedding not found</p>
+      </div>
+    );
+  }
+
+  // Computed stats
+  const confirmed = rsvps.filter((r) => r.attending === true).length;
+  const pending = rsvps.filter((r) => r.attending === null).length;
+  const declined = rsvps.filter((r) => r.attending === false).length;
+  const totalPhotoUploads = galleryImages.length + guestPhotos.length;
+  const completedTasks = [
+    !!wedding.couple_names,
+    !!wedding.wedding_date,
+    !!wedding.ceremony_venue,
+    !!wedding.story,
+    wedding.published,
+    events.length > 0,
+    galleryImages.length > 0,
+    rsvps.length > 0,
+  ].filter(Boolean).length;
+  const totalTasks = 8;
+  const progress = Math.round((completedTasks / totalTasks) * 100);
+
+  // Dietary summary
+  const dietaryCounts: Record<string, number> = {};
+  rsvps
+    .filter((r) => r.attending === true && r.dietary_preference && r.dietary_preference !== "No preference")
+    .forEach((r) => {
+      dietaryCounts[r.dietary_preference!] = (dietaryCounts[r.dietary_preference!] || 0) + 1;
+    });
+  const dietarySummary = Object.entries(dietaryCounts)
+    .sort((a, b) => b[1] - a[1])
+    .map(([label, count]) => ({ label, count }));
+
+  // Wedding data for AI components
+  const weddingData = {
+    wedding,
+    rsvps,
+    guestbookMessages,
+    checkins,
+    guestPhotos,
+  };
 
   return (
-    <div className="min-h-screen bg-[#faf8f5]" style={{ fontFamily: '"Manrope", system-ui, sans-serif' }}>
-      <style>{`
-        .display { font-family: "Cormorant Garamond", Georgia, serif; }
-        .wedding-label { letter-spacing: .26em; text-transform: uppercase; font-size: 11px; color: #b7834c; }
-      `}</style>
-
-      <header className="bg-white border-b border-[#e6d4be] sticky top-0 z-20">
-        <div className="mx-auto max-w-7xl px-4 md:px-6 h-[64px] flex items-center gap-3 md:gap-5">
-          <button onClick={() => setSidebarOpen(!sidebarOpen)} className="md:hidden w-9 h-9 rounded-[12px] border border-[#e6d4be] flex items-center justify-center text-[#5a4735]">
-            {sidebarOpen ? <X size={16}/> : <Menu size={16}/>}
-          </button>
-          <div className="flex items-center gap-2.5 min-w-0">
-            <div className="w-9 h-9 rounded-[12px] bg-[#f2e8da] border border-[#e4cfb7] flex items-center justify-center flex-shrink-0">
-              <Flower2 size={15} className="text-[#b7794a]"/>
-            </div>
-            <div className="min-w-0 hidden sm:block">
-              <div className="text-[10.5px] tracking-[0.22em] uppercase text-[#b7834c] font-medium">Workspace</div>
-              <div className="display text-[15px] text-[#2a231d] -mt-[1px] truncate">{wedding.couple_names}</div>
-            </div>
-          </div>
-
-          <div className="flex-1 max-w-md mx-auto hidden md:block">
-            <WorkspaceSearch wedding={wedding} onNavigate={(t: TabId) => setTab(t)} />
-          </div>
-
-          <div className="ml-auto flex items-center gap-2">
-            <button
-              onClick={() => setNotifsOpen(true)}
-              className="relative w-9 h-9 rounded-[12px] border border-[#e6d4be] flex items-center justify-center text-[#5a4735] hover:bg-[#fbf3e8] transition"
-              title="Notifications"
-            >
-              <Bell size={15} />
-              {unread > 0 && (
-                <span className="absolute -top-1 -right-1 min-w-[16px] h-[16px] bg-[#b0743c] text-white text-[10px] font-medium rounded-full flex items-center justify-center px-1 border border-white">
-                  {unread > 9 ? "9+" : unread}
-                </span>
-              )}
-            </button>
-            <Link to={`/wedding/${slug}`} target="_blank" className="hidden sm:inline-flex items-center gap-1.5 text-[12px] px-3 py-[8px] rounded-[12px] border border-[#d6bc9c] text-[#704a28] hover:bg-[#fbf3e8]">
-              <ExternalLink size={12}/> Preview
-            </Link>
-            <button onClick={logout} className="inline-flex items-center gap-1.5 text-[12px] px-3 py-[8px] rounded-[12px] border border-[#d9c6ae] text-[#5a4735] hover:bg-[#fbf3e8]">
-              <LogOut size={12}/><span className="hidden sm:inline">Logout</span>
-            </button>
-          </div>
-        </div>
-        {/* Mobile search */}
-        <div className="md:hidden px-4 pb-3">
-          <WorkspaceSearch wedding={wedding} onNavigate={(t: TabId) => setTab(t)} />
-        </div>
-      </header>
-
-      {/* Notification Center */}
-      <NotificationCenter
-        wedding={wedding}
-        rsvps={rsvps}
-        moments={moments}
-        guestPhotos={guestPhotos}
-        open={notifsOpen}
-        onClose={() => { setNotifsOpen(false); refresh(); }}
-        onNavigate={(t: TabId) => setTab(t)}
+    <DashboardLayout
+      coupleName={wedding.couple_names}
+      weddingSlug={weddingSlug || ""}
+      weddingDate={wedding.wedding_date}
+      heroImage={wedding.cover_image || wedding.hero_image}
+      activeTab={activeTab}
+      onTabChange={setActiveTab}
+      notificationCount={pending + moments.filter((m) => !m.approved).length}
+      onRestartTour={() => setShowTour(true)}
+    >
+      {/* Walkthrough Tour */}
+      <DashboardWalkthrough
+        weddingId={weddingId!}
+        show={showTour}
+        onComplete={() => setShowTour(false)}
       />
 
-      <div className="mx-auto max-w-7xl px-4 md:px-6 py-6 md:py-8 grid md:grid-cols-[240px_1fr] gap-6">
-        {/* SIDEBAR NAV */}
-        <aside className={`${sidebarOpen ? "block" : "hidden md:block"} md:sticky md:top-[88px] md:self-start`}>
-          <div className="bg-white rounded-[20px] border border-[#e6d4be] p-3">
-            {[
-              {
-                group: "Home",
-                items: [
-                  { id: "workspace", label: "Workspace", icon: <Home size={14}/> },
-                ]
-              },
-              {
-                group: "Wedding",
-                items: [
-                  { id: "overview", label: "Overview", icon: <Heart size={14}/> },
-                  { id: "events", label: `Events`, count: events.length, icon: <Calendar size={14}/> },
-                  { id: "updates", label: "Live Updates", icon: <Radio size={14}/> },
-                ]
-              },
-              {
-                group: "Guests",
-                items: [
-                  { id: "rsvp", label: "RSVPs", count: rsvps.length, icon: <UserCheck size={14}/> },
-                  { id: "moments", label: "Moments", count: moments.length, icon: <MessageCircle size={14}/> },
-                ]
-              },
-              {
-                group: "Venue",
-                items: [
-                  { id: "map", label: "Venue Map", icon: <MapPin size={14}/> },
-                  { id: "accommodations", label: "Hotels", icon: <Sparkles size={14}/> },
-                ]
-              },
-              {
-                group: "Media",
-                items: [
-                  { id: "gallery", label: "Gallery", count: gallery.length, icon: <ImageIcon size={14}/> },
-                  { id: "guest_photos", label: "Guest Photos", count: guestPhotos.length, icon: <Camera size={14}/> },
-                ]
-              },
-              {
-                group: "Share",
-                items: [
-                  { id: "share", label: "Share & QR", icon: <ExternalLink size={14}/> },
-                ]
-              },
-            ].map(group => (
-              <div key={group.group} className="mb-2 last:mb-0">
-                <div className="text-[10px] uppercase tracking-[0.22em] text-[#a98a6b] px-3 pt-2 pb-1.5 font-medium">{group.group}</div>
-                <div>
-                  {group.items.map((it: any) => (
-                    <button
-                      key={it.id}
-                      onClick={() => { setTab(it.id as TabId); setSidebarOpen(false); }}
-                      className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-[12px] text-[13.5px] transition mb-0.5 font-medium ${
-                        tab === it.id
-                          ? "bg-[#2b2723] text-[#f9f2e8] shadow-md shadow-[#2b2723]/10"
-                          : "text-[#5a4735] hover:bg-[#fbf3e8]"
-                      }`}
-                    >
-                      <span className={tab === it.id ? "text-[#f9f2e8]" : "text-[#b0743c]"}>{it.icon}</span>
-                      <span className="flex-1 text-left">{it.label}</span>
-                      {it.count !== undefined && (
-                        <span className={`text-[10.5px] px-1.5 rounded-md ${tab === it.id ? "bg-white/15 text-white/80" : "bg-[#f5efe7] text-[#a98a6b]"}`}>{it.count}</span>
-                      )}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            ))}
-            <div className="border-t border-[#e6d4be] mt-2 pt-2">
-              <button
-                onClick={() => setEditingWedding(true)}
-                className="w-full flex items-center gap-2.5 px-3 py-2 rounded-[10px] text-[13px] text-[#5a4735] hover:bg-[#fbf3e8] transition"
-              >
-                <Settings size={14} className="text-[#b0743c]" /><span className="flex-1 text-left">Settings</span>
-              </button>
-            </div>
-          </div>
-        </aside>
+      {activeTab === "add-task" && (
+        <AddTaskScreen onCreate={() => setActiveTab("home")} />
+      )}
 
-        {/* MAIN CONTENT */}
-        <main className="min-w-0">
-        {/* WORKSPACE HOME — THE WEDDING COMMAND CENTER */}
-        {tab === "workspace" && (
-          <div className="space-y-6">
-            <CommandCenter 
-              wedding={wedding} 
-              rsvps={rsvps} 
-              moments={moments} 
-              guestPhotos={guestPhotos} 
-            />
-            
-            <div className="grid lg:grid-cols-3 gap-6">
-              <div className="lg:col-span-2 space-y-6">
-                <SummaryGrid
-                  rsvps={rsvps}
-                  moments={moments}
-                  guestPhotos={guestPhotos}
-                  wedding={wedding}
-                  onNavigate={(t: TabId) => setTab(t)}
-                />
-                <QuickActionsWidget
-                  wedding={wedding}
-                  onNavigate={(t: TabId) => setTab(t)}
-                  onCopyLink={copyLink}
-                />
-                <ActivityTimeline
-                  rsvps={rsvps} moments={moments} guestPhotos={guestPhotos} updates={updates}
-                />
-              </div>
-              <div className="space-y-6">
-                <CountdownWidget wedding={wedding} />
-                <HealthWidget wedding={wedding} gallery={gallery} events={events} accommodations={accommodations} />
-                <InsightsWidget wedding={wedding} rsvps={rsvps} guestPhotos={guestPhotos} moments={moments} />
-              </div>
-            </div>
-          </div>
-        )}
+      {activeTab === "home" && (
+        <CoupleHome
+          wedding={wedding}
+          progress={progress}
+          completedTasks={completedTasks}
+          totalTasks={totalTasks}
+          confirmed={confirmed}
+          pending={pending}
+          events={events}
+          rsvps={rsvps}
+          onTabChange={setActiveTab}
+          onEditDetails={() => setShowEditDetails(true)}
+        />
+      )}
 
-        {/* Welcome (Edit Details Card) - only visible on workspace + when editing */}
-        <div className={`bg-white rounded-[24px] border border-[#e6d4be] p-6 md:p-8 mb-6 ${tab === "workspace" ? "hidden" : ""}`}>
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <div>
-              <div className="wedding-label mb-2">Welcome back</div>
-              <h1 className="display text-[32px] md:text-[40px] text-[#24201c] leading-[1]">{wedding.couple_names}</h1>
-              <div className="mt-2 text-[14px] text-[#6b5d4f] flex flex-wrap gap-4">
-                {wedding.wedding_date && <span className="flex items-center gap-1.5"><Calendar size={14}/>{format(new Date(wedding.wedding_date), "d MMMM yyyy")}</span>}
-                {wedding.ceremony_venue && <span className="flex items-center gap-1.5"><MapPin size={14}/>{wedding.ceremony_venue}</span>}
-              </div>
-            </div>
-            <button onClick={() => setEditingWedding(!editingWedding)} className="inline-flex items-center gap-1.5 text-[13px] px-5 py-[11px] rounded-full bg-[#2b2723] text-[#f9f2e8] hover:bg-[#392f29]">
-              <Edit3 size={13}/> Edit details
-            </button>
-          </div>
+      {activeTab === "calendar" && (
+        <PlannerSchedule
+          wedding={wedding}
+          events={events}
+          pending={pending}
+          onTabChange={setActiveTab}
+        />
+      )}
 
-          {editingWedding && (
-            <form onSubmit={(e) => { e.preventDefault(); const fd = new FormData(e.currentTarget as HTMLFormElement); saveWeddingEdits(Object.fromEntries(fd)); }} className="mt-6 grid md:grid-cols-2 gap-4 pt-6 border-t border-[#e6d4be]">
-              <div>
-                <label className="wedding-label block mb-1.5">Couple names</label>
-                <input name="couple_names" defaultValue={wedding.couple_names} className="w-full rounded-[12px] border border-[#e0ccb2] bg-white px-3 py-2.5 text-[14px] outline-none focus:border-[#d3a76b]" />
-              </div>
-              <div>
-                <label className="wedding-label block mb-1.5">Wedding date</label>
-                <input name="wedding_date" type="date" defaultValue={wedding.wedding_date || ""} className="w-full rounded-[12px] border border-[#e0ccb2] bg-white px-3 py-2.5 text-[14px] outline-none focus:border-[#d3a76b]" />
-              </div>
-              <div>
-                <label className="wedding-label block mb-1.5">Ceremony time</label>
-                <input name="ceremony_time" type="time" defaultValue={wedding.ceremony_time || ""} className="w-full rounded-[12px] border border-[#e0ccb2] bg-white px-3 py-2.5 text-[14px] outline-none focus:border-[#d3a76b]" />
-              </div>
-              <div>
-                <label className="wedding-label block mb-1.5">Venue</label>
-                <input name="ceremony_venue" defaultValue={wedding.ceremony_venue || ""} className="w-full rounded-[12px] border border-[#e0ccb2] bg-white px-3 py-2.5 text-[14px] outline-none focus:border-[#d3a76b]" />
-              </div>
-              <div className="md:col-span-2">
-                <label className="wedding-label block mb-1.5">Address</label>
-                <input name="venue_address" defaultValue={wedding.venue_address || ""} className="w-full rounded-[12px] border border-[#e0ccb2] bg-white px-3 py-2.5 text-[14px] outline-none focus:border-[#d3a76b]" />
-              </div>
-              <div className="md:col-span-2">
-                <label className="wedding-label block mb-1.5">Our story</label>
-                <textarea name="story" rows={4} defaultValue={wedding.story || ""} className="w-full rounded-[12px] border border-[#e0ccb2] bg-white px-3 py-2.5 text-[14px] outline-none focus:border-[#d3a76b] resize-none" />
-              </div>
-              <div className="md:col-span-2">
-                <label className="wedding-label block mb-1.5">Dress code</label>
-                <input name="dress_code" defaultValue={wedding.dress_code || ""} className="w-full rounded-[12px] border border-[#e0ccb2] bg-white px-3 py-2.5 text-[14px] outline-none focus:border-[#d3a76b]" />
-              </div>
-              <div className="md:col-span-2">
-                <label className="wedding-label block mb-1.5">Accommodation info</label>
-                <textarea name="accommodation_info" rows={2} defaultValue={wedding.accommodation_info || ""} className="w-full rounded-[12px] border border-[#e0ccb2] bg-white px-3 py-2.5 text-[14px] outline-none focus:border-[#d3a76b] resize-none" />
-              </div>
-              <div className="md:col-span-2 flex justify-end gap-3">
-                <button type="button" onClick={() => setEditingWedding(false)} className="px-5 py-[11px] rounded-full border border-[#d9c6ae] text-[#5a4735]">Cancel</button>
-                <button className="px-5 py-[11px] rounded-full bg-[#2b2723] text-[#f9f2e8] text-[13.5px]">Save changes</button>
-              </div>
-            </form>
-          )}
+      {activeTab === "guests" && (
+      <div className="space-y-5">
+        {/* Welcome Greeting */}
+        <div>
+          <h2 className="font-body text-2xl font-semibold tracking-normal">
+            Guest center
+          </h2>
+          <p className="font-body text-sm text-muted-foreground mt-1">
+            Track RSVPs, check-ins, guest messages, and follow-ups.
+          </p>
         </div>
 
-        {/* Section title for non-workspace tabs */}
-        {tab !== "workspace" && (
-          <div className="mb-5 flex items-center gap-3">
-            <div className="display text-[22px] text-[#2a231d] capitalize">
-              {tab === "rsvp" ? "RSVPs" : tab === "guest_photos" ? "Guest Photos" : tab === "map" ? "Venue Map" : tab === "share" ? "Share & QR" : tab.replace("_", " ")}
+        {/* Overview Cards */}
+        <div id="dashboard-overview">
+        <OverviewCards
+          confirmedGuests={confirmed}
+          pendingRsvps={pending}
+          declinedGuests={declined}
+          checkins={checkins.length}
+          photoUploads={totalPhotoUploads}
+          dietarySummary={dietarySummary}
+          pendingMoments={moments.filter((m) => !m.approved).length}
+        />
+        </div>
+
+        <ShareWeddingLink weddingSlug={weddingSlug || ""} />
+
+        {/* Pending RSVP nudge */}
+        {pending > 0 && (
+          <div className="flex items-center justify-between p-4 border border-amber-200/60 bg-amber-50/30 dark:bg-amber-900/10">
+            <div className="flex items-center gap-3">
+              <Clock className="w-4 h-4 text-amber-500 shrink-0" />
+              <p className="font-body text-sm">
+                <span className="font-medium">{pending} guest{pending === 1 ? "" : "s"}</span> haven't responded yet.
+                Consider sending them a reminder.
+              </p>
             </div>
-            <div className="text-[12.5px] text-[#a98a6b]">·</div>
-            <button onClick={() => setTab("workspace")} className="text-[12.5px] text-[#b0743c] hover:text-[#8e5c2e] underline underline-offset-4">Back to Workspace</button>
+            <button
+              onClick={() => {
+                navigator.clipboard.writeText(`${window.location.origin}/wedding/${weddingSlug}`);
+                toast.success("Wedding link copied — share it with your pending guests!");
+              }}
+              className="font-body text-xs tracking-[0.15em] uppercase underline text-amber-700 dark:text-amber-400 hover:text-amber-900 dark:hover:text-amber-300 whitespace-nowrap ml-4"
+            >
+              Copy Link
+            </button>
           </div>
         )}
 
-        {/* Overview */}
-        {tab === "overview" && (
-          <div className="space-y-5">
-            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              {[
-                { icon: <UserCheck size={18}/>, label: "Confirmed", value: confirmed, color: "text-[#4f7a56]", bg: "bg-[#eff6ee]" },
-                { icon: <Clock size={18}/>, label: "Pending", value: pending, color: "text-[#b7794a]", bg: "bg-[#f8eee0]" },
-                { icon: <Users size={18}/>, label: "Total guests", value: totalGuests, color: "text-[#6b5d4f]", bg: "bg-[#f5efe7]" },
-                { icon: <MessageCircle size={18}/>, label: "Messages", value: moments.length, color: "text-[#b0743c]", bg: "bg-[#fdf3e4]" },
-              ].map(c => (
-                <div key={c.label} className="bg-white rounded-[20px] border border-[#e6d4be] p-5">
-                  <div className={`w-10 h-10 rounded-[12px] ${c.bg} flex items-center justify-center ${c.color} mb-3`}>{c.icon}</div>
-                  <div className="text-[11px] uppercase tracking-[0.2em] text-[#8d7962]">{c.label}</div>
-                  <div className="display text-[32px] text-[#2a231d] leading-none mt-1">{c.value}</div>
-                </div>
-              ))}
+        {/* Activity + Guest Messages */}
+        <div id="dashboard-activity" className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+          <ActivityFeed
+            rsvps={rsvps}
+            guestbookMessages={guestbookMessages}
+            guestPhotos={guestPhotos}
+            checkins={checkins}
+            moments={moments}
+          />
+          <div id="dashboard-messages">
+            <GuestMessages
+              weddingId={weddingId!}
+              accessCode={accessCode}
+              messages={guestbookMessages}
+              onRefresh={fetchData}
+            />
+          </div>
+        </div>
+
+        <AIInsightsPanel weddingId={weddingId!} weddingData={weddingData} />
+      </div>
+      )}
+
+      {activeTab === "moments" && (
+        <div className="space-y-5">
+          <PhotoManager
+            weddingId={weddingId!}
+            galleryImages={galleryImages}
+            guestPhotos={guestPhotos}
+            onRefresh={fetchData}
+          />
+          <MomentsManager
+            weddingId={weddingId!}
+            moments={moments}
+            isLiveMode={wedding?.live_mode || false}
+            onRefresh={fetchData}
+          />
+          <GuestMessages
+            weddingId={weddingId!}
+            accessCode={accessCode}
+            messages={guestbookMessages}
+            onRefresh={fetchData}
+          />
+        </div>
+      )}
+
+      {activeTab === "website" && (
+        <div className="space-y-5">
+          <ShareWeddingLink weddingSlug={weddingSlug || ""} />
+          <WeddingTools weddingSlug={weddingSlug || ""} />
+          <SetupProgress wedding={wedding} eventsCount={events.length} hasSharedLink={wedding.published} />
+          <QuickActions weddingSlug={weddingSlug || ""} onEditDetails={() => setShowEditDetails(true)} />
+          <AISuggestions weddingId={weddingId!} weddingData={weddingData} />
+        </div>
+      )}
+
+      {activeTab === "profile" && (
+        <div className="space-y-5">
+          <ProfilePanel
+            wedding={wedding}
+            weddingSlug={weddingSlug || ""}
+            accessCode={accessCode}
+            confirmed={confirmed}
+            pending={pending}
+            totalPhotoUploads={totalPhotoUploads}
+            onEditDetails={() => setShowEditDetails(true)}
+            onTabChange={setActiveTab}
+          />
+          <DailyReport weddingId={weddingId!} />
+        </div>
+      )}
+
+      {/* Edit Wedding Details Modal */}
+      <EditWeddingDetails
+        open={showEditDetails}
+        onOpenChange={setShowEditDetails}
+        wedding={wedding}
+        weddingId={weddingId!}
+        accessCode={accessCode}
+        onSaved={fetchData}
+      />
+    </DashboardLayout>
+  );
+};
+
+export default CoupleDashboard;
+
+const getGreeting = () => {
+  const hour = new Date().getHours();
+  if (hour < 12) return "Good Morning";
+  if (hour < 18) return "Good Afternoon";
+  return "Good Evening";
+};
+
+const ProgressRing = ({ value }: { value: number }) => {
+  const radius = 40;
+  const circumference = 2 * Math.PI * radius;
+  const offset = circumference - (value / 100) * circumference;
+  return (
+    <div className="relative w-[104px] h-[104px] flex items-center justify-center">
+      <svg className="-rotate-90" width="104" height="104" viewBox="0 0 104 104">
+        <circle cx="52" cy="52" r={radius} fill="none" stroke="rgba(255,255,255,0.12)" strokeWidth="11" />
+        <circle cx="52" cy="52" r={radius} fill="none" stroke="#d9f06e" strokeWidth="11" strokeLinecap="round" strokeDasharray={circumference} strokeDashoffset={offset} />
+      </svg>
+      <div className="absolute inset-0 flex items-center justify-center font-body text-xl font-semibold text-white">{value}%</div>
+    </div>
+  );
+};
+
+function CoupleHome({ wedding, progress, completedTasks, totalTasks, confirmed, pending, events, rsvps, onTabChange, onEditDetails }: any) {
+  const nextEvent = events[0];
+  const tasks = [
+    { label: "Finalize wedding details", done: !!wedding.ceremony_venue, tab: "profile", time: "10:30 AM - 11:30 AM", priority: "High Priority" },
+    { label: "Share RSVP link", done: wedding.published, tab: "website", time: "12:00 PM - 12:30 PM", priority: "Medium Priority" },
+    { label: "Review pending RSVPs", done: pending === 0, tab: "guests", time: "3:00 PM - 3:45 PM", priority: "High Priority" },
+  ];
+
+  return (
+    <div className="space-y-5">
+      <section>
+        <h1 className="font-body text-[32px] leading-[1.04] font-normal tracking-[-0.02em] max-w-[285px]">
+          Let’s Make<br />Today Productive
+        </h1>
+      </section>
+
+      <section className="rounded-[22px] bg-[#202020] text-background p-4 shadow-xl overflow-hidden relative">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_18%,rgba(255,255,255,0.13),transparent_28%)]" />
+        <div className="relative">
+        <p className="font-body text-sm font-semibold mb-4">Today's Progress</p>
+        <div className="flex items-center gap-4">
+          <ProgressRing value={progress} />
+          <div className="flex-1 space-y-3 border-l border-white/15 pl-5">
+            <div className="flex items-center gap-3">
+              <span className="w-6 h-6 rounded-lg border border-white/10 flex items-center justify-center"><CalendarDays className="w-3 h-3 text-white/60" /></span>
+              <div><p className="font-body text-sm font-semibold leading-none">{totalTasks}</p><p className="font-body text-[10px] text-white/55 mt-1">Total Task</p></div>
             </div>
+            <div className="flex items-center gap-3">
+              <span className="w-6 h-6 rounded-lg border border-white/10 flex items-center justify-center"><Check className="w-3 h-3 text-white/60" /></span>
+              <div><p className="font-body text-sm font-semibold leading-none">{completedTasks}</p><p className="font-body text-[10px] text-white/55 mt-1">Completed Task</p></div>
+            </div>
+            <div className="flex items-center gap-3">
+              <span className="w-6 h-6 rounded-lg border border-white/10 flex items-center justify-center"><Clock className="w-3 h-3 text-white/60" /></span>
+              <div><p className="font-body text-sm font-semibold leading-none">{Math.max(totalTasks - completedTasks, 0)}</p><p className="font-body text-[10px] text-white/55 mt-1">Pending Task</p></div>
+            </div>
+          </div>
+        </div>
+        </div>
+      </section>
 
-            {pending > 0 && (
-              <div className="bg-[#fdf3e4] border border-[#e8d2b6] rounded-[18px] p-5 flex items-start gap-3">
-                <div className="w-9 h-9 rounded-full bg-white flex items-center justify-center text-[#b0743c] flex-shrink-0"><Clock size={16}/></div>
-                <div className="text-[14px] text-[#5a4735]">
-                  <strong>{pending} guest{pending === 1 ? "" : "s"}</strong> haven't responded yet.
-                  Consider sending a gentle reminder.
+      <section>
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="font-body text-lg font-semibold tracking-normal">Today's Tasks</h2>
+          <button onClick={() => onTabChange("planner")} className="font-body text-xs text-muted-foreground">View All</button>
+        </div>
+        <div className="grid grid-cols-3 gap-2 mb-3">
+          {[
+            ["To Do", 4],
+            ["In Progress", 2],
+            ["In Review", 3],
+          ].map(([label, count], index) => (
+            <button key={label as string} className={`rounded-full py-3 font-body text-xs font-semibold whitespace-nowrap ${index === 0 ? "bg-[#d9f06e] text-foreground" : "bg-white/82 text-foreground shadow-sm"}`}>
+              {count as number} <span className="ml-1">{label as string}</span>
+            </button>
+          ))}
+        </div>
+        <div className="space-y-3">
+          {tasks.map((task) => (
+            <button key={task.label} onClick={() => onTabChange(task.tab)} className="w-full rounded-[24px] bg-white p-4 text-left shadow-sm border border-white/70">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-white border border-border px-3 py-1.5 font-body text-[10px] font-semibold mb-4">
+                    <span className="h-1.5 w-1.5 rounded-full bg-rose-500" /> {task.priority}
+                  </span>
+                  <p className="font-body text-[15px] font-semibold">{task.label}</p>
+                  <p className="font-body text-xs text-muted-foreground mt-5 flex items-center gap-1.5"><Clock className="w-3.5 h-3.5" />{task.time}</p>
                 </div>
+                <span className="w-9 h-9 rounded-full bg-muted flex items-center justify-center shrink-0">
+                  <ExternalLink className="w-4 h-4" />
+                </span>
               </div>
-            )}
+            </button>
+          ))}
+        </div>
+      </section>
 
-            {Object.keys(dietary).length > 0 && (
-              <div className="bg-white rounded-[20px] border border-[#e6d4be] p-6">
-                <div className="wedding-label mb-3">Dietary summary</div>
-                <div className="flex flex-wrap gap-2">
-                  {Object.entries(dietary).map(([label, count]) => (
-                    <span key={label} className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#f5efe7] text-[13px] text-[#5a4735] border border-[#e0ccb2]">
-                      <span className="text-[#b7794a] font-medium">{count as number}</span>{label}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
+      <section className="rounded-[24px] overflow-hidden relative min-h-[170px] text-white shadow-xl">
+        <img src={wedding.cover_image || wedding.hero_image} alt="" className="absolute inset-0 w-full h-full object-cover" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+        <div className="relative p-5">
+          <p className="font-body text-xs uppercase tracking-[0.2em] text-white/70">Wedding Status</p>
+          <h2 className="font-display text-3xl mt-14">{wedding.couple_names}</h2>
+          <div className="flex items-center gap-3 font-body text-xs text-white/80 mt-2">
+            <span>{confirmed} confirmed</span>
+            <span>{rsvps.length} invited</span>
+            {nextEvent && <span>{nextEvent.title}</span>}
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+}
 
-            <div className="grid lg:grid-cols-2 gap-5">
-              <div className="bg-white rounded-[20px] border border-[#e6d4be] p-6">
-                <div className="wedding-label mb-3">Recent RSVPs</div>
-                <div className="space-y-2">
-                  {rsvps.slice(0, 5).map(r => (
-                    <div key={r.id} className="flex items-center justify-between py-2 border-b border-[#f0e4d4] last:border-0">
-                      <div>
-                        <div className="text-[14.5px] text-[#2a231d]">{r.guest_name}</div>
-                        <div className="text-[12px] text-[#8d7962]">{r.guest_count} guest{r.guest_count !== 1 ? "s" : ""}</div>
-                      </div>
-                      <div className={`text-[11.5px] tracking-[0.15em] uppercase px-2.5 py-1 rounded-full ${r.attending === true ? "bg-[#eff6ee] text-[#4f7a56]" : r.attending === false ? "bg-[#fde9e6] text-[#a64838]" : "bg-[#f8eee0] text-[#b0743c]"}`}>
-                        {r.attending === true ? "Going" : r.attending === false ? "Declined" : "Pending"}
-                      </div>
-                    </div>
-                  ))}
-                  {rsvps.length === 0 && <div className="text-[13.5px] text-[#8d7962] py-4 text-center">No RSVPs yet</div>}
+function PlannerSchedule({ wedding, events, pending, onTabChange }: any) {
+  const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  const date = wedding.wedding_date ? new Date(wedding.wedding_date) : new Date();
+  const agenda = [
+    { time: "9:00 AM", title: "Meeting with Client", detail: "Review RSVP progress, guest flow, and final open tasks.", action: "Meet" },
+    { time: "11:00 AM", title: "Wedding Page Review", detail: "Check story, venue, gallery, and RSVP sections.", action: "Review" },
+    { time: "2:00 PM", title: "Pending RSVP Follow-up", detail: `${pending} guest${pending === 1 ? "" : "s"} still need a reminder.`, action: "Copy Link" },
+    ...events.slice(0, 3).map((event: any) => ({ time: event.event_time || "4:00 PM", title: event.title, detail: event.location || "Wedding event", action: "Open" })),
+  ];
+
+  return (
+    <div className="space-y-5">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="font-body text-sm font-semibold">{date.toLocaleDateString(undefined, { weekday: "short", month: "long", day: "numeric" })}</p>
+          <h1 className="font-body text-[32px] font-semibold leading-tight tracking-normal mt-1">Task Schedule</h1>
+        </div>
+        <button onClick={() => onTabChange("add-task")} className="w-12 h-12 rounded-full bg-foreground text-background flex items-center justify-center" aria-label="Add task">
+          <Plus className="w-5 h-5" />
+        </button>
+      </div>
+
+      <div className="flex gap-2 overflow-x-auto pb-1">
+        {days.map((day, index) => (
+          <button key={day} className={`min-w-14 rounded-2xl py-3 font-body text-xs ${index === 2 ? "bg-foreground text-background" : "bg-white text-foreground shadow-sm"}`}>
+            <span className="block">{day}</span>
+            <span className="block mt-2">{12 + index}</span>
+          </button>
+        ))}
+      </div>
+
+      <div className="flex gap-2 overflow-x-auto pb-1">
+        {["All", "Work", "Personal", "Wedding"].map((filter, index) => (
+          <button key={filter} className={`px-5 py-3 rounded-full font-body text-xs font-semibold whitespace-nowrap ${index === 0 ? "bg-foreground text-background" : "bg-white text-foreground shadow-sm"}`}>
+            {filter}
+          </button>
+        ))}
+      </div>
+
+      <div className="space-y-3">
+        {agenda.map((item, index) => (
+          <div key={`${item.title}-${index}`} className="grid grid-cols-[58px_1fr] gap-3">
+            <div className="font-body text-xs text-muted-foreground pt-4">{item.time}</div>
+            <div className="rounded-[22px] bg-white p-4 shadow-sm border border-border">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <h2 className="font-body text-sm font-semibold">{item.title}</h2>
+                  <p className="font-body text-xs text-muted-foreground leading-5 mt-1">{item.detail}</p>
                 </div>
-              </div>
-              <div className="bg-white rounded-[20px] border border-[#e6d4be] p-6">
-                <div className="wedding-label mb-3">Latest messages</div>
-                <div className="space-y-3">
-                  {moments.slice(-5).reverse().map((m: any) => (
-                    <div key={m.id} className="pb-3 border-b border-[#f0e4d4] last:border-0">
-                      <div className="text-[14px] text-[#3d332a] leading-6">"{m.message}"</div>
-                      <div className="text-[11.5px] text-[#a67a50] mt-1">— {m.guest_name}</div>
-                    </div>
-                  ))}
-                  {moments.length === 0 && <div className="text-[13.5px] text-[#8d7962] py-4 text-center">No messages yet</div>}
-                </div>
+                <button onClick={() => onTabChange("website")} className="px-3 py-2 rounded-full bg-blue-600 text-white font-body text-[10px] font-semibold">
+                  {item.action}
+                </button>
               </div>
             </div>
           </div>
-        )}
+        ))}
+      </div>
+    </div>
+  );
+}
 
-        {/* RSVPs */}
-        {tab === "rsvp" && (
-          <div className="bg-white rounded-[22px] border border-[#e6d4be] overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full text-[13.5px]">
-                <thead className="bg-[#f8eee0] text-left">
-                  <tr>
-                    <th className="px-5 py-3 text-[11px] uppercase tracking-[0.18em] text-[#8d7962]">Guest</th>
-                    <th className="px-5 py-3 text-[11px] uppercase tracking-[0.18em] text-[#8d7962]">Status</th>
-                    <th className="px-5 py-3 text-[11px] uppercase tracking-[0.18em] text-[#8d7962]">Count</th>
-                    <th className="px-5 py-3 text-[11px] uppercase tracking-[0.18em] text-[#8d7962]">Dietary</th>
-                    <th className="px-5 py-3 text-[11px] uppercase tracking-[0.18em] text-[#8d7962]">Song</th>
-                    <th className="px-5 py-3 text-[11px] uppercase tracking-[0.18em] text-[#8d7962]">Submitted</th>
-                    <th className="px-5 py-3"></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {rsvps.map(r => (
-                    <tr key={r.id} className="border-t border-[#f0e4d4] hover:bg-[#fdf9f4]">
-                      <td className="px-5 py-3">
-                        <div className="text-[#2a231d]">{r.guest_name}</div>
-                        {r.email && <div className="text-[11.5px] text-[#8d7962]">{r.email}</div>}
-                      </td>
-                      <td className="px-5 py-3">
-                        <span className={`text-[11px] tracking-[0.15em] uppercase px-2 py-1 rounded-full ${r.attending === true ? "bg-[#eff6ee] text-[#4f7a56]" : r.attending === false ? "bg-[#fde9e6] text-[#a64838]" : "bg-[#f8eee0] text-[#b0743c]"}`}>
-                          {r.attending === true ? "Going" : r.attending === false ? "Declined" : "Pending"}
-                        </span>
-                      </td>
-                      <td className="px-5 py-3 text-[#5a4f45]">{r.guest_count}</td>
-                      <td className="px-5 py-3 text-[#5a4f45]">{r.dietary_preference || "—"}</td>
-                      <td className="px-5 py-3 text-[#5a4f45] max-w-[200px] truncate">{r.song_request || "—"}</td>
-                      <td className="px-5 py-3 text-[12px] text-[#8d7962]">{format(new Date(r.submitted_at), "d MMM")}</td>
-                      <td className="px-5 py-3">
-                        <button onClick={() => { store.remove("rsvps", r.id); refresh(); toast.success("Removed"); }} className="text-[#a64838] hover:text-[#7e3124]">
-                          <Trash2 size={14}/>
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                  {rsvps.length === 0 && (
-                    <tr><td colSpan={7} className="text-center py-10 text-[#8d7962]">No RSVPs yet</td></tr>
-                  )}
-                </tbody>
-              </table>
+function AddTaskScreen({ onCreate }: { onCreate: () => void }) {
+  return (
+    <div className="space-y-5 pt-1">
+      <div className="h-2" />
+      <Field label="Task Title">
+        <input className="w-full rounded-[20px] border-0 bg-white px-5 py-4 font-body text-sm outline-none shadow-sm" defaultValue="Finish landing page design" />
+      </Field>
+      <Field label="Description">
+        <textarea className="w-full rounded-[20px] border-0 bg-white px-5 py-4 font-body text-sm leading-6 outline-none shadow-sm resize-none" rows={3} defaultValue="Design the new landing page for the product launch." />
+      </Field>
+      <Field label="Due Date & time">
+        <div className="grid grid-cols-2 gap-3">
+          <button className="rounded-full bg-white px-4 py-4 font-body text-xs text-left shadow-sm flex items-center gap-2"><CalendarDays className="w-4 h-4" /> April 14, 2026</button>
+          <button className="rounded-full bg-white px-4 py-4 font-body text-xs text-left shadow-sm flex items-center gap-2"><Clock className="w-4 h-4" /> 10:00 AM</button>
+        </div>
+      </Field>
+      <Field label="Priority">
+        <div className="grid grid-cols-3 gap-3">
+          <button className="rounded-full border border-green-500 bg-green-50 py-3 font-body text-xs text-green-700">Low</button>
+          <button className="rounded-full border border-orange-400 bg-orange-50 py-3 font-body text-xs text-orange-600">Medium</button>
+          <button className="rounded-full border border-rose-400 bg-rose-50 py-3 font-body text-xs text-rose-600">High</button>
+        </div>
+      </Field>
+      <Field label="Project">
+        <button className="w-full rounded-[20px] bg-white px-5 py-4 font-body text-sm shadow-sm flex items-center justify-between">
+          <span className="flex items-center gap-2"><BriefcaseBusiness className="w-4 h-4 text-violet-600" /> Wedding Redesign</span>
+          <MoreHorizontal className="w-4 h-4" />
+        </button>
+      </Field>
+      <Field label="Tags">
+        <div className="flex flex-wrap gap-2">
+          {["Design", "UI/UX", "Work"].map((tag) => (
+            <button key={tag} className="rounded-full border border-violet-500/60 bg-violet-100/50 px-4 py-2 font-body text-xs text-violet-700 flex items-center gap-1.5">
+              {tag} <X className="w-3 h-3" />
+            </button>
+          ))}
+          <button className="rounded-full bg-white/70 px-4 py-2 font-body text-xs text-muted-foreground">+ Add</button>
+        </div>
+      </Field>
+      <button onClick={onCreate} className="w-full rounded-[22px] bg-black py-5 font-body text-sm font-semibold text-white shadow-xl">Create Task</button>
+    </div>
+  );
+}
+
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <label className="block">
+      <span className="mb-2 block font-body text-sm font-semibold text-black">{label}</span>
+      {children}
+    </label>
+  );
+}
+
+function ProfilePanel({ wedding, weddingSlug, accessCode, confirmed, pending, totalPhotoUploads, onEditDetails, onTabChange }: any) {
+  const weddingUrl = `${window.location.origin}/wedding/${weddingSlug}`;
+  const copyLink = () => {
+    navigator.clipboard.writeText(weddingUrl);
+    toast.success("Wedding link copied.");
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="rounded-[30px] bg-white border border-white/80 overflow-hidden shadow-sm">
+        <div className="relative h-56">
+          <img src={wedding.cover_image || wedding.hero_image} alt="" className="absolute inset-0 w-full h-full object-cover" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
+          <div className="absolute left-5 right-5 bottom-5 text-white">
+            <div className="h-20 w-20 rounded-full overflow-hidden border-4 border-white shadow-lg mb-4">
+              <img src={wedding.cover_image || wedding.hero_image} alt="" className="h-full w-full object-cover" />
             </div>
+            <h1 className="font-body text-2xl font-semibold tracking-normal leading-tight">{wedding.couple_names}</h1>
+            <p className="font-body text-xs text-white/70 mt-1">/{weddingSlug}</p>
           </div>
-        )}
-
-        {/* Events */}
-        {tab === "events" && (
-          <div className="space-y-4">
-            <div className="flex justify-end">
-              <button onClick={() => setShowEventForm(!showEventForm)} className="inline-flex items-center gap-1.5 text-[13px] px-4 py-[10px] rounded-full bg-[#2b2723] text-[#f9f2e8] hover:bg-[#392f29]">
-                <Plus size={14}/> Add event
-              </button>
-            </div>
-            {showEventForm && (
-              <form onSubmit={addEvent} className="bg-white rounded-[20px] border border-[#e6d4be] p-5 grid md:grid-cols-2 gap-3">
-                <input required placeholder="Event title" value={newEvent.title} onChange={e => setNewEvent({...newEvent, title: e.target.value})} className="md:col-span-2 rounded-[12px] border border-[#e0ccb2] px-3 py-2.5 text-[14px] outline-none focus:border-[#d3a76b]" />
-                <input placeholder="Location" value={newEvent.location} onChange={e => setNewEvent({...newEvent, location: e.target.value})} className="rounded-[12px] border border-[#e0ccb2] px-3 py-2.5 text-[14px] outline-none focus:border-[#d3a76b]" />
-                <input type="date" value={newEvent.event_date} onChange={e => setNewEvent({...newEvent, event_date: e.target.value})} className="rounded-[12px] border border-[#e0ccb2] px-3 py-2.5 text-[14px] outline-none focus:border-[#d3a76b]" />
-                <input type="time" value={newEvent.event_time} onChange={e => setNewEvent({...newEvent, event_time: e.target.value})} className="rounded-[12px] border border-[#e0ccb2] px-3 py-2.5 text-[14px] outline-none focus:border-[#d3a76b]" />
-                <input placeholder="Description" value={newEvent.description} onChange={e => setNewEvent({...newEvent, description: e.target.value})} className="rounded-[12px] border border-[#e0ccb2] px-3 py-2.5 text-[14px] outline-none focus:border-[#d3a76b]" />
-                <div className="md:col-span-2 flex justify-end gap-2">
-                  <button type="button" onClick={() => setShowEventForm(false)} className="px-4 py-2 rounded-full border border-[#d9c6ae] text-[13px]">Cancel</button>
-                  <button className="px-4 py-2 rounded-full bg-[#2b2723] text-[#f9f2e8] text-[13px]">Save event</button>
-                </div>
-              </form>
-            )}
-            <div className="grid md:grid-cols-2 gap-4">
-              {events.map(ev => (
-                <div key={ev.id} className="bg-white rounded-[20px] border border-[#e6d4be] p-5">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <div className="wedding-label">{ev.event_date && format(new Date(ev.event_date), "EEE • d MMM")}{ev.event_time && ` • ${ev.event_time}`}</div>
-                      <div className="display text-[22px] text-[#2a231d] mt-1">{ev.title}</div>
-                      {ev.location && <div className="text-[13px] text-[#6b5d4f] mt-1 flex items-center gap-1"><MapPin size={12}/>{ev.location}</div>}
-                    </div>
-                    <button onClick={() => { store.remove("events", ev.id); refresh(); toast.success("Event removed"); }} className="text-[#a64838] hover:text-[#7e3124]">
-                      <Trash2 size={14}/>
-                    </button>
-                  </div>
-                  {ev.description && <div className="text-[13.5px] text-[#5a4f45] leading-6 mt-3">{ev.description}</div>}
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Gallery */}
-        {tab === "gallery" && (
-          <div>
-            <div className="bg-white rounded-[20px] border border-[#e6d4be] p-5 mb-5">
-              <div className="flex items-center gap-3">
-                <input id="gallery-url" placeholder="Image URL" className="flex-1 rounded-[12px] border border-[#e0ccb2] px-3 py-2.5 text-[14px] outline-none focus:border-[#d3a76b]" />
-                <input id="gallery-cap" placeholder="Caption" className="flex-1 rounded-[12px] border border-[#e0ccb2] px-3 py-2.5 text-[14px] outline-none focus:border-[#d3a76b]" />
-                <button
-                  onClick={() => {
-                    const url = (document.getElementById("gallery-url") as HTMLInputElement)?.value.trim();
-                    const cap = (document.getElementById("gallery-cap") as HTMLInputElement)?.value.trim();
-                    if (!url) { toast.error("URL required"); return; }
-                    store.insert("gallery", { wedding_id: weddingId, url, caption: cap || null });
-                    (document.getElementById("gallery-url") as HTMLInputElement).value = "";
-                    (document.getElementById("gallery-cap") as HTMLInputElement).value = "";
-                    toast.success("Photo added");
-                  }}
-                  className="px-4 py-[10px] rounded-full bg-[#2b2723] text-[#f9f2e8] text-[13px]"
-                >Add</button>
-              </div>
-            </div>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {gallery.map(g => (
-                <div key={g.id} className="group relative bg-white rounded-[18px] border border-[#e6d4be] p-[8px]">
-                  <div className="aspect-square rounded-[14px] overflow-hidden">
-                    <img src={g.url} alt={g.caption || ""} className="w-full h-full object-cover" />
-                  </div>
-                  {g.caption && <div className="px-2 pt-2 text-[12.5px] text-[#6e5c47] truncate">{g.caption}</div>}
-                  <button onClick={() => { store.remove("gallery", g.id); refresh(); toast.success("Removed"); }} className="absolute top-2 right-2 w-8 h-8 rounded-full bg-black/60 text-white opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
-                    <Trash2 size={13}/>
-                  </button>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Moments */}
-        {tab === "moments" && (
-          <div className="grid md:grid-cols-2 gap-4">
-            {moments.slice().reverse().map((m: any) => (
-              <div key={m.id} className="bg-white rounded-[20px] border border-[#e6d4be] p-5">
-                <div className="text-[14.5px] text-[#3d332a] leading-7">"{m.message}"</div>
-                <div className="flex items-center justify-between mt-3">
-                  <div className="text-[12.5px] text-[#a67a50]">— {m.guest_name}</div>
-                  <button onClick={() => { store.remove("guest_moments", m.id); refresh(); toast.success("Removed"); }} className="text-[#a64838] hover:text-[#7e3124]">
-                    <Trash2 size={13}/>
-                  </button>
-                </div>
+        </div>
+        <div className="p-5 space-y-5">
+          <div className="grid grid-cols-3 gap-2 text-center">
+            {[
+              ["Guests", confirmed],
+              ["Pending", pending],
+              ["Photos", totalPhotoUploads],
+            ].map(([label, value]) => (
+              <div key={label as string} className="rounded-2xl bg-muted/60 px-2 py-3">
+                <p className="font-body text-lg font-semibold leading-none">{value as number}</p>
+                <p className="font-body text-[10px] text-muted-foreground mt-1">{label as string}</p>
               </div>
             ))}
           </div>
-        )}
 
-        {/* Accommodations tab */}
-        {tab === "accommodations" && (
-          <div className="bg-white rounded-[22px] border border-[#e6d4be] p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <div className="wedding-label">Accommodations</div>
-                <p className="text-[14px] text-[#6b5d4f] mt-1">Manage hotels and stay options.</p>
-              </div>
-              <button onClick={() => {
-                const name = prompt("Hotel Name:");
-                if (name) {
-                  store.insert("accommodations", { wedding_id: weddingId, name, photo_url: null, price: null, phone: null, distance: null, booking_url: null });
-                  refresh();
-                }
-              }} className="px-4 py-[10px] bg-[#2b2723] text-[#f9f2e8] text-[12.5px] rounded-full">Add Hotel</button>
-            </div>
-            
-            <div className="space-y-3">
-              {accommodations.map((acc: any) => (
-                <div key={acc.id} className="border border-[#e6d4be] rounded-[16px] p-4 flex items-center justify-between">
-                  <div>
-                    <div className="text-[15px] text-[#2a231d] font-medium">{acc.name}</div>
-                    <div className="text-[13px] text-[#8d7962]">{acc.price || "Price TBD"} • {acc.distance || "Distance TBD"}</div>
-                  </div>
-                  <button onClick={() => { store.remove("accommodations", acc.id); refresh(); }} className="text-[#a64838] p-2">
-                    <Trash2 size={16}/>
-                  </button>
+          <button onClick={onEditDetails} className="w-full rounded-full bg-foreground text-background py-4 font-body text-xs tracking-[0.16em] uppercase">Edit Profile</button>
+
+          <div className="space-y-2">
+            {[
+              { label: wedding.wedding_date || "Wedding date not set", icon: CalendarDays },
+              { label: wedding.ceremony_venue || "Venue not set", icon: MapPin },
+              { label: `Access code ${accessCode || wedding.access_code || "not set"}`, icon: ShieldCheck },
+            ].map((item) => {
+              const Icon = item.icon;
+              return (
+                <div key={item.label} className="flex items-center gap-3 rounded-2xl bg-muted/50 px-4 py-3">
+                  <Icon className="h-4 w-4 text-muted-foreground" />
+                  <span className="font-body text-sm">{item.label}</span>
                 </div>
-              ))}
-              {accommodations.length === 0 && <div className="text-center py-6 text-[#8d7962] text-[13.5px]">No accommodations added yet.</div>}
-            </div>
+              );
+            })}
           </div>
-        )}
 
-        {/* Map tab (Interactive Venue Map Editor) */}
-        {tab === "map" && (
-          <div className="bg-white rounded-[22px] border border-[#e6d4be] p-6">
-            <div className="wedding-label mb-3">Interactive Venue Map</div>
-            <p className="text-[14px] text-[#6b5d4f] mb-4">Upload a venue map and place markers to guide your guests. Click anywhere on the image to add a marker.</p>
-            
-            <div className="mb-4">
-              <label className="text-[12px] uppercase tracking-[0.1em] text-[#8d7962] block mb-1">Map Image URL</label>
-              <div className="flex gap-2">
-                <input 
-                  value={wedding.venue_map_url || ""} 
-                  onChange={e => saveWeddingEdits({ venue_map_url: e.target.value })}
-                  placeholder="https://..." 
-                  className="flex-1 rounded-[12px] border border-[#e0ccb2] px-3 py-2 text-[14px] outline-none focus:border-[#d3a76b]" 
-                />
-              </div>
-            </div>
-
-            {wedding.venue_map_url ? (
-              <div className="relative border border-[#e6d4be] rounded-[16px] overflow-hidden bg-[#fdf9f4]">
-                <img 
-                  src={wedding.venue_map_url} 
-                  alt="Venue Map" 
-                  className="w-full h-auto cursor-crosshair"
-                  onClick={(e) => {
-                    const rect = e.currentTarget.getBoundingClientRect();
-                    const x = ((e.clientX - rect.left) / rect.width) * 100;
-                    const y = ((e.clientY - rect.top) / rect.height) * 100;
-                    const title = prompt("Marker Title (e.g., Dance Floor):");
-                    if (title) {
-                      store.insert("venue_markers", {
-                        wedding_id: weddingId,
-                        title,
-                        category: "General",
-                        icon: "MapPin",
-                        description: null,
-                        x, y
-                      });
-                      refresh();
-                      toast.success("Marker added");
-                    }
-                  }}
-                />
-                {markers.map((m: any) => (
-                  <div 
-                    key={m.id} 
-                    className="absolute w-8 h-8 -ml-4 -mt-4 bg-[#b0743c] text-white rounded-full flex items-center justify-center shadow-md cursor-pointer hover:scale-110 transition group"
-                    style={{ left: `${m.x}%`, top: `${m.y}%` }}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      if (confirm(`Delete marker "${m.title}"?`)) {
-                        store.remove("venue_markers", m.id);
-                        refresh();
-                      }
-                    }}
-                  >
-                    <MapPin size={16} />
-                    <div className="absolute top-10 w-max px-2 py-1 bg-black/80 text-white text-[11px] rounded opacity-0 group-hover:opacity-100 pointer-events-none z-10">
-                      {m.title} (Click to delete)
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="aspect-video bg-[#f8eee0] rounded-[16px] border border-dashed border-[#d9c6ae] flex items-center justify-center text-[#8d7962]">
-                <MapPin size={24} className="mr-2"/> Provide a map URL above to start
-              </div>
-            )}
+          <div className="grid grid-cols-2 gap-3">
+            <button onClick={copyLink} className="rounded-2xl bg-muted/60 p-4 text-left font-body text-xs">
+              <Copy className="w-4 h-4 mb-3" />Copy guest link
+            </button>
+            <a href={`/wedding/${weddingSlug}`} target="_blank" rel="noreferrer" className="rounded-2xl bg-muted/60 p-4 text-left font-body text-xs">
+              <ExternalLink className="w-4 h-4 mb-3" />Open guest site
+            </a>
+            <button onClick={() => onTabChange("moments")} className="rounded-2xl bg-muted/60 p-4 text-left font-body text-xs">
+              <Image className="w-4 h-4 mb-3" />Manage photos
+            </button>
+            <button onClick={() => onTabChange("guests")} className="rounded-2xl bg-muted/60 p-4 text-left font-body text-xs">
+              <MessageCircle className="w-4 h-4 mb-3" />Guest messages
+            </button>
           </div>
-        )}
-
-        {/* Live Announcements */}
-        {tab === "updates" && (
-          <div className="bg-white rounded-[22px] border border-[#e6d4be] p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <div className="wedding-label">Live Announcements</div>
-                <p className="text-[14px] text-[#6b5d4f] mt-1">Post updates that appear instantly on your website.</p>
-              </div>
-            </div>
-            
-            <form onSubmit={(e) => {
-              e.preventDefault();
-              const title = (document.getElementById("update-title") as HTMLInputElement).value;
-              const msg = (document.getElementById("update-msg") as HTMLTextAreaElement).value;
-              if(!title || !msg) return;
-              store.insert("updates", { wedding_id: weddingId, title, message: msg });
-              refresh();
-              toast.success("Announcement published");
-              (document.getElementById("update-title") as HTMLInputElement).value = "";
-              (document.getElementById("update-msg") as HTMLTextAreaElement).value = "";
-            }} className="mb-6 grid gap-3 border border-[#e6d4be] p-4 rounded-[16px] bg-[#fcf7f1]">
-              <input id="update-title" required placeholder="Announcement Title (e.g. Dinner is served)" className="rounded-[12px] border border-[#e0ccb2] px-3 py-2 text-[14px] outline-none" />
-              <textarea id="update-msg" required rows={2} placeholder="Add a short message..." className="rounded-[12px] border border-[#e0ccb2] px-3 py-2 text-[14px] outline-none resize-none" />
-              <div className="flex justify-end">
-                <button type="submit" className="px-5 py-2 rounded-full bg-[#b0743c] text-white text-[13px] hover:bg-[#8e5c2e]">Publish Update</button>
-              </div>
-            </form>
-
-            <div className="space-y-3">
-              {updates.slice().reverse().map((u: any) => (
-                <div key={u.id} className="border border-[#e6d4be] rounded-[16px] p-4">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <div className="text-[15px] text-[#2a231d] font-medium">{u.title}</div>
-                      <div className="text-[13.5px] text-[#5a4f45] mt-1">{u.message}</div>
-                      <div className="text-[11.5px] text-[#8d7962] mt-2">{format(new Date(u.created_at), "HH:mm • d MMM yyyy")}</div>
-                    </div>
-                    <button onClick={() => { store.remove("updates", u.id); refresh(); }} className="text-[#a64838] p-2">
-                      <Trash2 size={16}/>
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Guest Photos */}
-        {tab === "guest_photos" && (
-          <div className="bg-white rounded-[22px] border border-[#e6d4be] p-6">
-            <div className="wedding-label mb-3">Guest Uploads</div>
-            <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 gap-3">
-              {guestPhotos.slice().reverse().map((p: any) => (
-                <div key={p.id} className="relative aspect-square rounded-[16px] overflow-hidden border border-[#e6d4be] group shadow-sm">
-                  <img src={p.photo_url} alt="" className="w-full h-full object-cover transition-transform group-hover:scale-105" />
-                  <div className="absolute inset-x-0 bottom-0 p-2 bg-gradient-to-t from-black/60 to-transparent">
-                    <div className="text-[11px] text-white font-medium">{p.guest_name}</div>
-                  </div>
-                  <button onClick={() => { store.remove("guest_photos", p.id); refresh(); toast.success("Photo removed"); }} className="absolute top-2 right-2 w-8 h-8 rounded-full bg-black/60 text-white opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
-                    <Trash2 size={13}/>
-                  </button>
-                </div>
-              ))}
-              {guestPhotos.length === 0 && (
-                <div className="col-span-full text-center py-8 text-[13.5px] text-[#8d7962] border border-dashed border-[#d9c6ae] rounded-[16px]">
-                  No guest photos yet.
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* Check-ins */}
-        {tab === "checkins" as any && (
-          <div className="bg-white rounded-[22px] border border-[#e6d4be] p-6">
-            <div className="wedding-label mb-3">Live Check-ins</div>
-            <div className="space-y-2">
-              {checkins.slice().reverse().map(c => (
-                <div key={c.id} className="flex items-center justify-between py-2.5 border-b border-[#f0e4d4] last:border-0">
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-full bg-[#eff6ee] text-[#4f7a56] flex items-center justify-center"><CheckCircle2 size={16}/></div>
-                    <div>
-                      <div className="text-[14.5px] text-[#2a231d]">{c.guest_name}</div>
-                      <div className="text-[12px] text-[#8d7962]">{format(new Date(c.checkin_time), "HH:mm • d MMM")}</div>
-                    </div>
-                  </div>
-                  <button onClick={() => { store.remove("checkins", c.id); refresh(); }} className="text-[#a64838] hover:text-[#7e3124]">
-                    <Trash2 size={13}/>
-                  </button>
-                </div>
-              ))}
-              {checkins.length === 0 && <div className="text-[14px] text-[#8d7962] text-center py-10">No check-ins yet. Share the QR code to start.</div>}
-            </div>
-          </div>
-        )}
-
-        {/* Share */}
-        {tab === "share" && (
-          <div className="grid md:grid-cols-2 gap-6">
-            <div className="bg-white rounded-[22px] border border-[#e6d4be] p-6">
-              <div className="wedding-label mb-2">Wedding URL</div>
-              <div className="display text-[22px] text-[#2a231d] mb-3">Share with guests</div>
-              <div className="flex items-center gap-2 bg-[#f8eee0] border border-[#e8d2b6] rounded-[14px] p-3">
-                <span className="flex-1 text-[13.5px] text-[#5a4735] truncate">{weddingUrl}</span>
-                <button onClick={copyLink} className="px-3 py-1.5 rounded-full bg-[#2b2723] text-[#f9f2e8] text-[12.5px] flex items-center gap-1.5">
-                  <Copy size={12}/> Copy
-                </button>
-              </div>
-              <div className="mt-4 text-[13px] text-[#6b5d4f]">
-                Send this link via WhatsApp, email, or print on your invitation cards.
-              </div>
-            </div>
-
-            <div className="bg-white rounded-[22px] border border-[#e6d4be] p-6">
-              <div className="wedding-label mb-2">QR Code</div>
-              <div className="display text-[22px] text-[#2a231d] mb-3">Scan to open</div>
-              <div className="flex items-center justify-center p-6 bg-[#f8eee0] border border-[#e8d2b6] rounded-[14px]">
-                <QRCodeSVG value={weddingUrl} size={180} level="H" fgColor="#2b2723" />
-              </div>
-              <div className="mt-3 text-[13px] text-[#6b5d4f] text-center">
-                Print this at the venue entrance for self-check-in.
-              </div>
-            </div>
-
-            <div className="md:col-span-2 bg-white rounded-[22px] border border-[#e6d4be] p-6">
-              <div className="wedding-label mb-2">Quick Links</div>
-              <div className="grid sm:grid-cols-3 gap-3 mt-3">
-                {[
-                  { label: "Check-in page", url: `/checkin/${slug}`, icon: <Users size={14}/> },
-                  { label: "QR redirect", url: `/q/${slug}`, icon: <Gift size={14}/> },
-                  { label: "Public site", url: `/wedding/${slug}`, icon: <ExternalLink size={14}/> },
-                ].map(l => (
-                  <Link key={l.url} to={l.url} target="_blank" className="flex items-center gap-2 p-3 rounded-[14px] border border-[#e6d4be] hover:bg-[#fbf3e8] text-[13.5px] text-[#5a4735]">
-                    {l.icon} {l.label}
-                  </Link>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
-        </main>
+        </div>
       </div>
     </div>
   );

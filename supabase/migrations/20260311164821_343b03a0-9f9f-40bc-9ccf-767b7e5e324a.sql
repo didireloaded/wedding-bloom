@@ -1,0 +1,1 @@
+ALTER TABLE public.weddings ADD COLUMN IF NOT EXISTS story_image text, ADD COLUMN IF NOT EXISTS rsvp_image text;

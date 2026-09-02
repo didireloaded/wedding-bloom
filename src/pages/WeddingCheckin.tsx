@@ -1,55 +1,73 @@
 import { useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 import { motion } from "framer-motion";
-import { Flower2, CheckCircle2, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
-import { store } from "@/store/weddingStore";
+import { CheckCircle, Heart, Users } from "lucide-react";
 
-/**
- * Guest self-check-in. Mirrors the repo's WeddingCheckin:
- * - Find wedding by slug
- * - Match guest name against RSVP list (exact, then partial)
- * - Insert checkin row (realtime visible on couple dashboard)
- */
-export default function WeddingCheckin() {
+interface RsvpMatch {
+  guest_name: string;
+  guest_count: number;
+  attending: boolean | null;
+}
+
+const WeddingCheckin = () => {
   const { slug } = useParams();
   const [wedding, setWedding] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [name, setName] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [checkedIn, setCheckedIn] = useState(false);
-  const [rsvpMatch, setRsvpMatch] = useState<any>(null);
+  const [rsvpMatch, setRsvpMatch] = useState<RsvpMatch | null>(null);
 
   useEffect(() => {
-    if (!slug) { setLoading(false); return; }
-    const w = store.find("weddings", (r: any) => r.slug === slug && r.published);
-    setWedding(w ?? null);
-    setLoading(false);
+    if (slug) fetchWedding();
   }, [slug]);
 
-  const findMatch = (guestName: string) => {
-    if (!wedding?.id || !guestName.trim()) return null;
-    const normalized = guestName.trim().toLowerCase();
-    const rsvps = store.where<any>("rsvps", (r) => r.wedding_id === wedding.id);
-    if (!rsvps.length) return null;
-    const exact = rsvps.find(r => r.guest_name.toLowerCase() === normalized);
-    if (exact) return exact;
-    return rsvps.find(r =>
-      r.guest_name.toLowerCase().includes(normalized) ||
-      normalized.includes(r.guest_name.toLowerCase())
-    ) || null;
+  const fetchWedding = async () => {
+    const { data } = await supabase
+      .from("weddings")
+      .select("id, couple_names, ceremony_venue, cover_image, published")
+      .eq("slug", slug!)
+      .eq("published", true)
+      .maybeSingle();
+    if (data) setWedding(data);
+    setLoading(false);
   };
 
-  const handleCheckin = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!name.trim()) { toast.error("Please enter your name"); return; }
+  const findRsvpMatch = async (guestName: string): Promise<RsvpMatch | null> => {
+    if (!wedding?.id || !guestName.trim()) return null;
+    const normalized = guestName.trim().toLowerCase();
+    const { data: rsvps } = await supabase
+      .from("rsvps")
+      .select("guest_name, guest_count, attending")
+      .eq("wedding_id", wedding.id);
+    if (!rsvps || rsvps.length === 0) return null;
+    // Exact match first (case-insensitive)
+    const exact = rsvps.find((r) => r.guest_name.toLowerCase() === normalized);
+    if (exact) return exact;
+    // Partial match (name contains or is contained)
+    const partial = rsvps.find(
+      (r) =>
+        r.guest_name.toLowerCase().includes(normalized) ||
+        normalized.includes(r.guest_name.toLowerCase())
+    );
+    return partial || null;
+  };
+
+  const handleCheckin = async () => {
+    if (!name.trim()) {
+      toast.error("Please enter your name.");
+      return;
+    }
     setSubmitting(true);
-    const match = findMatch(name);
-    store.insert("checkins", {
-      wedding_id: wedding.id,
-      guest_name: name.trim(),
-      checkin_time: new Date().toISOString(),
-    });
+    const [, match] = await Promise.all([
+      supabase.from("checkins").insert({
+        wedding_id: wedding.id,
+        guest_name: name.trim(),
+      } as any),
+      findRsvpMatch(name),
+    ]);
     setRsvpMatch(match);
     setCheckedIn(true);
     setSubmitting(false);
@@ -57,93 +75,138 @@ export default function WeddingCheckin() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#faf8f5]">
-        <div className="w-12 h-12 mx-auto border-2 border-[#c9a87a] border-t-transparent rounded-full animate-spin"></div>
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="w-8 h-8 border border-wedding-gold/30 border-t-wedding-gold rounded-full animate-spin" />
       </div>
     );
   }
 
   if (!wedding) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#faf8f5] px-6" style={{ fontFamily: '"Manrope", system-ui, sans-serif' }}>
-        <style>{`.display { font-family: "Cormorant Garamond", Georgia, serif; } .wedding-label { letter-spacing: .26em; text-transform: uppercase; font-size: 11px; color: #b7834c; }`}</style>
+      <div className="min-h-screen flex items-center justify-center bg-background px-6">
         <div className="text-center">
-          <div className="wedding-label mb-3">Not found</div>
-          <h1 className="display text-[44px] text-[#2a231d]">This wedding doesn't exist</h1>
-          <Link to="/" className="mt-6 inline-block text-[13px] text-[#b0743c] underline">Back home</Link>
+          <h1 className="font-display text-3xl font-light mb-3">Not Found</h1>
+          <p className="font-body text-sm text-muted-foreground">This wedding page doesn't exist.</p>
         </div>
       </div>
     );
   }
 
+  if (checkedIn) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background px-6">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="text-center max-w-sm"
+        >
+          <motion.div
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
+          >
+            <CheckCircle className="w-16 h-16 mx-auto mb-6 text-wedding-gold" strokeWidth={1} />
+          </motion.div>
+          <h1 className="font-display text-3xl sm:text-4xl font-light mb-3">You're Checked In!</h1>
+
+          {rsvpMatch ? (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+              className="mb-6"
+            >
+              <p className="font-body text-sm text-muted-foreground leading-relaxed mb-3">
+                Welcome, <span className="text-foreground font-medium">{name}</span>!
+              </p>
+              <div className="inline-flex items-center gap-2 bg-wedding-sage/20 border border-wedding-sage/30 px-5 py-3">
+                <Users className="w-4 h-4 text-wedding-gold" strokeWidth={1.5} />
+                <span className="font-body text-xs tracking-wide">
+                  RSVP: <strong>{rsvpMatch.guest_count}</strong> guest{rsvpMatch.guest_count !== 1 ? "s" : ""} registered
+                </span>
+              </div>
+              {rsvpMatch.attending === false && (
+                <p className="font-body text-[10px] text-muted-foreground mt-2 italic">
+                  Note: Your RSVP was marked as declined
+                </p>
+              )}
+            </motion.div>
+          ) : (
+            <div className="mb-6">
+              <p className="font-body text-sm text-muted-foreground leading-relaxed">
+                Welcome, {name}. Enjoy the celebration!
+              </p>
+              <p className="font-body text-[10px] text-muted-foreground/60 mt-2 italic">
+                No matching RSVP found — please check with the couple if needed
+              </p>
+            </div>
+          )}
+
+          <div className="wedding-divider" />
+          <p className="font-display text-lg italic text-muted-foreground mt-6">{wedding.couple_names}</p>
+          <a
+            href={`/wedding/${slug}`}
+            className="mt-8 inline-flex items-center gap-2 px-8 py-4 bg-foreground text-background font-body text-xs tracking-[0.3em] uppercase hover:bg-foreground/90 transition-all shadow-lg shadow-foreground/10"
+          >
+            VIEW WEDDING PAGE →
+          </a>
+        </motion.div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#faf8f5] px-6 py-10" style={{ fontFamily: '"Manrope", system-ui, sans-serif' }}>
-      <style>{`.display { font-family: "Cormorant Garamond", Georgia, serif; } .wedding-label { letter-spacing: .26em; text-transform: uppercase; font-size: 11px; color: #b7834c; }`}</style>
-
-      <Link to={`/wedding/${slug}`} className="absolute top-6 left-6 flex items-center gap-2 text-[13px] text-[#6b5d4f] hover:text-[#b0743c]">
-        <ArrowLeft size={14}/> Back to invitation
-      </Link>
-
+    <div className="min-h-screen flex items-center justify-center bg-background px-6">
       <motion.div
-        initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-md text-center"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8 }}
+        className="w-full max-w-sm text-center"
       >
-        <div className="mx-auto w-14 h-14 rounded-full bg-[#f2e8da] border border-[#e4cfb7] flex items-center justify-center mb-5">
-          <Flower2 size={20} className="text-[#b7794a]"/>
+        <div className="wedding-ornament mb-4">
+          <Heart className="w-5 h-5 text-wedding-gold" strokeWidth={1} fill="currentColor" />
         </div>
 
-        {!checkedIn ? (
-          <>
-            <p className="wedding-label mb-3">Welcome</p>
-            <h1 className="display text-[44px] text-[#2a231d] mb-2">{wedding.couple_names}'s Wedding</h1>
-            {wedding.ceremony_venue && <p className="text-[14px] text-[#6b5d4f] mb-8">{wedding.ceremony_venue}</p>}
-            <form onSubmit={handleCheckin} className="space-y-6">
-              <div>
-                <label className="wedding-label block mb-2">Your name</label>
-                <input
-                  type="text" required value={name} onChange={e => setName(e.target.value)}
-                  placeholder="Enter your full name" autoFocus
-                  className="w-full bg-transparent border-b border-[#d9c6ae] py-3 text-[14px] text-center focus:outline-none focus:border-[#b0743c] transition-colors placeholder:text-[#c4b7a7]"
-                />
-              </div>
-              <button type="submit" disabled={submitting}
-                className="w-full py-4 bg-[#2b2723] text-[#f9f2e8] text-[12px] tracking-[0.3em] uppercase hover:bg-[#392f29] transition-colors disabled:opacity-50 rounded-full">
-                {submitting ? "Checking in…" : "Mark your arrival"}
-              </button>
-            </form>
-          </>
-        ) : (
-          <motion.div initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }}>
-            <div className="mx-auto w-16 h-16 rounded-full bg-[#eff6ee] border border-[#d2e2d0] flex items-center justify-center mb-4">
-              <CheckCircle2 size={26} className="text-[#4f7a56]"/>
-            </div>
-            <p className="wedding-label mb-2">You're in</p>
-            <h2 className="display text-[36px] text-[#2a231d] mb-4">You're checked in!</h2>
-            {rsvpMatch ? (
-              <div className="bg-white rounded-[18px] border border-[#e6d4be] p-5 text-left">
-                <div className="text-[16px] text-[#2a231d]">Welcome, <strong>{rsvpMatch.guest_name}</strong>!</div>
-                <div className="mt-3 space-y-1.5 text-[13.5px] text-[#5a4f45]">
-                  <div>• RSVP: <span className="font-medium">{rsvpMatch.guest_count} guest{rsvpMatch.guest_count !== 1 ? "s" : ""}</span> registered</div>
-                  {rsvpMatch.dietary_preference && <div>• Dietary: {rsvpMatch.dietary_preference}</div>}
-                </div>
-                {rsvpMatch.attending === false && (
-                  <div className="mt-3 text-[12.5px] text-[#a64838] bg-[#fde9e6] rounded-lg p-2.5">
-                    Note: Your RSVP was marked as declined — please speak with the couple if this is incorrect.
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="bg-[#fdf3e4] border border-[#e8d2b6] rounded-[14px] p-4 text-[13.5px] text-[#5a4735]">
-                Welcome, <strong>{name}</strong>. Enjoy the celebration!<br/>
-                <span className="text-[12.5px] text-[#b0743c]">No matching RSVP found — check with the couple if needed.</span>
-              </div>
-            )}
-            <Link to={`/wedding/${slug}`} className="mt-6 inline-block text-[13px] text-[#b0743c] underline underline-offset-4">
-              Back to invitation
-            </Link>
-          </motion.div>
+        <h1 className="font-display text-3xl sm:text-4xl font-light mb-2">
+          Welcome
+        </h1>
+        <p className="font-display text-lg sm:text-xl italic text-muted-foreground mb-2">
+          {wedding.couple_names}'s Wedding
+        </p>
+        {wedding.ceremony_venue && (
+          <p className="font-body text-[10px] tracking-[0.3em] uppercase text-muted-foreground mb-10">
+            {wedding.ceremony_venue}
+          </p>
         )}
+
+        <div className="bg-background border border-border/40 p-8 shadow-lg shadow-foreground/3 space-y-6">
+          <div>
+            <label className="wedding-label block mb-3">YOUR NAME</label>
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Enter your full name"
+              autoFocus
+              className="w-full bg-transparent border-b border-foreground/15 py-3 font-body text-sm text-center focus:outline-none focus:border-wedding-gold transition-colors placeholder:text-muted-foreground/40"
+            />
+          </div>
+
+          <button
+            onClick={handleCheckin}
+            disabled={submitting}
+            className="w-full py-5 bg-foreground text-background font-body text-xs tracking-[0.3em] uppercase hover:bg-foreground/90 transition-all duration-300 min-h-[56px] disabled:opacity-50 shadow-lg shadow-foreground/10"
+          >
+            {submitting ? "CHECKING IN..." : "CHECK IN"}
+          </button>
+        </div>
+
+        <p className="font-body text-[10px] tracking-wider text-muted-foreground/50 mt-8">
+          TAP TO MARK YOUR ARRIVAL
+        </p>
       </motion.div>
     </div>
   );
-}
+};
+
+export default WeddingCheckin;

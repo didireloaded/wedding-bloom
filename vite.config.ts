@@ -1,33 +1,22 @@
-import path from "path";
-import { fileURLToPath } from "url";
-import tailwindcss from "@tailwindcss/vite";
-import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
-import { mcpPlugin } from "@lovable.dev/mcp-js/stacks/supabase/vite";
+import react from "@vitejs/plugin-react-swc";
+import path from "path";
+import { componentTagger } from "lovable-tagger";
 
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-// https://vite.dev/config/
-export default defineConfig({
-  plugins: [react(), tailwindcss(), mcpPlugin()],
-  resolve: {
-    alias: {
-      "@": path.resolve(__dirname, "src"),
+// https://vitejs.dev/config/
+export default defineConfig(({ mode }) => ({
+  server: {
+    host: "::",
+    port: 8080,
+    hmr: {
+      overlay: false,
     },
   },
-  build: {
-    chunkSizeWarningLimit: 600,
-    rollupOptions: {
-      output: {
-        manualChunks: {
-          "vendor-react": ["react", "react-dom", "react-router-dom"],
-          "vendor-ui": ["framer-motion", "lucide-react", "sonner"],
-          "vendor-db": ["@supabase/supabase-js"],
-          "vendor-utils": ["date-fns", "qrcode.react", "embla-carousel-react", "papaparse", "zod"]
-        }
-      }
-    }
+  plugins: [react(), mode === "development" && componentTagger()].filter(Boolean),
+  resolve: {
+    alias: {
+      "@": path.resolve(__dirname, "./src"),
+    },
+    dedupe: ["react", "react-dom"],
   },
-});
+}));

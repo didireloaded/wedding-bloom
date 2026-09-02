@@ -1,4 +1,186 @@
-@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&family=Josefin+Sans:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&display=swap');
 
-html { scroll-behavior: smooth; }
-body { background:#faf8f5; }
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 40 20% 97%;
+    --foreground: 30 10% 15%;
+
+    --card: 40 25% 95%;
+    --card-foreground: 30 10% 15%;
+
+    --popover: 40 20% 97%;
+    --popover-foreground: 30 10% 15%;
+
+    --primary: 30 10% 15%;
+    --primary-foreground: 40 20% 97%;
+
+    --secondary: 35 15% 90%;
+    --secondary-foreground: 30 10% 15%;
+
+    --muted: 35 10% 92%;
+    --muted-foreground: 30 5% 50%;
+
+    --accent: 25 30% 85%;
+    --accent-foreground: 30 10% 15%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 30 15% 88%;
+    --input: 30 15% 88%;
+    --ring: 30 10% 15%;
+
+    --radius: 0.5rem;
+
+    --wedding-ivory: 40 25% 95%;
+    --wedding-champagne: 35 30% 88%;
+    --wedding-charcoal: 30 10% 20%;
+    --wedding-gold: 38 60% 55%;
+    --wedding-sage: 140 15% 75%;
+    --wedding-blush: 10 30% 92%;
+    --wedding-rose: 350 40% 80%;
+
+    --font-display: 'Cormorant Garamond', serif;
+    --font-body: 'Josefin Sans', sans-serif;
+
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+
+  .dark {
+    --background: 30 10% 8%;
+    --foreground: 40 20% 92%;
+    --card: 30 10% 12%;
+    --card-foreground: 40 20% 92%;
+    --popover: 30 10% 8%;
+    --popover-foreground: 40 20% 92%;
+    --primary: 40 20% 92%;
+    --primary-foreground: 30 10% 8%;
+    --secondary: 30 8% 18%;
+    --secondary-foreground: 40 20% 92%;
+    --muted: 30 8% 18%;
+    --muted-foreground: 30 5% 55%;
+    --accent: 30 8% 18%;
+    --accent-foreground: 40 20% 92%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 40 20% 92%;
+    --border: 30 8% 22%;
+    --input: 30 8% 22%;
+    --ring: 40 20% 92%;
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-body);
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  html,
+  body,
+  #root {
+    min-height: 100%;
+  }
+
+  body {
+    overscroll-behavior-y: none;
+  }
+}
+
+@layer components {
+  .wedding-section {
+    @apply py-20 md:py-32 px-6 md:px-12;
+  }
+
+  .wedding-heading {
+    font-family: var(--font-display);
+    @apply text-4xl md:text-6xl lg:text-7xl font-light tracking-wide;
+  }
+
+  .wedding-subheading {
+    font-family: var(--font-display);
+    @apply text-2xl md:text-3xl font-light italic;
+  }
+
+  .wedding-body {
+    font-family: var(--font-body);
+    @apply text-sm md:text-base font-light tracking-widest uppercase;
+  }
+
+  .wedding-label {
+    font-family: var(--font-body);
+    @apply text-xs tracking-[0.3em] uppercase text-muted-foreground;
+  }
+
+  .arch-image {
+    @apply rounded-t-full overflow-hidden;
+  }
+
+  /* Decorative ornament */
+  .wedding-ornament {
+    @apply flex items-center justify-center gap-4 my-8;
+  }
+
+  .wedding-ornament::before,
+  .wedding-ornament::after {
+    content: '';
+    @apply h-px w-12 sm:w-20 bg-wedding-gold/40;
+  }
+
+  /* Scroll indicator animation */
+  @keyframes scroll-bounce {
+    0%, 100% { transform: translateY(0); opacity: 0.4; }
+    50% { transform: translateY(12px); opacity: 1; }
+  }
+
+  .scroll-indicator {
+    animation: scroll-bounce 2s ease-in-out infinite;
+  }
+
+  /* Elegant divider */
+  .wedding-divider {
+    @apply w-16 h-px bg-wedding-gold/50 mx-auto;
+  }
+
+  .mobile-pwa-frame {
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .mobile-pwa-frame main {
+    scrollbar-width: none;
+  }
+
+  .mobile-pwa-frame main::-webkit-scrollbar {
+    display: none;
+  }
+}

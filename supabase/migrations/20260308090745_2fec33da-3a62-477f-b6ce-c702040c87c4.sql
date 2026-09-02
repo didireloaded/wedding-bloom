@@ -1,0 +1,1 @@
+ALTER TABLE public.weddings DROP CONSTRAINT IF EXISTS weddings_admin_user_id_fkey;

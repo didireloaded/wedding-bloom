@@ -616,38 +616,6 @@ export type Database = {
           },
         ]
       }
-      wedding_analytics: {
-        Row: {
-          created_at: string
-          id: string
-          page_views: number
-          qr_scans: number
-          wedding_id: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          page_views?: number
-          qr_scans?: number
-          wedding_id: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          page_views?: number
-          qr_scans?: number
-          wedding_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "wedding_analytics_wedding_id_fkey"
-            columns: ["wedding_id"]
-            isOneToOne: true
-            referencedRelation: "weddings"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       wedding_moments: {
         Row: {
           approved: boolean
@@ -767,7 +735,6 @@ export type Database = {
           ceremony_venue: string | null
           contact_email: string | null
           couple_names: string
-          cover_focal_point: string | null
           cover_image: string | null
           created_at: string
           dashboard_tour_completed: boolean
@@ -779,11 +746,9 @@ export type Database = {
           reception_time: string | null
           reception_venue: string | null
           rsvp_deadline: string | null
-          rsvp_focal_point: string | null
           rsvp_image: string | null
           slug: string
           story: string | null
-          story_focal_point: string | null
           story_image: string | null
           theme: Json | null
           theme_id: string | null
@@ -799,7 +764,6 @@ export type Database = {
           ceremony_venue?: string | null
           contact_email?: string | null
           couple_names: string
-          cover_focal_point?: string | null
           cover_image?: string | null
           created_at?: string
           dashboard_tour_completed?: boolean
@@ -811,11 +775,9 @@ export type Database = {
           reception_time?: string | null
           reception_venue?: string | null
           rsvp_deadline?: string | null
-          rsvp_focal_point?: string | null
           rsvp_image?: string | null
           slug: string
           story?: string | null
-          story_focal_point?: string | null
           story_image?: string | null
           theme?: Json | null
           theme_id?: string | null
@@ -831,7 +793,6 @@ export type Database = {
           ceremony_venue?: string | null
           contact_email?: string | null
           couple_names?: string
-          cover_focal_point?: string | null
           cover_image?: string | null
           created_at?: string
           dashboard_tour_completed?: boolean
@@ -843,11 +804,9 @@ export type Database = {
           reception_time?: string | null
           reception_venue?: string | null
           rsvp_deadline?: string | null
-          rsvp_focal_point?: string | null
           rsvp_image?: string | null
           slug?: string
           story?: string | null
-          story_focal_point?: string | null
           story_image?: string | null
           theme?: Json | null
           theme_id?: string | null
@@ -878,11 +837,6 @@ export type Database = {
         }
         Returns: boolean
       }
-      increment_page_view: {
-        Args: { p_wedding_id: string }
-        Returns: undefined
-      }
-      increment_qr_scan: { Args: { p_wedding_id: string }; Returns: undefined }
       regenerate_access_code: { Args: { wedding_id: string }; Returns: string }
     }
     Enums: {
