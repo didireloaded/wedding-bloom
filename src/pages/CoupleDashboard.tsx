@@ -22,6 +22,7 @@ import DashboardWalkthrough from "@/components/dashboard/DashboardWalkthrough";
 import SetupProgress from "@/components/dashboard/SetupProgress";
 import QuickActions from "@/components/dashboard/QuickActions";
 import EditWeddingDetails from "@/components/dashboard/EditWeddingDetails";
+import NotificationPreferences from "@/components/dashboard/NotificationPreferences";
 import { getWeddingPhase } from "@/lib/weddingPhase";
 
 const withTimeout = async <T,>(promise: Promise<T>, ms = 4500): Promise<T> => {
@@ -899,6 +900,8 @@ function ProfilePanel({ wedding, weddingSlug, accessCode, confirmed, pending, to
           </div>
 
           <button onClick={onEditDetails} className="w-full rounded-full bg-foreground text-background py-4 font-body text-xs tracking-[0.16em] uppercase">Edit Wedding Profile</button>
+
+          <NotificationPreferences weddingId={wedding.id} />
 
           <div className="space-y-2">
             {[
