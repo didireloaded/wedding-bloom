@@ -45,12 +45,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       await refreshRole(data.session?.user ?? null);
       setLoading(false);
     });
-    const { data: listener } = supabase.auth.onAuthStateChange(async (_event, nextSession) => {
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, nextSession) => {
       setSession(nextSession);
       setUser(nextSession?.user ?? null);
       setLoading(true);
-      await refreshRole(nextSession?.user ?? null);
-      setLoading(false);
+      // Supabase emits auth changes while holding its cross-tab lock. Defer
+      // database work until the callback returns so another tab cannot deadlock it.
+      setTimeout(() => {
+        if (!active) return;
+        void refreshRole(nextSession?.user ?? null).finally(() => {
+          if (active) setLoading(false);
+        });
+      }, 0);
     });
     return () => { active = false; listener.subscription.unsubscribe(); };
   }, [previewMode]);
