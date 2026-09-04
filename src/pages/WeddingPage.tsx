@@ -16,6 +16,9 @@ import RSVPSection from "@/components/wedding/RSVPSection";
 import WeddingFooter from "@/components/wedding/WeddingFooter";
 import { Helmet } from "react-helmet-async";
 import { getWeddingPhase } from "@/lib/weddingPhase";
+import { resolveGuestExperience } from "@/lib/guestExperience";
+import GuestBottomNav from "@/components/wedding/GuestBottomNav";
+import GuestHome from "@/components/wedding/GuestHome";
 
 const VenueSection = lazy(() => import("@/components/wedding/VenueSection"));
 const PhotoGallery = lazy(() => import("@/components/wedding/PhotoGallery"));
@@ -53,6 +56,7 @@ const WeddingPage = () => {
   const [invitationOpen, setInvitationOpen] = useState(false);
   const { wedding, events, gallery, updates, loading } = useWeddingData(slug);
   const [unpublishedWedding, setUnpublishedWedding] = useState<any>(null);
+  const [guestTab, setGuestTab] = useState("home");
 
   useEffect(() => {
     const checkUnpublished = async () => {
@@ -109,6 +113,12 @@ const WeddingPage = () => {
     ? new Date(wedding.wedding_date).toLocaleDateString("en-US", { day: "numeric", month: "long", year: "numeric" }).toUpperCase()
     : "";
   const weddingPhase = getWeddingPhase(wedding, events);
+  const guestExperience = resolveGuestExperience(weddingPhase, "unknown_guest");
+  const handleGuestAction = (tab: string) => {
+    setGuestTab(tab);
+    const target = tab === "schedule" ? "events" : tab === "venue" || tab === "directions" || tab === "map" ? "venue" : tab === "rsvp" ? "rsvp" : tab === "checkin" ? "checkin" : tab === "photos" || tab === "moments" || tab === "wall" ? "memories" : null;
+    if (target) document.getElementById(target)?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
 
   const handleAddToCalendar = () => {
     if (wedding.wedding_date) {
@@ -165,6 +175,8 @@ const WeddingPage = () => {
         {/* 2. Nav */}
         <WeddingNav coupleNames={wedding.couple_names} />
 
+        <div className="md:hidden"><GuestHome wedding={wedding} phase={weddingPhase} guestState="unknown_guest" onAction={handleGuestAction} /></div>
+
         {/* 3. Hero */}
         <WeddingHero
           coupleNames={wedding.couple_names}
@@ -212,6 +224,8 @@ const WeddingPage = () => {
           </LazyVisible>
         )}
 
+        <div id="checkin" />
+
         {wedding.ceremony_venue && (
           <LazyVisible>
             <SmartArrivalCheckin
@@ -236,17 +250,12 @@ const WeddingPage = () => {
         )}
 
         {/* 10. RSVP */}
-        <RSVPSection
-          weddingId={wedding.id}
-          weddingDate={wedding.wedding_date}
-          ceremonyTime={wedding.ceremony_time}
-          venue={wedding.ceremony_venue || ""}
-          coupleNames={wedding.couple_names}
-          rsvpDeadline={(wedding as any).rsvp_deadline}
-          whatsappGroupUrl={(wedding as any).whatsapp_group_url}
-          maxGuests={(wedding as any).max_guests}
-          rsvpImage={(wedding as any).rsvp_image}
-        />
+        <div id="rsvp"><RSVPSection
+          weddingId={wedding.id} weddingDate={wedding.wedding_date} ceremonyTime={wedding.ceremony_time}
+          venue={wedding.ceremony_venue || ""} coupleNames={wedding.couple_names}
+          rsvpDeadline={(wedding as any).rsvp_deadline} whatsappGroupUrl={(wedding as any).whatsapp_group_url}
+          maxGuests={(wedding as any).max_guests} rsvpImage={(wedding as any).rsvp_image}
+        /></div>
 
         {/* 11. Guestbook */}
         <LazyVisible>
@@ -294,6 +303,8 @@ const WeddingPage = () => {
         <LazyVisible>
           <WeddingChatAssistant weddingData={wedding} events={events} gallery={gallery} updates={updates} />
         </LazyVisible>
+
+        <div className="md:hidden"><GuestBottomNav tabs={guestExperience.tabs} active={guestTab} onChange={handleGuestAction} /></div>
       </div>
     </>
   );
