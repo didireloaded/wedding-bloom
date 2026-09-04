@@ -122,6 +122,8 @@ CREATE TABLE IF NOT EXISTS public.guest_sessions (
   expires_at timestamptz NOT NULL DEFAULT (now() + interval '180 days'),
   revoked_at timestamptz
 );
+ALTER TABLE public.guest_sessions ADD COLUMN IF NOT EXISTS verification_token text;
+ALTER TABLE public.guest_sessions ADD COLUMN IF NOT EXISTS verification_expires_at timestamptz;
 
 ALTER TABLE public.checkins ADD COLUMN IF NOT EXISTS rsvp_id uuid REFERENCES public.rsvps(id) ON DELETE SET NULL;
 ALTER TABLE public.checkins ADD COLUMN IF NOT EXISTS party_size integer NOT NULL DEFAULT 1;

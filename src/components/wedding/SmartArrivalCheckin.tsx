@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { CheckCircle, LocateFixed, MapPin } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { getGuestSessionToken } from "@/lib/guestSession";
 
 interface SmartArrivalCheckinProps {
   weddingId: string;
@@ -12,16 +13,6 @@ interface SmartArrivalCheckinProps {
   venueLongitude?: number | null;
   checkinRadiusMeters?: number | null;
 }
-
-const distanceInMeters = (from: GeolocationCoordinates, to: { latitude: number; longitude: number }) => {
-  const earthRadius = 6371000;
-  const lat1 = from.latitude * Math.PI / 180;
-  const lat2 = to.latitude * Math.PI / 180;
-  const deltaLat = (to.latitude - from.latitude) * Math.PI / 180;
-  const deltaLon = (to.longitude - from.longitude) * Math.PI / 180;
-  const a = Math.sin(deltaLat / 2) ** 2 + Math.cos(lat1) * Math.cos(lat2) * Math.sin(deltaLon / 2) ** 2;
-  return earthRadius * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-};
 
 const SmartArrivalCheckin = ({
   weddingId,
@@ -34,9 +25,8 @@ const SmartArrivalCheckin = ({
   const [guestName, setGuestName] = useState("");
   const [checkingLocation, setCheckingLocation] = useState(false);
   const [nearVenue, setNearVenue] = useState<boolean | null>(null);
+  const [verificationToken, setVerificationToken] = useState<string | null>(null);
   const [checkedIn, setCheckedIn] = useState(false);
-
-  const hasVenueCoordinates = typeof venueLatitude === "number" && typeof venueLongitude === "number";
 
   const requestLocation = () => {
     if (!navigator.geolocation) {
@@ -48,24 +38,17 @@ const SmartArrivalCheckin = ({
     setCheckingLocation(true);
     navigator.geolocation.getCurrentPosition(
       (position) => {
-        if (!hasVenueCoordinates) {
-          setNearVenue(true);
-          toast.success("Location allowed. Confirm when you arrive.");
-        } else {
-          const meters = distanceInMeters(position.coords, {
-            latitude: venueLatitude!,
-            longitude: venueLongitude!,
-          });
-          const isInsideVenue = meters <= (checkinRadiusMeters || 180);
-          setNearVenue(isInsideVenue);
-          toast[isInsideVenue ? "success" : "info"](
-            isInsideVenue ? "Looks like you have arrived." : "You do not seem to be at the venue yet."
-          );
-        }
-        setCheckingLocation(false);
+        const guestSession = getGuestSessionToken(weddingId);
+        if (!guestSession) { setNearVenue(null); toast.info("Please RSVP first so we can verify your arrival."); setCheckingLocation(false); return; }
+        supabase.functions.invoke("verify-guest-arrival", { body: { wedding_id: weddingId, guest_session: guestSession, latitude: position.coords.latitude, longitude: position.coords.longitude, accuracy: position.coords.accuracy, timestamp: position.timestamp } }).then(({ data, error }) => {
+          if (error || !data) throw error || new Error("Verification failed");
+          setNearVenue(Boolean(data.verified));
+          setVerificationToken(data.verification_token || null);
+          toast[data.verified ? "success" : "info"](data.verified ? "Looks like you have arrived." : data.qr_fallback ? "We could not confirm your location. Use the venue QR instead." : "You do not seem to be at the venue yet.");
+        }).catch(() => { setNearVenue(null); toast.info("We could not verify your location. Use the venue QR instead."); }).finally(() => setCheckingLocation(false));
       },
       () => {
-        setNearVenue(true);
+        setNearVenue(null);
         setCheckingLocation(false);
         toast.info("Location was not shared. You can still confirm arrival manually.");
       },
@@ -74,20 +57,10 @@ const SmartArrivalCheckin = ({
   };
 
   const checkIn = async () => {
-    if (!guestName.trim()) {
-      toast.error("Please enter your name first.");
-      return;
-    }
-
-    const { error } = await supabase.from("checkins").insert({
-      wedding_id: weddingId,
-      guest_name: guestName.trim(),
-    } as any);
-
-    if (error) {
-      toast.error("We could not save your check-in. Please try again.");
-      return;
-    }
+    const guestSession = getGuestSessionToken(weddingId);
+    if (!guestSession || nearVenue !== true) { toast.error("Verify your location before checking in."); return; }
+    const { data, error } = await supabase.functions.invoke("guest-checkin", { body: { wedding_id: weddingId, guest_session: guestSession, verification_token: verificationToken, method: "geolocation" } });
+    if (error || !data?.checked_in) { toast.error("We could not save your check-in. Please try again."); return; }
 
     setCheckedIn(true);
     toast.success(`Welcome, ${guestName.trim()}.`);

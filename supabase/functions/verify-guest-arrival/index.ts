@@ -20,6 +20,8 @@ serve(async (req) => {
     if (!settings?.checkin_enabled || !settings.geolocation_enabled || settings.latitude == null || settings.longitude == null) return json({ error: "Location check-in is unavailable", qr_fallback: true }, 400);
     const distance_meters = distance(Number(latitude), Number(longitude), Number(settings.latitude), Number(settings.longitude));
     const verified = Number.isFinite(accuracy) && Number(accuracy) <= 250 && distance_meters <= Number(settings.radius_meters) + Number(accuracy);
-    return json({ verified, distance_meters: Math.round(distance_meters), accuracy: Number(accuracy), verification_token: verified ? crypto.randomUUID() : null, qr_fallback: !verified });
+    const verification_token = verified ? crypto.randomUUID() : null;
+    if (verification_token) await db.from("guest_sessions").update({ verification_token, verification_expires_at: new Date(Date.now() + 5 * 60 * 1000).toISOString(), last_seen_at: new Date().toISOString() }).eq("id", session.id);
+    return json({ verified, distance_meters: Math.round(distance_meters), accuracy: Number(accuracy), verification_token, qr_fallback: !verified });
   } catch { return json({ error: "Unable to verify arrival" }, 500); }
 });
