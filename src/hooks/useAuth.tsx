@@ -38,18 +38,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     if (previewMode) return;
     let active = true;
-    supabase.auth.getSession().then(({ data }) => {
+    supabase.auth.getSession().then(async ({ data }) => {
       if (!active) return;
       setSession(data.session);
       setUser(data.session?.user ?? null);
+      await refreshRole(data.session?.user ?? null);
       setLoading(false);
-      void refreshRole(data.session?.user ?? null);
     });
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, nextSession) => {
+    const { data: listener } = supabase.auth.onAuthStateChange(async (_event, nextSession) => {
       setSession(nextSession);
       setUser(nextSession?.user ?? null);
+      setLoading(true);
+      await refreshRole(nextSession?.user ?? null);
       setLoading(false);
-      void refreshRole(nextSession?.user ?? null);
     });
     return () => { active = false; listener.subscription.unsubscribe(); };
   }, [previewMode]);

@@ -125,9 +125,15 @@ const CoupleDashboard = () => {
     setLoading(false);
   };
 
+  const useEmptyWorkspace = () => {
+    setWedding({ id: "new-wedding", slug: "new-wedding", couple_names: "Your wedding", wedding_date: null, ceremony_venue: null, cover_image: null, hero_image: null, published: false });
+    setRsvps([]); setGalleryImages([]); setGuestPhotos([]); setCheckins([]); setGuestbookMessages([]); setMoments([]); setEvents([]); setLoading(false);
+  };
+
   useEffect(() => {
     if (!weddingId) {
-      void hydratePreviewWedding();
+      if (searchParams.get("preview") === "1") void hydratePreviewWedding();
+      else useEmptyWorkspace();
       return;
     }
     fetchData();
@@ -167,7 +173,7 @@ const CoupleDashboard = () => {
       supabase.removeChannel(guestbookChannel);
       supabase.removeChannel(momentsChannel);
     };
-  }, [weddingId]);
+  }, [weddingId, searchParams]);
 
   const hydratePreviewWedding = async () => {
     setLoading(true);
@@ -629,7 +635,7 @@ function CoupleHome({ wedding, progress, completedTasks, totalTasks, confirmed, 
     <div className="space-y-5">
       <section>
         <h1 className="font-body text-[32px] leading-[1.04] font-normal tracking-[-0.02em] max-w-[285px]">
-          {phase === "wedding_day" || phase === "live" ? "It's Your Wedding Day" : "Your Wedding"}<br />Command Center
+          {phase === "wedding_day" || phase === "live" ? "It's Your Wedding Day" : "Your Wedding"}
         </h1>
         <p className="mt-3 max-w-[310px] font-body text-sm leading-6 text-black/55">
           A calm read on what guests know, what still needs attention, and what ForeverVow recommends next.
@@ -662,7 +668,7 @@ function CoupleHome({ wedding, progress, completedTasks, totalTasks, confirmed, 
 
       <section>
         <div className="flex items-center justify-between mb-3">
-          <h2 className="font-body text-lg font-semibold tracking-normal">Intelligence</h2>
+          <h2 className="font-body text-lg font-semibold tracking-normal">Your overview</h2>
           <button onClick={() => onTabChange("guests")} className="font-body text-xs text-muted-foreground">View Guests</button>
         </div>
         <div className="grid grid-cols-3 gap-2 mb-3">
