@@ -10,9 +10,9 @@ const Index = () => {
         transition={{ duration: 0.8 }}
         className="text-center max-w-lg"
       >
-        <p className="wedding-label mb-4">WEDDING WEBSITE GENERATOR</p>
+        <p className="wedding-label mb-4">FOREVERVOW</p>
         <h1 className="font-display text-5xl md:text-7xl font-light mb-6 tracking-wide">
-          Celebrate Love
+          ForeverVow
         </h1>
         <p className="font-body text-sm font-light text-muted-foreground mb-10 leading-relaxed">
           Beautiful, personalized wedding invitations for your most important day.
@@ -22,7 +22,7 @@ const Index = () => {
             to="/wedding/john-anna"
             className="inline-block border border-foreground px-8 py-4 font-body text-xs tracking-[0.3em] uppercase hover:bg-foreground hover:text-background transition-colors min-h-[48px]"
           >
-            INVITATION
+            EXPLORE AN INVITATION
           </Link>
           <Link
             to="/couple-login"
