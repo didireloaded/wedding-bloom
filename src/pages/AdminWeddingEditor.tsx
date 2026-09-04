@@ -262,7 +262,7 @@ const AdminWeddingEditor = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="admin-app min-h-screen bg-[#f1f1f1]">
       {/* Confirmation Dialog */}
       <AlertDialog open={confirmDialog.open} onOpenChange={(open) => setConfirmDialog({ ...confirmDialog, open })}>
         <AlertDialogContent>

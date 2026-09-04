@@ -3,6 +3,13 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
+import { supabase } from "@/integrations/supabase/client";
+
+const clearWeddingSession = () => {
+  sessionStorage.removeItem("couple_wedding_id");
+  sessionStorage.removeItem("couple_wedding_slug");
+  sessionStorage.removeItem("couple_access_code");
+};
 
 const CoupleLogin = () => {
   const [email, setEmail] = useState("");
@@ -23,10 +30,27 @@ const CoupleLogin = () => {
       toast.error(error.message || "Unable to sign in. Please try again.");
     } else {
       if (mode === "signup") {
+        clearWeddingSession();
         toast.success("Account created. Let's set up your wedding.");
         navigate("/couple-onboarding");
       } else {
-        navigate("/couple-dashboard");
+        clearWeddingSession();
+        const { data: authData } = await supabase.auth.getUser();
+        const { data: membership } = authData.user ? await supabase
+          .from("wedding_members" as never)
+          .select("wedding_id, weddings(slug, access_code)")
+          .eq("user_id", authData.user.id)
+          .order("joined_at", { ascending: false })
+          .limit(1)
+          .maybeSingle() : { data: null };
+        const member = membership as unknown as { wedding_id: string; weddings: { slug: string; access_code: string } | null } | null;
+        if (!member) navigate("/couple-onboarding");
+        else {
+          sessionStorage.setItem("couple_wedding_id", member.wedding_id);
+          sessionStorage.setItem("couple_wedding_slug", member.weddings?.slug || "");
+          sessionStorage.setItem("couple_access_code", member.weddings?.access_code || "");
+          navigate(`/couple-dashboard?slug=${member.weddings?.slug || ""}`);
+        }
       }
     }
     setSubmitting(false);

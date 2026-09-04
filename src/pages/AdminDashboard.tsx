@@ -146,7 +146,7 @@ const AdminDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="admin-app min-h-screen bg-[#f1f1f1]">
       <nav className="border-b border-border px-6 py-4 flex items-center justify-between">
         <h1 className="font-display text-2xl font-light">Admin Dashboard</h1>
         <div className="flex items-center gap-4">

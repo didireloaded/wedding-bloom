@@ -98,13 +98,13 @@ const MomentsManager = ({ weddingId, moments, isLiveMode, onRefresh }: MomentsMa
         for (const id of ids) {
           await callManageMoments("highlight", id);
         }
-        toast.success(`${ids.length} moment${ids.length > 1 ? "s" : ""} highlighted by AI ✨`);
+        toast.success(`${ids.length} moment${ids.length > 1 ? "s" : ""} highlighted.`);
         onRefresh();
       } else {
-        toast.info("AI didn't find any new moments to highlight.");
+        toast.info("No new moments were selected.");
       }
     } catch {
-      toast.error("Failed to get AI suggestions.");
+      toast.error("Could not select highlights.");
     } finally {
       setAiLoading(false);
     }
@@ -129,7 +129,7 @@ const MomentsManager = ({ weddingId, moments, isLiveMode, onRefresh }: MomentsMa
           className="flex items-center gap-2 px-4 py-2 border border-foreground/15 font-body text-[10px] tracking-[0.2em] uppercase hover:bg-muted transition-colors disabled:opacity-40"
         >
           <Sparkles className="w-3.5 h-3.5" />
-          {aiLoading ? "Analyzing..." : "AI Highlights"}
+          {aiLoading ? "Reviewing..." : "Find Highlights"}
         </button>
       </div>
 

@@ -111,7 +111,7 @@ const DailyReport = ({ weddingId }: DailyReportProps) => {
           </div>
           <h3 className="font-display text-lg font-light mb-2">Daily Wedding Report</h3>
           <p className="font-body text-sm text-muted-foreground mb-4">
-            Get an AI-powered summary of your wedding activity
+            Get a simple summary of recent wedding activity
           </p>
           <button
             onClick={generateReport}

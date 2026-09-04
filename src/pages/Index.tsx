@@ -1,42 +1,39 @@
-import { Link } from "react-router-dom";
+import { ArrowRight, Heart } from "lucide-react";
 import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
+import weddingCover from "@/assets/wedding-cover.jpg";
 
-const Index = () => {
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-background px-6">
-      <motion.div
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8 }}
-        className="text-center max-w-lg"
-      >
-        <p className="wedding-label mb-4">FOREVERVOW</p>
-        <h1 className="font-display text-5xl md:text-7xl font-light mb-6 tracking-wide">
+const Index = () => (
+  <main className="couple-app min-h-[100svh] bg-[#171717] text-white">
+    <div className="relative mx-auto min-h-[100svh] max-w-[520px] overflow-hidden bg-black">
+      <img src={weddingCover} alt="A joyful newlywed couple" className="absolute inset-0 h-full w-full object-cover" />
+      <div className="absolute inset-0 bg-black/40" />
+      <div className="absolute inset-x-0 top-0 h-48 bg-gradient-to-b from-black/60 to-transparent" />
+      <div className="absolute inset-x-0 bottom-0 h-[65%] bg-gradient-to-t from-black via-black/65 to-transparent" />
+
+      <div className="relative flex min-h-[100svh] flex-col px-6 pb-8 pt-8">
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-center gap-2 text-sm font-semibold">
+          <span className="grid h-9 w-9 place-items-center rounded-full bg-white text-black"><Heart className="h-4 w-4 fill-current" /></span>
           ForeverVow
-        </h1>
-        <p className="font-body text-sm font-light text-muted-foreground mb-10 leading-relaxed">
-          Beautiful, personalized wedding invitations for your most important day.
-        </p>
-        <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Link
-            to="/wedding/john-anna"
-            className="inline-block border border-foreground px-8 py-4 font-body text-xs tracking-[0.3em] uppercase hover:bg-foreground hover:text-background transition-colors min-h-[48px]"
-          >
-            EXPLORE AN INVITATION
+        </motion.div>
+
+        <motion.div initial={{ opacity: 0, y: 22 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15, duration: 0.65 }} className="mt-auto">
+          <p className="text-xs font-semibold text-white/70">YOUR WEDDING, ALL TOGETHER</p>
+          <h1 className="mt-3 max-w-sm text-4xl font-semibold leading-tight">A beautiful place for everything that matters.</h1>
+          <p className="mt-4 max-w-sm text-sm leading-6 text-white/75">Plan together, welcome your guests, collect RSVPs, and keep every memory close.</p>
+
+          <Link to="/couple-login" className="mt-7 flex h-14 w-full items-center justify-between rounded-full bg-white px-5 text-sm font-semibold text-black">
+            Get started
+            <span className="grid h-9 w-9 place-items-center rounded-full bg-black text-white"><ArrowRight className="h-4 w-4" /></span>
           </Link>
-          <Link
-            to="/couple-login"
-            className="inline-block bg-foreground text-background px-8 py-4 font-body text-xs tracking-[0.3em] uppercase hover:bg-foreground/90 transition-colors min-h-[48px]"
-          >
-            COUPLE LOGIN
-          </Link>
-        </div>
-        <Link to="/admin/login" className="mt-8 inline-block font-body text-xs text-muted-foreground underline underline-offset-4 hover:text-foreground">
-          Owner access
-        </Link>
-      </motion.div>
+          <div className="mt-5 flex items-center justify-between text-xs text-white/65">
+            <Link to="/couple-login">Already have an account? <span className="font-semibold text-white">Sign in</span></Link>
+            <Link to="/admin/login" className="font-semibold text-white">Owner access</Link>
+          </div>
+        </motion.div>
+      </div>
     </div>
-  );
-};
+  </main>
+);
 
 export default Index;

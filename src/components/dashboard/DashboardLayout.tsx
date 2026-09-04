@@ -1,6 +1,5 @@
 import { ReactNode, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { Bell, CalendarDays, Camera, Check, Globe2, Home, Plus, User, Users, X } from "lucide-react";
+import { Bell, CalendarDays, Camera, Globe2, Home, User, Users, X } from "lucide-react";
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -40,7 +39,6 @@ const DashboardLayout = ({
   notifications = [],
 }: DashboardLayoutProps) => {
   const [showNotifications, setShowNotifications] = useState(false);
-  const navigate = useNavigate();
   const firstName = coupleName.split("&")[0]?.trim() || "there";
   const tabs = [
     { id: "home", label: "Home", icon: Home },
@@ -50,13 +48,6 @@ const DashboardLayout = ({
     { id: "website", label: "Website", icon: Globe2 },
     { id: "profile", label: "Profile", icon: User },
   ];
-
-  const closePreview = () => {
-    sessionStorage.removeItem("couple_wedding_id");
-    sessionStorage.removeItem("couple_wedding_slug");
-    sessionStorage.removeItem("couple_access_code");
-    navigate("/couple-login");
-  };
 
   return (
     <div className="couple-app min-h-screen bg-[#dedede] md:py-6">
@@ -78,28 +69,12 @@ const DashboardLayout = ({
                 className="w-11 h-11 rounded-full object-cover border border-white shadow-sm"
               />
               <div className="min-w-0">
-                <p className="font-body text-sm font-semibold leading-none">{activeTab === "add-task" ? "Add New Task" : getGreetingLabel()}</p>
-                <p className="font-body text-xs text-muted-foreground mt-1 truncate">{activeTab === "add-task" ? "" : firstName}</p>
+                <p className="font-body text-sm font-semibold leading-none">{getGreetingLabel()}</p>
+                <p className="font-body text-xs text-muted-foreground mt-1 truncate">{firstName}</p>
               </div>
             </div>
             <div className="flex items-center gap-2">
-              {activeTab === "add-task" ? (
-                <button
-                  onClick={() => onTabChange?.("home")}
-                  className="w-12 h-12 rounded-full bg-white text-foreground flex items-center justify-center shadow-sm"
-                  aria-label="Save task"
-                >
-                  <Check className="w-5 h-5" />
-                </button>
-              ) : (
-                <>
-                  <button
-                    onClick={() => onTabChange?.("add-task")}
-                    className="w-12 h-12 rounded-full bg-foreground text-background flex items-center justify-center shadow-sm"
-                    aria-label="Add task"
-                  >
-                    <Plus className="w-5 h-5" />
-                  </button>
+              <>
                   <button
                     onClick={() => setShowNotifications((visible) => !visible)}
                     className="relative w-12 h-12 rounded-full bg-white border border-white/70 flex items-center justify-center shadow-sm"
@@ -118,8 +93,7 @@ const DashboardLayout = ({
                       <div className="mt-3 space-y-2">{notifications.length ? notifications.slice(0, 6).map((notification) => <button key={notification.id} onClick={() => { setShowNotifications(false); if (notification.targetTab) onTabChange?.(notification.targetTab); }} className="w-full rounded-2xl bg-white p-3 text-left"><p className="font-body text-sm font-medium">{notification.title}</p><p className="mt-1 font-body text-xs text-muted-foreground">{notification.body}</p></button>) : <p className="py-4 text-center font-body text-sm text-muted-foreground">You’re all caught up.</p>}</div>
                     </div>
                   )}
-                </>
-              )}
+              </>
             </div>
           </div>
         </header>
@@ -128,7 +102,6 @@ const DashboardLayout = ({
           {children}
         </main>
 
-        {activeTab !== "add-task" && (
         <div className="absolute left-5 right-5 bottom-[calc(env(safe-area-inset-bottom)+18px)] z-40">
           <nav className="h-[76px] rounded-[28px] bg-white/78 backdrop-blur-2xl border border-white/75 shadow-[0_18px_45px_rgba(30,24,20,0.18)] px-2 flex items-center justify-between">
             {tabs.map((tab) => {
@@ -150,16 +123,6 @@ const DashboardLayout = ({
             })}
           </nav>
         </div>
-        )}
-        {activeTab === "add-task" && (
-          <button
-            onClick={closePreview}
-            className="absolute left-5 top-[calc(env(safe-area-inset-top)+56px)] z-40 w-12 h-12 rounded-full bg-white text-foreground flex items-center justify-center shadow-sm"
-            aria-label="Close"
-          >
-            <X className="w-5 h-5" />
-          </button>
-        )}
       </div>
     </div>
   );

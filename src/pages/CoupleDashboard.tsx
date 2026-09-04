@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { AlertCircle, CalendarDays, Check, Clock, Copy, ExternalLink, Heart, Image, MapPin, MessageCircle, Plus, Send, ShieldCheck, Sparkles, User, Users, Wand2, X } from "lucide-react";
+import { AlertCircle, CalendarDays, Check, Clock, Copy, ExternalLink, Heart, Image, MapPin, MessageCircle, Send, ShieldCheck, Sparkles, User, Users, Wand2, X } from "lucide-react";
 import { toast } from "sonner";
 import weddingCover from "@/assets/towa-mathew-hero.jpeg";
 import weddingStory from "@/assets/towa-mathew-story.jpeg";
@@ -9,8 +9,6 @@ import weddingStory from "@/assets/towa-mathew-story.jpeg";
 // Dashboard Components
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import OverviewCards from "@/components/dashboard/OverviewCards";
-import AIInsightsPanel from "@/components/dashboard/AIInsightsPanel";
-import AISuggestions from "@/components/dashboard/AISuggestions";
 import ActivityFeed from "@/components/dashboard/ActivityFeed";
 import PhotoManager from "@/components/dashboard/PhotoManager";
 import GuestMessages from "@/components/dashboard/GuestMessages";
@@ -25,6 +23,7 @@ import EditWeddingDetails from "@/components/dashboard/EditWeddingDetails";
 import NotificationPreferences from "@/components/dashboard/NotificationPreferences";
 import { WeddingRealtime } from "@/components/realtime/WeddingRealtime";
 import { getWeddingPhase } from "@/lib/weddingPhase";
+import { useAuth } from "@/hooks/useAuth";
 
 const withTimeout = async <T,>(promise: Promise<T>, ms = 4500): Promise<T> => {
   let timeoutId: ReturnType<typeof setTimeout>;
@@ -69,7 +68,10 @@ const previewEvents = [
 ];
 
 const CoupleDashboard = () => {
+  const navigate = useNavigate();
+  const { user, loading: authLoading } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
+  const previewRequested = searchParams.get("preview") === "1";
   const [weddingId, setWeddingId] = useState(sessionStorage.getItem("couple_wedding_id") || "");
   const [weddingSlug, setWeddingSlug] = useState(sessionStorage.getItem("couple_wedding_slug") || searchParams.get("slug") || "");
   const [accessCode, setAccessCode] = useState(sessionStorage.getItem("couple_access_code") || "");
@@ -102,7 +104,7 @@ const CoupleDashboard = () => {
     setSearchParams(nextParams, { replace: true });
   };
 
-  const usePreviewData = (slug = weddingSlug || "towa-mathew") => {
+  const loadPreviewData = (slug = weddingSlug || "towa-mathew") => {
     const previewWedding = makePreviewWedding(slug);
     sessionStorage.setItem("couple_wedding_id", previewWedding.id);
     sessionStorage.setItem("couple_wedding_slug", previewWedding.slug);
@@ -125,15 +127,40 @@ const CoupleDashboard = () => {
     setLoading(false);
   };
 
-  const useEmptyWorkspace = () => {
-    setWedding({ id: "new-wedding", slug: "new-wedding", couple_names: "Your wedding", wedding_date: null, ceremony_venue: null, cover_image: null, hero_image: null, published: false });
-    setRsvps([]); setGalleryImages([]); setGuestPhotos([]); setCheckins([]); setGuestbookMessages([]); setMoments([]); setEvents([]); setLoading(false);
+  const restoreWeddingMembership = async () => {
+    if (!user) return;
+    setLoading(true);
+    const { data, error } = await supabase
+      .from("wedding_members")
+      .select("wedding_id")
+      .eq("user_id", user.id)
+      .order("joined_at", { ascending: true })
+      .limit(1)
+      .maybeSingle();
+
+    if (error) {
+      toast.error("We could not load your wedding yet. Please try again.");
+      setLoading(false);
+      return;
+    }
+    if (!data?.wedding_id) {
+      navigate("/couple-onboarding", { replace: true });
+      return;
+    }
+
+    sessionStorage.setItem("couple_wedding_id", data.wedding_id);
+    setWeddingId(data.wedding_id);
   };
 
   useEffect(() => {
+    if (!authLoading && !user && !previewRequested) navigate("/couple-login", { replace: true });
+  }, [authLoading, navigate, previewRequested, user]);
+
+  useEffect(() => {
+    if (authLoading || (!user && !previewRequested)) return;
     if (!weddingId) {
-      if (searchParams.get("preview") === "1") void hydratePreviewWedding();
-      else useEmptyWorkspace();
+      if (previewRequested) void hydratePreviewWedding();
+      else void restoreWeddingMembership();
       return;
     }
     fetchData();
@@ -173,7 +200,7 @@ const CoupleDashboard = () => {
       supabase.removeChannel(guestbookChannel);
       supabase.removeChannel(momentsChannel);
     };
-  }, [weddingId, searchParams]);
+  }, [authLoading, previewRequested, user?.id, weddingId]);
 
   const hydratePreviewWedding = async () => {
     setLoading(true);
@@ -200,12 +227,12 @@ const CoupleDashboard = () => {
       console.warn("Using local couple dashboard preview data:", error);
     }
 
-    usePreviewData(requestedSlug);
+    loadPreviewData(requestedSlug);
   };
 
   const fetchData = async () => {
     if (weddingId === "preview-wedding") {
-      usePreviewData(weddingSlug || "towa-mathew");
+      loadPreviewData(weddingSlug || "towa-mathew");
       return;
     }
 
@@ -227,8 +254,20 @@ const CoupleDashboard = () => {
         supabase.from("events").select("*").eq("wedding_id", weddingId!),
       ]));
     } catch (error) {
-      console.warn("Using local couple dashboard preview data:", error);
-      usePreviewData(weddingSlug || "towa-mathew");
+      console.error("Could not load couple dashboard:", error);
+      toast.error("We could not load your wedding. Please try again.");
+      setLoading(false);
+      return;
+    }
+    if (wRes.error || !wRes.data) {
+      sessionStorage.removeItem("couple_wedding_id");
+      sessionStorage.removeItem("couple_wedding_slug");
+      sessionStorage.removeItem("couple_access_code");
+      setWeddingId("");
+      setWeddingSlug("");
+      setAccessCode("");
+      setWedding(null);
+      setLoading(true);
       return;
     }
     if (wRes.data) {
@@ -260,7 +299,7 @@ const CoupleDashboard = () => {
     setLoading(false);
   };
 
-  if (loading) {
+  if (authLoading || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
@@ -327,14 +366,6 @@ const CoupleDashboard = () => {
     ...guestbookMessages.slice(0, 2).map((message) => ({ id: `message-${message.id}`, title: "New wall message", body: `${message.guest_name || "A guest"} left a message.`, targetTab: "moments" })),
   ];
 
-  // Wedding data for AI components
-  const weddingData = {
-    wedding,
-    rsvps,
-    guestbookMessages,
-    checkins,
-    guestPhotos,
-  };
   const weddingPhase = getWeddingPhase(wedding, events);
 
   return (
@@ -356,10 +387,6 @@ const CoupleDashboard = () => {
         show={showTour}
         onComplete={() => setShowTour(false)}
       />
-
-      {activeTab === "add-task" && (
-        <AddTaskScreen onCreate={() => changeTab("home")} wedding={wedding} pending={pending} />
-      )}
 
       {activeTab === "home" && (
         <CoupleHome
@@ -463,7 +490,6 @@ const CoupleDashboard = () => {
           </div>
         </div>
 
-        <AIInsightsPanel weddingId={weddingId!} weddingData={weddingData} />
       </div>
       )}
 
@@ -523,7 +549,6 @@ const CoupleDashboard = () => {
           <WeddingTools weddingSlug={weddingSlug || ""} />
           <SetupProgress wedding={wedding} eventsCount={events.length} hasSharedLink={wedding.published} />
           <QuickActions weddingSlug={weddingSlug || ""} onEditDetails={() => setShowEditDetails(true)} onTabChange={changeTab} />
-          <AISuggestions weddingId={weddingId!} weddingData={weddingData} />
         </div>
       )}
 
@@ -743,15 +768,8 @@ function CoupleHome({ wedding, progress, completedTasks, totalTasks, confirmed, 
   );
 }
 
-function PlannerSchedule({ wedding, events, pending, onTabChange }: any) {
-  const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+function PlannerSchedule({ wedding, events, onTabChange }: any) {
   const date = wedding.wedding_date ? new Date(wedding.wedding_date) : new Date();
-  const agenda = [
-    { time: "9:00 AM", title: "RSVP pulse check", detail: "Review accepted, declined, pending and dietary signals before vendor updates.", action: "Guests", tab: "guests" },
-    { time: "11:00 AM", title: "Guest website review", detail: "Check story, venue, gallery, guestbook and RSVP sections before sharing.", action: "Website", tab: "website" },
-    { time: "2:00 PM", title: "Pending RSVP follow-up", detail: `${pending} guest${pending === 1 ? "" : "s"} still need a reminder.`, action: "Copy Link", tab: "guests" },
-    ...events.slice(0, 3).map((event: any) => ({ time: event.event_time || "4:00 PM", title: event.title, detail: event.location || "Wedding event", action: "Open", tab: "website" })),
-  ];
 
   return (
     <div className="space-y-5">
@@ -760,102 +778,31 @@ function PlannerSchedule({ wedding, events, pending, onTabChange }: any) {
           <p className="font-body text-sm font-semibold">{date.toLocaleDateString(undefined, { weekday: "short", month: "long", day: "numeric" })}</p>
           <h1 className="font-body text-[32px] font-semibold leading-tight tracking-normal mt-1">Wedding Schedule</h1>
         </div>
-        <button onClick={() => onTabChange("add-task")} className="w-12 h-12 rounded-full bg-foreground text-background flex items-center justify-center" aria-label="Add action">
-          <Plus className="w-5 h-5" />
-        </button>
-      </div>
-
-      <div className="flex gap-2 overflow-x-auto pb-1">
-        {days.map((day, index) => (
-          <button key={day} className={`min-w-14 rounded-2xl py-3 font-body text-xs ${index === 2 ? "bg-foreground text-background" : "bg-white text-foreground shadow-sm"}`}>
-            <span className="block">{day}</span>
-            <span className="block mt-2">{12 + index}</span>
-          </button>
-        ))}
-      </div>
-
-      <div className="flex gap-2 overflow-x-auto pb-1">
-        {["All", "Guests", "Website", "Moments"].map((filter, index) => (
-          <button key={filter} className={`px-5 py-3 rounded-full font-body text-xs font-semibold whitespace-nowrap ${index === 0 ? "bg-foreground text-background" : "bg-white text-foreground shadow-sm"}`}>
-            {filter}
-          </button>
-        ))}
       </div>
 
       <div className="space-y-3">
-        {agenda.map((item, index) => (
-          <div key={`${item.title}-${index}`} className="grid grid-cols-[58px_1fr] gap-3">
-            <div className="font-body text-xs text-muted-foreground pt-4">{item.time}</div>
+        {events.map((event: any) => (
+          <div key={event.id} className="grid grid-cols-[64px_1fr] gap-3">
+            <div className="font-body text-xs text-muted-foreground pt-4">{event.event_time || "Time TBC"}</div>
             <div className="rounded-[22px] bg-white p-4 shadow-sm border border-border">
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <h2 className="font-body text-sm font-semibold">{item.title}</h2>
-                  <p className="font-body text-xs text-muted-foreground leading-5 mt-1">{item.detail}</p>
+                  <h2 className="font-body text-sm font-semibold">{event.title}</h2>
+                  <p className="font-body text-xs text-muted-foreground leading-5 mt-1">{event.location || event.description || "Details will appear here."}</p>
                 </div>
-                <button onClick={() => onTabChange(item.tab)} className="px-3 py-2 rounded-full bg-blue-600 text-white font-body text-[10px] font-semibold">
-                  {item.action}
+                <button onClick={() => onTabChange("website")} className="px-3 py-2 rounded-full bg-[#202020] text-white font-body text-[10px] font-semibold">
+                  Edit
                 </button>
               </div>
             </div>
           </div>
         ))}
+        {events.length === 0 && <div className="rounded-[22px] bg-white p-5 text-center shadow-sm"><CalendarDays className="mx-auto h-6 w-6 text-muted-foreground" /><h2 className="mt-3 font-body text-sm font-semibold">No wedding events yet</h2><p className="mt-1 font-body text-xs leading-5 text-muted-foreground">Add your ceremony and reception details to build the schedule.</p><button onClick={() => onTabChange("website")} className="mt-4 rounded-full bg-[#202020] px-4 py-2 font-body text-xs font-semibold text-white">Add details</button></div>}
       </div>
     </div>
   );
 }
 
-function AddTaskScreen({ onCreate, wedding, pending }: { onCreate: () => void; wedding: any; pending: number }) {
-  return (
-    <div className="space-y-5 pt-1">
-      <div className="h-2" />
-      <Field label="Action Title">
-        <input className="w-full rounded-[20px] border-0 bg-white px-5 py-4 font-body text-sm outline-none shadow-sm" defaultValue={pending > 0 ? "Send RSVP reminder" : "Review wedding website"} />
-      </Field>
-      <Field label="Description">
-        <textarea className="w-full rounded-[20px] border-0 bg-white px-5 py-4 font-body text-sm leading-6 outline-none shadow-sm resize-none" rows={3} defaultValue={pending > 0 ? `Follow up with ${pending} pending guest RSVP${pending === 1 ? "" : "s"} and reshare the invitation link.` : "Check the guest-facing page for story, venue, RSVP, gallery and guestbook readiness."} />
-      </Field>
-      <Field label="Due Date & time">
-        <div className="grid grid-cols-2 gap-3">
-          <button className="rounded-full bg-white px-4 py-4 font-body text-xs text-left shadow-sm flex items-center gap-2"><CalendarDays className="w-4 h-4" /> {wedding?.wedding_date || "Wedding week"}</button>
-          <button className="rounded-full bg-white px-4 py-4 font-body text-xs text-left shadow-sm flex items-center gap-2"><Clock className="w-4 h-4" /> 10:00 AM</button>
-        </div>
-      </Field>
-      <Field label="Priority">
-        <div className="grid grid-cols-3 gap-3">
-          <button className="rounded-full border border-green-500 bg-green-50 py-3 font-body text-xs text-green-700">Low</button>
-          <button className="rounded-full border border-orange-400 bg-orange-50 py-3 font-body text-xs text-orange-600">Medium</button>
-          <button className="rounded-full border border-rose-400 bg-rose-50 py-3 font-body text-xs text-rose-600">High</button>
-        </div>
-      </Field>
-      <Field label="Area">
-        <button className="w-full rounded-[20px] bg-white px-5 py-4 font-body text-sm shadow-sm flex items-center justify-between">
-          <span className="flex items-center gap-2"><Heart className="w-4 h-4 text-rose-500" /> ForeverVow Wedding</span>
-          <Sparkles className="w-4 h-4" />
-        </button>
-      </Field>
-      <Field label="Tags">
-        <div className="flex flex-wrap gap-2">
-          {["RSVP", "Guests", "Website"].map((tag) => (
-            <button key={tag} className="rounded-full border border-violet-500/60 bg-violet-100/50 px-4 py-2 font-body text-xs text-violet-700 flex items-center gap-1.5">
-              {tag} <X className="w-3 h-3" />
-            </button>
-          ))}
-          <button className="rounded-full bg-white/70 px-4 py-2 font-body text-xs text-muted-foreground">+ Add</button>
-        </div>
-      </Field>
-      <button onClick={onCreate} className="w-full rounded-[22px] bg-black py-5 font-body text-sm font-semibold text-white shadow-xl">Save Action</button>
-    </div>
-  );
-}
-
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <label className="block">
-      <span className="mb-2 block font-body text-sm font-semibold text-black">{label}</span>
-      {children}
-    </label>
-  );
-}
 
 function ProfilePanel({ wedding, weddingSlug, accessCode, confirmed, pending, totalPhotoUploads, onEditDetails, onTabChange }: any) {
   const weddingUrl = `${window.location.origin}/wedding/${weddingSlug}`;

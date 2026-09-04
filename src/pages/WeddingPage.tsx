@@ -91,7 +91,7 @@ const WeddingPage = () => {
   if (!wedding) {
     if (unpublishedWedding) {
       return (
-        <div className="min-h-screen flex items-center justify-center bg-background px-6">
+        <div className="guest-app min-h-screen flex items-center justify-center bg-background px-6">
           <div className="text-center max-w-md">
             <h1 className="font-display text-3xl sm:text-4xl font-light mb-4">Not Yet Published</h1>
             <p className="font-body text-sm text-muted-foreground leading-relaxed">
@@ -103,7 +103,7 @@ const WeddingPage = () => {
       );
     }
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
+      <div className="guest-app min-h-screen flex items-center justify-center bg-background px-6">
         <div className="text-center">
           <h1 className="font-display text-4xl font-light mb-4">Wedding Not Found</h1>
           <p className="font-body text-sm text-muted-foreground">This wedding page may not exist or hasn't been published yet.</p>
@@ -158,7 +158,7 @@ const WeddingPage = () => {
       )}
 
       <div
-        className="min-h-screen"
+        className="guest-app min-h-screen"
         style={wedding.theme && typeof wedding.theme === 'object' && !Array.isArray(wedding.theme) ? {
           '--background': (wedding.theme as Record<string, string>).background,
           '--foreground': (wedding.theme as Record<string, string>).foreground,

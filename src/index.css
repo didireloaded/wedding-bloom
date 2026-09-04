@@ -131,6 +131,20 @@
     letter-spacing: 0;
   }
 
+  .admin-app h1, .admin-app h2, .admin-app h3, .admin-app h4,
+  .admin-app .font-display,
+  .guest-app h1, .guest-app h2, .guest-app h3, .guest-app h4,
+  .guest-app .font-display {
+    font-family: var(--font-body);
+    font-style: normal;
+    letter-spacing: 0;
+  }
+
+  .admin-app .wedding-label,
+  .guest-app .wedding-label {
+    @apply tracking-[0.1em];
+  }
+
   .couple-app .wedding-label {
     @apply tracking-[0.12em];
   }

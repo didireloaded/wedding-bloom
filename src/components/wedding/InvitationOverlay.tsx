@@ -27,7 +27,7 @@ const InvitationOverlay = ({ coupleNames, date, venue, onOpen }: InvitationOverl
           key="invitation-overlay"
           exit={{ opacity: 0 }}
           transition={{ duration: 0.5 }}
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-background overflow-hidden"
+          className="guest-app fixed inset-0 z-[100] flex items-center justify-center bg-background overflow-hidden"
         >
           {/* Decorative corner ornaments */}
           <motion.div
