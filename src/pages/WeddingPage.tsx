@@ -19,6 +19,8 @@ import { getWeddingPhase } from "@/lib/weddingPhase";
 import { resolveGuestExperience } from "@/lib/guestExperience";
 import GuestBottomNav from "@/components/wedding/GuestBottomNav";
 import GuestHome from "@/components/wedding/GuestHome";
+import NotificationPrompt from "@/components/wedding/NotificationPrompt";
+import { getGuestSessionToken } from "@/lib/guestSession";
 
 const VenueSection = lazy(() => import("@/components/wedding/VenueSection"));
 const PhotoGallery = lazy(() => import("@/components/wedding/PhotoGallery"));
@@ -175,7 +177,7 @@ const WeddingPage = () => {
         {/* 2. Nav */}
         <WeddingNav coupleNames={wedding.couple_names} />
 
-        <div className="md:hidden"><GuestHome wedding={wedding} phase={weddingPhase} guestState="unknown_guest" onAction={handleGuestAction} /></div>
+        <div className="md:hidden"><GuestHome wedding={wedding} phase={weddingPhase} guestState="unknown_guest" onAction={handleGuestAction} /><NotificationPrompt weddingId={wedding.id} coupleNames={wedding.couple_names} guestSession={getGuestSessionToken(wedding.id)} /></div>
 
         {/* 3. Hero */}
         <WeddingHero
