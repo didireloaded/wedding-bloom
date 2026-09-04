@@ -8,18 +8,26 @@ const CoupleLogin = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [mode, setMode] = useState<"signin" | "signup">("signup");
   const navigate = useNavigate();
-  const { signIn } = useAuth();
+  const { signIn, signUp } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
 
-    const { error } = await signIn(email.trim(), password);
+    const { error } = mode === "signup"
+      ? await signUp(email.trim(), password)
+      : await signIn(email.trim(), password);
     if (error) {
       toast.error(error.message || "Unable to sign in. Please try again.");
     } else {
-      navigate("/couple-dashboard");
+      if (mode === "signup") {
+        toast.success("Account created. Let's set up your wedding.");
+        navigate("/couple-onboarding");
+      } else {
+        navigate("/couple-dashboard");
+      }
     }
     setSubmitting(false);
   };
@@ -31,10 +39,10 @@ const CoupleLogin = () => {
         animate={{ opacity: 1, y: 0 }}
         className="w-full max-w-sm text-center"
       >
-        <p className="wedding-label mb-3">COUPLE ACCESS</p>
-        <h1 className="font-display text-4xl font-light mb-2">Welcome</h1>
+        <p className="wedding-label mb-3">FOREVERVOW</p>
+        <h1 className="font-display text-4xl font-light mb-2">{mode === "signup" ? "Create your wedding home" : "Welcome back"}</h1>
         <p className="font-body text-sm text-muted-foreground mb-10">
-          Sign in to access your wedding dashboard.
+          {mode === "signup" ? "Start with your account, then we’ll build your wedding space together." : "Sign in to continue to your wedding space."}
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -56,9 +64,12 @@ const CoupleLogin = () => {
             disabled={submitting}
             className="w-full py-4 bg-foreground text-background font-body text-xs tracking-[0.3em] uppercase hover:bg-foreground/90 transition-colors disabled:opacity-50"
           >
-            {submitting ? "CHECKING..." : "ACCESS DASHBOARD"}
+            {submitting ? "PLEASE WAIT..." : mode === "signup" ? "CREATE ACCOUNT" : "SIGN IN"}
           </button>
         </form>
+        <button type="button" onClick={() => setMode(mode === "signup" ? "signin" : "signup")} className="mt-6 font-body text-xs text-muted-foreground underline underline-offset-4">
+          {mode === "signup" ? "Already have an account? Sign in" : "New to ForeverVow? Create an account"}
+        </button>
       </motion.div>
     </div>
   );
