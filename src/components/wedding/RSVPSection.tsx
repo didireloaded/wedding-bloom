@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Heart, Sparkles, MessageSquare, CalendarPlus } from "lucide-react";
 import { generateICS } from "@/lib/calendarUtils";
+import { saveGuestSessionToken } from "@/lib/guestSession";
 
 interface RSVPSectionProps {
   weddingId?: string;
@@ -113,8 +114,10 @@ const RSVPSection = ({ weddingId, weddingDate, ceremonyTime, venue, coupleNames,
         }).eq("id", existing.id);
         if (error) { toast.error("Something went wrong. Please try again."); setSubmitting(false); return; }
         toast.success("Your RSVP has been updated!");
+        const session = await supabase.functions.invoke("create-guest-session", { body: { wedding_id: weddingId, rsvp_id: existing.id, guest_name: form.name.trim(), email: form.email.trim() } });
+        if (session.data?.guest_session) saveGuestSessionToken(weddingId, session.data.guest_session);
       } else {
-        const { error } = await supabase.from("rsvps").insert({
+        const { data: created, error } = await supabase.from("rsvps").insert({
           wedding_id: weddingId,
           guest_name: form.name.trim(),
           email: form.email.trim() || null,
@@ -127,6 +130,8 @@ const RSVPSection = ({ weddingId, weddingDate, ceremonyTime, venue, coupleNames,
         } as any);
         if (error) { toast.error("Something went wrong. Please try again."); setSubmitting(false); return; }
         toast.success("Thank you! Your RSVP has been submitted.");
+        const session = await supabase.functions.invoke("create-guest-session", { body: { wedding_id: weddingId, rsvp_id: created?.id, guest_name: form.name.trim(), email: form.email.trim() } });
+        if (session.data?.guest_session) saveGuestSessionToken(weddingId, session.data.guest_session);
       }
     }
     setAttendingStatus(form.attending);
