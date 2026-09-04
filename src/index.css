@@ -118,7 +118,7 @@
 }
 
 @layer components {
-  /* Couple surfaces use the clean mobile planner language; invitation pages keep their editorial type system. */
+  /* Product surfaces share one clean, mobile-first type system. */
   .couple-app h1,
   .couple-app h2,
   .couple-app h3,
@@ -201,6 +201,59 @@
   /* Elegant divider */
   .wedding-divider {
     @apply w-16 h-px bg-wedding-gold/50 mx-auto;
+  }
+
+  .guest-app {
+    --font-display: var(--font-body);
+    background: hsl(var(--background));
+  }
+
+  .guest-app .wedding-section {
+    @apply px-5 py-14 md:px-8 md:py-20;
+  }
+
+  .guest-app .wedding-heading {
+    @apply text-3xl font-semibold tracking-normal md:text-5xl;
+  }
+
+  .guest-app .wedding-subheading {
+    @apply text-xl font-medium not-italic tracking-normal md:text-2xl;
+  }
+
+  .guest-app .wedding-body {
+    @apply text-sm font-normal normal-case tracking-normal md:text-base;
+  }
+
+  .guest-app .wedding-label {
+    @apply font-semibold tracking-[0.08em];
+  }
+
+  .guest-app .arch-image {
+    @apply rounded-[24px];
+  }
+
+  .guest-app * {
+    letter-spacing: 0 !important;
+  }
+
+  .guest-app .uppercase {
+    text-transform: none !important;
+  }
+
+  .admin-app * {
+    letter-spacing: 0 !important;
+  }
+
+  .admin-app .font-display {
+    font-family: var(--font-body) !important;
+  }
+
+  .admin-app .uppercase {
+    text-transform: none !important;
+  }
+
+  .admin-app .wedding-label {
+    @apply font-semibold normal-case tracking-normal text-black/55;
   }
 
   .mobile-pwa-frame {

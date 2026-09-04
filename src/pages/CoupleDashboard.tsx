@@ -1,14 +1,11 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { AlertCircle, CalendarDays, Check, Clock, Copy, ExternalLink, Heart, Image, MapPin, MessageCircle, Send, ShieldCheck, Sparkles, User, Users, Wand2, X } from "lucide-react";
+import { AlertCircle, CalendarDays, Check, Clock, Copy, ExternalLink, Globe2, Heart, Image, Loader2, MapPin, MessageCircle, Send, ShieldCheck, Sparkles, User, Users, Wand2, X } from "lucide-react";
 import { toast } from "sonner";
-import weddingCover from "@/assets/towa-mathew-hero.jpeg";
-import weddingStory from "@/assets/towa-mathew-story.jpeg";
 
 // Dashboard Components
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
-import OverviewCards from "@/components/dashboard/OverviewCards";
 import ActivityFeed from "@/components/dashboard/ActivityFeed";
 import PhotoManager from "@/components/dashboard/PhotoManager";
 import GuestMessages from "@/components/dashboard/GuestMessages";
@@ -18,7 +15,6 @@ import MomentsManager from "@/components/dashboard/MomentsManager";
 import ShareWeddingLink from "@/components/dashboard/ShareWeddingLink";
 import DashboardWalkthrough from "@/components/dashboard/DashboardWalkthrough";
 import SetupProgress from "@/components/dashboard/SetupProgress";
-import QuickActions from "@/components/dashboard/QuickActions";
 import EditWeddingDetails from "@/components/dashboard/EditWeddingDetails";
 import NotificationPreferences from "@/components/dashboard/NotificationPreferences";
 import { WeddingRealtime } from "@/components/realtime/WeddingRealtime";
@@ -48,8 +44,8 @@ const makePreviewWedding = (slug: string) => ({
   published: true,
   dashboard_tour_completed: true,
   live_mode: false,
-  cover_image: weddingCover,
-  hero_image: weddingStory,
+  cover_image: null,
+  hero_image: null,
   contact_email: "hello@forevervow.app",
 });
 
@@ -91,6 +87,7 @@ const CoupleDashboard = () => {
   const [guestSearch, setGuestSearch] = useState("");
   const [guestFilter, setGuestFilter] = useState<"all" | "confirmed" | "pending" | "declined" | "checked-in">("all");
   const [selectedGuest, setSelectedGuest] = useState<any | null>(null);
+  const [publishing, setPublishing] = useState(false);
 
   const changeTab = (tab: string) => {
     setActiveTab(tab);
@@ -114,8 +111,8 @@ const CoupleDashboard = () => {
     setAccessCode(previewWedding.access_code);
     setWedding(previewWedding);
     setRsvps(previewRsvps);
-    setGalleryImages([{ id: "gallery-1", image_url: weddingCover }, { id: "gallery-2", image_url: weddingStory }]);
-    setGuestPhotos([{ id: "guest-photo-1", image_url: weddingStory, guest_name: "Amara Lewis" }]);
+    setGalleryImages([]);
+    setGuestPhotos([]);
     setCheckins([]);
     setGuestbookMessages([
       { id: "message-1", guest_name: "Sofia Grant", message: "Counting the days. This page already feels so personal.", approved: true, created_at: new Date().toISOString() },
@@ -359,6 +356,16 @@ const CoupleDashboard = () => {
   const weddingUrl = `${window.location.origin}/wedding/${weddingSlug || wedding.slug}`;
   const copyWeddingLink = () => { navigator.clipboard.writeText(weddingUrl); toast.success("Wedding link copied."); };
   const copyReminderMessage = () => { navigator.clipboard.writeText(`Hi! Just a reminder to RSVP for ${wedding.couple_names}. We would love to celebrate with you: ${weddingUrl}`); toast.success("Reminder message copied."); };
+  const togglePublished = async () => {
+    if (weddingId === "preview-wedding") return toast.info("Publishing is available in your real wedding workspace.");
+    setPublishing(true);
+    const nextPublished = !wedding.published;
+    const { error } = await supabase.from("weddings").update({ published: nextPublished }).eq("id", weddingId);
+    setPublishing(false);
+    if (error) return toast.error("We could not update your wedding page.");
+    setWedding((current: any) => ({ ...current, published: nextPublished }));
+    toast.success(nextPublished ? "Your wedding is now live for guests." : "Your wedding is private again.");
+  };
   const notifications = [
     ...rsvps.slice(0, 3).map((rsvp) => ({ id: `rsvp-${rsvp.id}`, title: rsvp.attending === true ? "New RSVP confirmed" : "RSVP needs attention", body: `${rsvp.guest_name || "A guest"} responded to your wedding invitation.`, targetTab: "guests" })),
     ...checkins.slice(0, 2).map((checkin) => ({ id: `checkin-${checkin.id}`, title: "Guest arrival", body: `${checkin.guest_name || "A guest"} checked in.`, targetTab: "guests" })),
@@ -409,7 +416,7 @@ const CoupleDashboard = () => {
           wedding={wedding}
           events={events}
           pending={pending}
-          onTabChange={changeTab}
+          onEditDetails={() => setShowEditDetails(true)}
         />
       )}
 
@@ -425,22 +432,21 @@ const CoupleDashboard = () => {
           </p>
         </div>
 
-        {/* Overview Cards */}
-        <div id="dashboard-overview">
-        <OverviewCards
-          confirmedGuests={confirmed}
-          pendingRsvps={pending}
-          declinedGuests={declined}
-          checkins={checkins.length}
-          photoUploads={totalPhotoUploads}
-          dietarySummary={dietarySummary}
-          pendingMoments={moments.filter((m) => !m.approved).length}
-        />
+        <div id="dashboard-overview" className="grid grid-cols-2 gap-3">
+          {[
+            { label: "Confirmed", value: confirmed, icon: Check, tone: "bg-[#d9f06e]" },
+            { label: "Waiting", value: pending, icon: Clock, tone: "bg-white/85" },
+            { label: "Declined", value: declined, icon: X, tone: "bg-white/85" },
+            { label: "Arrived", value: checkins.length, icon: MapPin, tone: "bg-[#202020] text-white" },
+          ].map((stat) => {
+            const Icon = stat.icon;
+            return <div key={stat.label} className={`rounded-[22px] p-4 shadow-sm ${stat.tone}`}><div className="flex items-center justify-between"><p className="font-body text-xs opacity-65">{stat.label}</p><Icon className="h-4 w-4 opacity-60" /></div><p className="mt-4 font-body text-3xl font-semibold">{stat.value}</p></div>;
+          })}
         </div>
 
         {/* Pending RSVP nudge */}
         {pending > 0 && (
-          <div className="flex items-center justify-between p-4 border border-amber-200/60 bg-amber-50/30 dark:bg-amber-900/10">
+          <div className="flex items-center justify-between rounded-[22px] border border-white/70 bg-white/72 p-4 shadow-sm">
             <div className="flex items-center gap-3">
               <Clock className="w-4 h-4 text-amber-500 shrink-0" />
               <p className="font-body text-sm">
@@ -452,7 +458,7 @@ const CoupleDashboard = () => {
               onClick={() => {
                 copyWeddingLink();
               }}
-              className="font-body text-xs tracking-[0.15em] uppercase underline text-amber-700 dark:text-amber-400 hover:text-amber-900 dark:hover:text-amber-300 whitespace-nowrap ml-4"
+              className="ml-4 whitespace-nowrap rounded-full bg-black px-3 py-2 font-body text-[10px] font-semibold text-white"
             >
               Copy Link
             </button>
@@ -545,10 +551,16 @@ const CoupleDashboard = () => {
 
       {activeTab === "website" && (
         <div className="space-y-5">
+          <WebsiteWorkspace
+            wedding={wedding}
+            weddingSlug={weddingSlug || ""}
+            publishing={publishing}
+            onPublish={togglePublished}
+            onEditDetails={() => setShowEditDetails(true)}
+          />
           <ShareWeddingLink weddingSlug={weddingSlug || ""} />
           <WeddingTools weddingSlug={weddingSlug || ""} />
           <SetupProgress wedding={wedding} eventsCount={events.length} hasSharedLink={wedding.published} />
-          <QuickActions weddingSlug={weddingSlug || ""} onEditDetails={() => setShowEditDetails(true)} onTabChange={changeTab} />
         </div>
       )}
 
@@ -626,7 +638,7 @@ function CoupleHome({ wedding, progress, completedTasks, totalTasks, confirmed, 
     : null;
   const intelligenceCards = [
     {
-      label: "Guest confidence",
+      label: "Guest responses",
       value: rsvps.length ? `${responseRate}%` : "Needs list",
       detail: pending > 0 ? `${pending} RSVP${pending === 1 ? "" : "s"} need a reminder before planning gets tight.` : "All visible RSVPs are settled.",
       icon: Users,
@@ -751,8 +763,8 @@ function CoupleHome({ wedding, progress, completedTasks, totalTasks, confirmed, 
         </div>
       </section>
 
-      <section className="rounded-[24px] overflow-hidden relative min-h-[170px] text-white shadow-xl">
-        <img src={wedding.cover_image || wedding.hero_image} alt="" className="absolute inset-0 w-full h-full object-cover" />
+      <section className="relative min-h-[170px] overflow-hidden rounded-[24px] bg-gradient-to-br from-[#343434] via-[#252525] to-[#171717] text-white shadow-xl">
+        {(wedding.cover_image || wedding.hero_image) && <img src={wedding.cover_image || wedding.hero_image} alt="" className="absolute inset-0 h-full w-full object-cover" />}
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
         <div className="relative p-5">
           <p className="font-body text-xs uppercase tracking-[0.2em] text-white/70">Wedding Status</p>
@@ -768,7 +780,45 @@ function CoupleHome({ wedding, progress, completedTasks, totalTasks, confirmed, 
   );
 }
 
-function PlannerSchedule({ wedding, events, onTabChange }: any) {
+function WebsiteWorkspace({ wedding, weddingSlug, publishing, onPublish, onEditDetails }: any) {
+  const weddingUrl = `${window.location.origin}/wedding/${weddingSlug}`;
+  const copyLink = () => {
+    navigator.clipboard.writeText(weddingUrl);
+    toast.success("Wedding link copied.");
+  };
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <p className="font-body text-xs font-semibold text-black/50">GUEST WEBSITE</p>
+        <h1 className="mt-2 font-body text-[32px] font-semibold leading-tight">Your wedding, ready to share</h1>
+        <p className="mt-2 font-body text-sm leading-6 text-black/55">Preview the guest experience, finish the important details, and publish when it feels ready.</p>
+      </div>
+
+      <section className="overflow-hidden rounded-[28px] bg-[#202020] text-white shadow-xl">
+        <div className="relative h-52 bg-gradient-to-br from-[#3a3a3a] via-[#262626] to-[#171717]">
+          {(wedding.cover_image || wedding.hero_image) && <img src={wedding.cover_image || wedding.hero_image} alt="" className="h-full w-full object-cover" />}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/15 to-transparent" />
+          <span className={`absolute right-4 top-4 rounded-full px-3 py-2 font-body text-[10px] font-semibold ${wedding.published ? "bg-[#d9f06e] text-black" : "bg-white/90 text-black"}`}>{wedding.published ? "LIVE" : "DRAFT"}</span>
+          <div className="absolute inset-x-5 bottom-5"><p className="font-body text-2xl font-semibold">{wedding.couple_names}</p><p className="mt-1 truncate font-body text-xs text-white/65">/{weddingSlug}</p></div>
+        </div>
+        <div className="p-5">
+          <button disabled={publishing} onClick={onPublish} className={`flex h-13 w-full items-center justify-center gap-2 rounded-full px-5 py-4 font-body text-xs font-semibold disabled:opacity-60 ${wedding.published ? "border border-white/25 text-white" : "bg-white text-black"}`}>
+            {publishing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Globe2 className="h-4 w-4" />}
+            {wedding.published ? "Make Wedding Private" : "Publish Wedding"}
+          </button>
+          <div className="mt-3 grid grid-cols-3 gap-2">
+            <a href={weddingUrl} target="_blank" rel="noreferrer" className="rounded-2xl bg-white/10 p-3 text-center font-body text-[10px]"><ExternalLink className="mx-auto mb-2 h-4 w-4" />Preview</a>
+            <button onClick={copyLink} className="rounded-2xl bg-white/10 p-3 text-center font-body text-[10px]"><Copy className="mx-auto mb-2 h-4 w-4" />Copy link</button>
+            <button onClick={onEditDetails} className="rounded-2xl bg-white/10 p-3 text-center font-body text-[10px]"><Sparkles className="mx-auto mb-2 h-4 w-4" />Edit details</button>
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function PlannerSchedule({ wedding, events, onEditDetails }: any) {
   const date = wedding.wedding_date ? new Date(wedding.wedding_date) : new Date();
 
   return (
@@ -790,14 +840,14 @@ function PlannerSchedule({ wedding, events, onTabChange }: any) {
                   <h2 className="font-body text-sm font-semibold">{event.title}</h2>
                   <p className="font-body text-xs text-muted-foreground leading-5 mt-1">{event.location || event.description || "Details will appear here."}</p>
                 </div>
-                <button onClick={() => onTabChange("website")} className="px-3 py-2 rounded-full bg-[#202020] text-white font-body text-[10px] font-semibold">
+                <button onClick={onEditDetails} className="px-3 py-2 rounded-full bg-[#202020] text-white font-body text-[10px] font-semibold">
                   Edit
                 </button>
               </div>
             </div>
           </div>
         ))}
-        {events.length === 0 && <div className="rounded-[22px] bg-white p-5 text-center shadow-sm"><CalendarDays className="mx-auto h-6 w-6 text-muted-foreground" /><h2 className="mt-3 font-body text-sm font-semibold">No wedding events yet</h2><p className="mt-1 font-body text-xs leading-5 text-muted-foreground">Add your ceremony and reception details to build the schedule.</p><button onClick={() => onTabChange("website")} className="mt-4 rounded-full bg-[#202020] px-4 py-2 font-body text-xs font-semibold text-white">Add details</button></div>}
+        {events.length === 0 && <div className="rounded-[22px] bg-white p-5 text-center shadow-sm"><CalendarDays className="mx-auto h-6 w-6 text-muted-foreground" /><h2 className="mt-3 font-body text-sm font-semibold">No wedding events yet</h2><p className="mt-1 font-body text-xs leading-5 text-muted-foreground">Add your ceremony and reception details to build the schedule.</p><button onClick={onEditDetails} className="mt-4 rounded-full bg-[#202020] px-4 py-2 font-body text-xs font-semibold text-white">Add details</button></div>}
       </div>
     </div>
   );
@@ -818,8 +868,8 @@ function ProfilePanel({ wedding, weddingSlug, accessCode, confirmed, pending, to
   return (
     <div className="space-y-4">
       <div className="rounded-[30px] bg-white border border-white/80 overflow-hidden shadow-sm">
-        <div className="relative h-64">
-          <img src={wedding.cover_image || wedding.hero_image} alt="" className="absolute inset-0 w-full h-full object-cover" />
+        <div className="relative h-64 bg-gradient-to-br from-[#3a3a3a] via-[#262626] to-[#171717]">
+          {(wedding.cover_image || wedding.hero_image) && <img src={wedding.cover_image || wedding.hero_image} alt="" className="absolute inset-0 h-full w-full object-cover" />}
           <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent" />
           <div className="absolute right-4 top-4 rounded-full bg-white/90 px-3 py-2 font-body text-[10px] font-semibold uppercase tracking-[0.12em] text-black shadow-sm">
             {wedding.published ? "Live" : "Draft"}
@@ -828,7 +878,7 @@ function ProfilePanel({ wedding, weddingSlug, accessCode, confirmed, pending, to
             <div className="mb-4 flex -space-x-4">
               {coupleNames.slice(0, 2).map((name, index) => (
                 <div key={name} className="flex h-20 w-20 items-center justify-center overflow-hidden rounded-full border-4 border-white bg-[#202020] shadow-lg">
-                  {index === 0 ? (
+                  {index === 0 && (wedding.cover_image || wedding.hero_image) ? (
                     <img src={wedding.cover_image || wedding.hero_image} alt="" className="h-full w-full object-cover" />
                   ) : (
                     <span className="font-body text-2xl font-semibold">{name.charAt(0) || "V"}</span>
@@ -874,26 +924,6 @@ function ProfilePanel({ wedding, weddingSlug, accessCode, confirmed, pending, to
                 </div>
               );
             })}
-          </div>
-
-          <div className="rounded-[24px] bg-[#202020] p-4 text-white">
-            <div className="mb-3 flex items-center justify-between">
-              <p className="font-body text-sm font-semibold">Profile Health</p>
-              <ShieldCheck className="h-4 w-4 text-[#d9f06e]" />
-            </div>
-            <div className="grid grid-cols-2 gap-2">
-              {[
-                ["Guest link", wedding.published ? "Ready" : "Draft"],
-                ["RSVPs", pending > 0 ? `${pending} open` : "Clear"],
-                ["Photos", `${totalPhotoUploads} live`],
-                ["Venue", wedding.ceremony_venue ? "Set" : "Missing"],
-              ].map(([label, value]) => (
-                <div key={label} className="rounded-2xl border border-white/10 bg-white/5 p-3">
-                  <p className="font-body text-[10px] text-white/50">{label}</p>
-                  <p className="mt-1 font-body text-sm font-semibold">{value}</p>
-                </div>
-              ))}
-            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-3">

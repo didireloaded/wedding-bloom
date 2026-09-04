@@ -147,30 +147,30 @@ const AdminDashboard = () => {
 
   return (
     <div className="admin-app min-h-screen bg-[#f1f1f1]">
-      <nav className="border-b border-border px-6 py-4 flex items-center justify-between">
-        <h1 className="font-display text-2xl font-light">Admin Dashboard</h1>
+      <nav className="sticky top-0 z-20 flex items-center justify-between border-b border-black/5 bg-white/90 px-4 py-3 backdrop-blur-xl sm:px-6">
+        <div><p className="font-body text-[10px] font-semibold text-black/45">ForeverVow</p><h1 className="font-body text-xl font-semibold">Weddings</h1></div>
         <div className="flex items-center gap-4">
           <button
             onClick={() => setShowCreate(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-foreground text-background font-body text-xs tracking-[0.2em] uppercase hover:bg-foreground/90 transition-colors"
+            className="flex min-h-11 items-center gap-2 rounded-full bg-foreground px-4 py-2 font-body text-xs font-semibold text-background transition-colors hover:bg-foreground/90"
           >
             <Plus className="w-4 h-4" /> New Wedding
           </button>
-          <button onClick={signOut} className="p-2 text-muted-foreground hover:text-foreground">
+          <button onClick={signOut} className="grid h-11 w-11 place-items-center rounded-full bg-black/5 text-muted-foreground hover:text-foreground" title="Sign out">
             <LogOut className="w-5 h-5" />
           </button>
         </div>
       </nav>
 
-      <div className="max-w-6xl mx-auto px-6 py-10">
+      <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-10">
         {showCreate && (
           <motion.form
             onSubmit={createWedding}
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
-            className="mb-8 p-6 border border-border space-y-4"
+            className="mb-8 space-y-4 rounded-[28px] border border-white/80 bg-white p-6 shadow-sm"
           >
-            <h2 className="font-display text-xl font-light">Create New Wedding</h2>
+            <h2 className="font-body text-xl font-semibold">Create new wedding</h2>
             <div>
               <label className="wedding-label block mb-2">COUPLE NAMES</label>
               <input
@@ -178,7 +178,7 @@ const AdminDashboard = () => {
                 value={newCouple}
                 onChange={(e) => setNewCouple(e.target.value)}
                 placeholder="John & Anna"
-                className="w-full bg-transparent border-b border-foreground/20 py-3 font-body text-sm focus:outline-none focus:border-foreground"
+                className="w-full rounded-2xl border border-black/10 bg-[#f6f6f6] px-4 py-3 font-body text-sm outline-none focus:border-black/30"
               />
             </div>
             <div>
@@ -187,14 +187,14 @@ const AdminDashboard = () => {
                 value={newSlug}
                 onChange={(e) => setNewSlug(e.target.value)}
                 placeholder="john-anna"
-                className="w-full bg-transparent border-b border-foreground/20 py-3 font-body text-sm focus:outline-none focus:border-foreground"
+                className="w-full rounded-2xl border border-black/10 bg-[#f6f6f6] px-4 py-3 font-body text-sm outline-none focus:border-black/30"
               />
             </div>
             <div className="flex gap-3">
-              <button type="submit" className="px-6 py-3 bg-foreground text-background font-body text-xs tracking-[0.2em] uppercase">
+              <button type="submit" className="rounded-full bg-foreground px-6 py-3 font-body text-xs font-semibold text-background">
                 CREATE
               </button>
-              <button type="button" onClick={() => setShowCreate(false)} className="px-6 py-3 border border-foreground/20 font-body text-xs tracking-[0.2em] uppercase">
+              <button type="button" onClick={() => setShowCreate(false)} className="rounded-full border border-black/10 bg-white px-6 py-3 font-body text-xs font-semibold">
                 CANCEL
               </button>
             </div>
@@ -209,13 +209,13 @@ const AdminDashboard = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.05 }}
               onClick={() => navigate(`/admin/wedding/${w.id}`)}
-              className="border border-border p-6 cursor-pointer hover:bg-card transition-colors group"
+              className="group cursor-pointer rounded-[24px] border border-white/80 bg-white p-6 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
             >
               <div className="flex items-start justify-between mb-4">
-                <h3 className="font-display text-2xl font-light group-hover:text-wedding-gold transition-colors">
+                <h3 className="font-body text-xl font-semibold transition-colors">
                   {w.couple_names}
                 </h3>
-                <span className={`font-body text-[10px] tracking-widest uppercase px-2 py-1 ${w.published ? "bg-wedding-sage/30 text-foreground" : "bg-muted text-muted-foreground"}`}>
+                <span className={`rounded-full px-3 py-1 font-body text-[10px] font-semibold ${w.published ? "bg-[#d9f06e] text-black" : "bg-muted text-muted-foreground"}`}>
                   {w.published ? "LIVE" : "DRAFT"}
                 </span>
               </div>
@@ -246,11 +246,11 @@ const AdminDashboard = () => {
         </div>
 
         {weddings.length === 0 && (
-          <div className="text-center py-20">
-            <p className="font-display text-2xl font-light text-muted-foreground mb-4">No weddings yet</p>
+          <div className="rounded-[28px] bg-white py-20 text-center shadow-sm">
+            <p className="mb-4 font-body text-xl font-semibold text-muted-foreground">No weddings yet</p>
             <button
               onClick={() => setShowCreate(true)}
-              className="px-8 py-3 bg-foreground text-background font-body text-xs tracking-[0.2em] uppercase"
+              className="rounded-full bg-foreground px-8 py-3 font-body text-xs font-semibold text-background"
             >
               CREATE YOUR FIRST WEDDING
             </button>

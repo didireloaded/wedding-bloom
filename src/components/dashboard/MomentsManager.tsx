@@ -122,11 +122,11 @@ const MomentsManager = ({ weddingId, moments, isLiveMode, onRefresh }: MomentsMa
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="font-display text-xl sm:text-2xl font-light">Wedding Moments</h2>
+        <div><h2 className="font-body text-lg font-semibold">Guest moments</h2><p className="mt-1 font-body text-xs text-muted-foreground">Messages and photos shared on your wedding page</p></div>
         <button
           onClick={suggestHighlights}
           disabled={aiLoading || approved.length === 0}
-          className="flex items-center gap-2 px-4 py-2 border border-foreground/15 font-body text-[10px] tracking-[0.2em] uppercase hover:bg-muted transition-colors disabled:opacity-40"
+          className="flex min-h-10 items-center gap-2 rounded-full border border-black/10 bg-white px-4 py-2 font-body text-xs font-semibold transition-colors hover:bg-muted disabled:opacity-40"
         >
           <Sparkles className="w-3.5 h-3.5" />
           {aiLoading ? "Reviewing..." : "Find Highlights"}
@@ -134,9 +134,9 @@ const MomentsManager = ({ weddingId, moments, isLiveMode, onRefresh }: MomentsMa
       </div>
 
       {/* Reception Mode Toggle */}
-      <div className="flex items-center justify-between p-4 border border-border">
+      <div className="flex items-center justify-between rounded-2xl bg-black/[0.04] p-4">
         <div>
-          <p className="font-body text-xs tracking-[0.15em] uppercase">Reception Mode</p>
+          <p className="font-body text-sm font-semibold">Reception mode</p>
           <p className="font-body text-[10px] text-muted-foreground mt-1">
             Instantly approves new moments and activates live visual effects
           </p>
@@ -160,10 +160,10 @@ const MomentsManager = ({ weddingId, moments, isLiveMode, onRefresh }: MomentsMa
           { label: "Pending", value: pending.length, icon: Clock },
           { label: "With Photos", value: withPhotos.length, icon: Image },
         ].map((stat) => (
-          <div key={stat.label} className="p-4 border border-border bg-background">
+          <div key={stat.label} className="rounded-2xl bg-black/[0.04] p-4">
             <stat.icon className="w-4 h-4 text-muted-foreground mb-2" strokeWidth={1.5} />
-            <p className="font-display text-2xl font-light">{stat.value}</p>
-            <p className="font-body text-[10px] tracking-[0.1em] uppercase text-muted-foreground">
+            <p className="font-body text-2xl font-semibold">{stat.value}</p>
+            <p className="font-body text-[10px] font-medium text-muted-foreground">
               {stat.label}
             </p>
           </div>
@@ -173,7 +173,7 @@ const MomentsManager = ({ weddingId, moments, isLiveMode, onRefresh }: MomentsMa
       {/* Pending moments */}
       {pending.length > 0 && (
         <div className="space-y-3">
-          <p className="wedding-label text-amber-600">PENDING APPROVAL ({pending.length})</p>
+          <p className="font-body text-xs font-semibold text-amber-700">Waiting for approval ({pending.length})</p>
           {pending.map((m) => (
             <MomentRow
               key={m.id}
@@ -191,7 +191,7 @@ const MomentsManager = ({ weddingId, moments, isLiveMode, onRefresh }: MomentsMa
       {/* Approved moments */}
       {approved.length > 0 && (
         <div className="space-y-3">
-          <p className="wedding-label">APPROVED ({approved.length})</p>
+          <p className="font-body text-xs font-semibold">Published moments ({approved.length})</p>
           {approved.slice(0, 10).map((m) => (
             <MomentRow
               key={m.id}
@@ -205,7 +205,7 @@ const MomentsManager = ({ weddingId, moments, isLiveMode, onRefresh }: MomentsMa
       )}
 
       {moments.length === 0 && (
-        <div className="py-12 text-center border border-dashed border-border">
+        <div className="rounded-2xl border border-dashed border-black/15 bg-black/[0.02] py-12 text-center">
           <MessageSquare className="w-8 h-8 mx-auto text-muted-foreground mb-3" strokeWidth={1} />
           <p className="font-body text-sm text-muted-foreground">No moments yet. They'll appear here when guests start posting.</p>
         </div>
@@ -232,15 +232,15 @@ const MomentRow = ({
   <motion.div
     initial={{ opacity: 0 }}
     animate={{ opacity: 1 }}
-    className={`flex items-start gap-4 p-4 border ${
-      isPending ? "border-amber-200/60 bg-amber-50/20 dark:bg-amber-900/10" : "border-border bg-background"
+    className={`flex items-start gap-4 rounded-2xl p-4 ${
+      isPending ? "bg-amber-50" : "bg-black/[0.04]"
     }`}
   >
     {moment.photo_url && (
       <img
         src={moment.photo_url}
         alt=""
-        className="w-12 h-12 object-cover shrink-0"
+        className="h-14 w-14 shrink-0 rounded-xl object-cover"
       />
     )}
     <div className="flex-1 min-w-0">
@@ -261,7 +261,7 @@ const MomentRow = ({
       {isPending && onApprove && (
         <button
           onClick={onApprove}
-          className="p-2 bg-foreground text-background hover:bg-foreground/80 transition-colors"
+          className="rounded-full bg-foreground p-2 text-background transition-colors hover:bg-foreground/80"
           title="Approve"
         >
           <Check className="w-3.5 h-3.5" />
@@ -270,7 +270,7 @@ const MomentRow = ({
       {onHighlight && (
         <button
           onClick={onHighlight}
-          className={`p-2 border transition-colors ${
+          className={`rounded-full border p-2 transition-colors ${
             moment.highlighted
               ? "border-wedding-gold/40 text-wedding-gold bg-wedding-champagne/20"
               : "border-foreground/15 text-muted-foreground hover:text-foreground"
@@ -283,7 +283,7 @@ const MomentRow = ({
       {onDelete && (
         <button
           onClick={onDelete}
-          className="p-2 border border-foreground/15 text-destructive hover:bg-destructive/10 transition-colors"
+          className="rounded-full border border-foreground/15 p-2 text-destructive transition-colors hover:bg-destructive/10"
           title="Delete"
         >
           <Trash2 className="w-3.5 h-3.5" />

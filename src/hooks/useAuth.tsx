@@ -15,7 +15,11 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType>({} as AuthContextType);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const previewMode = import.meta.env.VITE_PREVIEW_MODE === "true";
+  const previewRequested = import.meta.env.VITE_PREVIEW_MODE === "true";
+  if (import.meta.env.PROD && previewRequested) {
+    throw new Error("VITE_PREVIEW_MODE cannot be enabled in a production build.");
+  }
+  const previewMode = import.meta.env.DEV && previewRequested;
   const [user, setUser] = useState<User | null>(previewMode ? ({ id: "preview-admin", email: "preview@forevervow.local" } as User) : null);
   const [session, setSession] = useState<Session | null>(previewMode ? ({ access_token: "preview-token", user } as Session) : null);
   const [loading, setLoading] = useState(!previewMode);

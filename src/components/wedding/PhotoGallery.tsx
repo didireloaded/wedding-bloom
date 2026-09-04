@@ -2,10 +2,6 @@ import { motion } from "framer-motion";
 import { useState } from "react";
 import { X } from "lucide-react";
 import { getOptimizedImageUrl, getImageSrcSet } from "@/lib/imageUtils";
-import heroImg1 from "@/assets/wedding-hero-1.jpg";
-import heroImg2 from "@/assets/wedding-hero-2.jpg";
-import heroImg3 from "@/assets/wedding-hero-3.jpg";
-import coverImg from "@/assets/wedding-cover.jpg";
 
 interface GalleryImage {
   id: string;
@@ -16,23 +12,16 @@ interface PhotoGalleryProps {
   images?: GalleryImage[];
 }
 
-const defaultImages = [
-  { id: "1", image_url: heroImg1 },
-  { id: "2", image_url: heroImg2 },
-  { id: "3", image_url: heroImg3 },
-  { id: "4", image_url: coverImg },
-  { id: "5", image_url: heroImg1 },
-  { id: "6", image_url: heroImg2 },
-];
-
 const PhotoGallery = ({ images }: PhotoGalleryProps) => {
   const [lightbox, setLightbox] = useState<string | null>(null);
-  const items = images && images.length > 0 ? images : defaultImages;
+  const items = images ?? [];
 
   const getSpan = (i: number) => {
     const pattern = [4, 3, 3, 3, 4, 3];
     return pattern[i % pattern.length];
   };
+
+  if (items.length === 0) return null;
 
   return (
     <>

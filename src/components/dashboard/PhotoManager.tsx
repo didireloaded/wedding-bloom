@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { Camera, Check, X, Upload, Image as ImageIcon } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 
 interface PhotoManagerProps {
   weddingId: string;
@@ -12,22 +13,26 @@ interface PhotoManagerProps {
 }
 
 const PhotoManager = ({ weddingId, galleryImages, guestPhotos, onRefresh }: PhotoManagerProps) => {
+  const { user } = useAuth();
   const [uploading, setUploading] = useState(false);
 
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
-    if (!files) return;
+    if (!files?.length || !user) return;
     setUploading(true);
+    let uploadedCount = 0;
     for (const file of Array.from(files)) {
       const ext = file.name.split(".").pop();
-      const path = `${weddingId}/gallery/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
-      const { error } = await supabase.storage.from("wedding-assets").upload(path, file);
+      const path = `couples/${user.id}/${weddingId}/gallery/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+      const { error } = await supabase.storage.from("wedding-images").upload(path, file, { contentType: file.type });
       if (!error) {
-        const { data: { publicUrl } } = supabase.storage.from("wedding-assets").getPublicUrl(path);
-        await supabase.from("gallery").insert({ image_url: publicUrl, wedding_id: weddingId, uploaded_by: "couple" });
+        const { data: { publicUrl } } = supabase.storage.from("wedding-images").getPublicUrl(path);
+        const { error: galleryError } = await supabase.from("gallery").insert({ image_url: publicUrl, wedding_id: weddingId, uploaded_by: "couple" });
+        if (!galleryError) uploadedCount += 1;
       }
     }
-    toast.success("Photos uploaded!");
+    if (uploadedCount > 0) toast.success(`${uploadedCount} photo${uploadedCount === 1 ? "" : "s"} added.`);
+    else toast.error("We could not upload those photos.");
     setUploading(false);
     onRefresh();
   };
@@ -55,52 +60,54 @@ const PhotoManager = ({ weddingId, galleryImages, guestPhotos, onRefresh }: Phot
   const approvedPhotos = guestPhotos.filter((p) => p.approved);
 
   return (
-    <div className="border border-border bg-background">
-      <div className="p-4 border-b border-border flex items-center justify-between">
+    <div>
+      <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-2">
-          <Camera className="w-4 h-4 text-wedding-gold" />
-          <h3 className="font-body text-xs tracking-[0.15em] uppercase">Photos</h3>
+          <span className="grid h-10 w-10 place-items-center rounded-full bg-black text-white"><Camera className="h-4 w-4" /></span>
+          <div><h3 className="font-body text-base font-semibold">Photo library</h3><p className="font-body text-xs text-muted-foreground">Your photos and guest uploads</p></div>
         </div>
-        <label className={`inline-flex items-center gap-2 px-3 py-2 bg-foreground text-background cursor-pointer font-body text-[10px] tracking-[0.15em] uppercase min-h-[36px] ${uploading ? "opacity-50 pointer-events-none" : ""}`}>
+        <label className={`inline-flex min-h-10 cursor-pointer items-center gap-2 rounded-full bg-foreground px-4 py-2 font-body text-xs font-semibold text-background ${uploading ? "pointer-events-none opacity-50" : ""}`}>
           <Upload className="w-3 h-3" />
           {uploading ? "Uploading..." : "Upload"}
           <input type="file" accept="image/*" multiple onChange={handlePhotoUpload} className="hidden" disabled={uploading} />
         </label>
       </div>
 
-      <div className="p-4 space-y-6 max-h-[500px] overflow-y-auto">
+      <div className="mt-5 space-y-7">
         {/* Pending Guest Uploads */}
         {pendingPhotos.length > 0 && (
           <div>
-            <p className="font-body text-[10px] tracking-[0.15em] uppercase text-wedding-gold mb-3">
-              Pending Approval ({pendingPhotos.length})
+            <p className="mb-3 font-body text-xs font-semibold text-amber-700">
+              Waiting for approval ({pendingPhotos.length})
             </p>
-            <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
               {pendingPhotos.map((photo) => (
                 <motion.div
                   key={photo.id}
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  className="aspect-square relative group overflow-hidden border-2 border-wedding-gold/50"
+                  className="group relative aspect-[4/5] overflow-hidden rounded-2xl bg-muted"
                 >
                   <img src={photo.image_url} alt="" className="w-full h-full object-cover" />
-                  <div className="absolute inset-0 bg-foreground/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                  <div className="absolute right-2 top-2 flex items-center gap-2">
                     <button
                       onClick={() => approvePhoto(photo.id)}
-                      className="p-2 bg-wedding-sage text-background rounded-full min-h-[36px] min-w-[36px] flex items-center justify-center"
+                      className="flex min-h-9 min-w-9 items-center justify-center rounded-full bg-white text-emerald-700 shadow"
+                      aria-label="Approve photo"
                     >
                       <Check className="w-4 h-4" />
                     </button>
                     <button
                       onClick={() => deletePhoto(photo.id, "guest_photos")}
-                      className="p-2 bg-destructive text-destructive-foreground rounded-full min-h-[36px] min-w-[36px] flex items-center justify-center"
+                      className="flex min-h-9 min-w-9 items-center justify-center rounded-full bg-white text-destructive shadow"
+                      aria-label="Remove photo"
                     >
                       <X className="w-4 h-4" />
                     </button>
                   </div>
                   {photo.guest_name && (
-                    <div className="absolute bottom-0 left-0 right-0 bg-black/70 px-2 py-1">
-                      <p className="font-body text-[9px] text-white truncate">{photo.guest_name}</p>
+                    <div className="absolute bottom-0 left-0 right-0 bg-black/60 px-3 py-2 backdrop-blur-sm">
+                      <p className="truncate font-body text-[10px] font-medium text-white">{photo.guest_name}</p>
                     </div>
                   )}
                 </motion.div>
@@ -112,17 +119,16 @@ const PhotoManager = ({ weddingId, galleryImages, guestPhotos, onRefresh }: Phot
         {/* Gallery */}
         {galleryImages.length > 0 && (
           <div>
-            <p className="font-body text-[10px] tracking-[0.15em] uppercase text-muted-foreground mb-3">
-              Your Gallery ({galleryImages.length})
-            </p>
-            <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+            <p className="mb-3 font-body text-xs font-semibold">Your gallery ({galleryImages.length})</p>
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
               {galleryImages.map((img) => (
-                <div key={img.id} className="aspect-square relative group overflow-hidden">
+                <div key={img.id} className="group relative aspect-[4/5] overflow-hidden rounded-2xl bg-muted">
                   <img src={img.image_url} alt="" className="w-full h-full object-cover" />
-                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                  <div className="absolute right-2 top-2">
                     <button
                       onClick={() => deletePhoto(img.id, "gallery")}
-                      className="p-2 bg-destructive text-white rounded-full min-h-[36px] min-w-[36px] flex items-center justify-center"
+                      className="flex min-h-9 min-w-9 items-center justify-center rounded-full bg-white text-destructive shadow"
+                      aria-label="Remove photo"
                     >
                       <X className="w-4 h-4" />
                     </button>
@@ -136,12 +142,10 @@ const PhotoManager = ({ weddingId, galleryImages, guestPhotos, onRefresh }: Phot
         {/* Approved Guest Photos */}
         {approvedPhotos.length > 0 && (
           <div>
-            <p className="font-body text-[10px] tracking-[0.15em] uppercase text-muted-foreground mb-3">
-              Guest Photos ({approvedPhotos.length})
-            </p>
-            <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+            <p className="mb-3 font-body text-xs font-semibold">From your guests ({approvedPhotos.length})</p>
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
               {approvedPhotos.map((photo) => (
-                <div key={photo.id} className="aspect-square relative group overflow-hidden">
+                <div key={photo.id} className="relative aspect-[4/5] overflow-hidden rounded-2xl bg-muted">
                   <img src={photo.image_url} alt="" className="w-full h-full object-cover" />
                 </div>
               ))}
@@ -150,7 +154,7 @@ const PhotoManager = ({ weddingId, galleryImages, guestPhotos, onRefresh }: Phot
         )}
 
         {galleryImages.length === 0 && guestPhotos.length === 0 && (
-          <div className="py-8 text-center">
+          <div className="rounded-2xl border border-dashed border-black/15 bg-black/[0.02] py-10 text-center">
             <ImageIcon className="w-8 h-8 mx-auto text-muted-foreground/30 mb-2" strokeWidth={1} />
             <p className="font-body text-sm text-muted-foreground">No photos yet</p>
             <p className="font-body text-xs text-muted-foreground/70 mt-1">

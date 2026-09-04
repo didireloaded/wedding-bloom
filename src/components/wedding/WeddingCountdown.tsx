@@ -53,20 +53,18 @@ const WeddingCountdown = ({ weddingDate }: WeddingCountdownProps) => {
   ];
 
   return (
-    <section className="py-16 md:py-24 px-6 bg-background">
-      <div className="max-w-2xl mx-auto text-center">
+    <section className="bg-background px-5 py-12 md:px-8 md:py-20">
+      <div className="mx-auto max-w-2xl">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.8 }}
         >
-          <p className="font-body text-[9px] tracking-[0.4em] uppercase text-muted-foreground">
-            THE WEDDING BEGINS IN
-          </p>
+          <p className="font-body text-xs font-semibold text-muted-foreground">Wedding countdown</p>
         </motion.div>
 
-        <div className="grid grid-cols-4 gap-3 sm:gap-8 mt-10">
+        <div className="mt-5 grid grid-cols-4 gap-2 sm:gap-3">
           {units.map((unit, i) => (
             <motion.div
               key={unit.label}
@@ -74,25 +72,18 @@ const WeddingCountdown = ({ weddingDate }: WeddingCountdownProps) => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.1, duration: 0.6 }}
-              className="text-center"
+              className="rounded-2xl bg-black/[0.04] px-2 py-4 text-center"
             >
-              <p className="font-display text-4xl sm:text-6xl md:text-7xl font-light leading-none text-foreground">
+              <p className="font-body text-2xl font-semibold leading-none text-foreground sm:text-4xl">
                 {String(unit.value).padStart(2, "0")}
               </p>
-              <div className="wedding-divider mt-4 mb-3" />
-              <p className="font-body text-[9px] sm:text-[10px] tracking-[0.3em] uppercase text-muted-foreground">
+              <p className="mt-2 font-body text-[9px] font-medium text-muted-foreground sm:text-[10px]">
                 {unit.label}
               </p>
             </motion.div>
           ))}
         </div>
 
-        <a
-          href="#rsvp"
-          className="inline-block border border-foreground/20 px-8 py-3.5 font-body text-[10px] tracking-[0.3em] uppercase hover:bg-foreground hover:text-background transition-all min-h-[48px] mt-12"
-        >
-          RSVP FOR THIS DAY
-        </a>
       </div>
     </section>
   );

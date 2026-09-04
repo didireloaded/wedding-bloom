@@ -1,6 +1,5 @@
 import { QRCodeSVG } from "qrcode.react";
-import { Link2, Download, ExternalLink, QrCode, Share2 } from "lucide-react";
-import { toast } from "sonner";
+import { Download, QrCode } from "lucide-react";
 
 interface WeddingToolsProps {
   weddingSlug: string;
@@ -31,107 +30,51 @@ const WeddingTools = ({ weddingSlug }: WeddingToolsProps) => {
     img.src = "data:image/svg+xml;base64," + btoa(svgData);
   };
 
-  const copyLink = () => {
-    navigator.clipboard.writeText(weddingUrl);
-    toast.success("Link copied to clipboard!");
-  };
-
-  const shareLink = async () => {
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: "Wedding Invitation",
-          url: weddingUrl,
-        });
-      } catch (e) {
-        copyLink();
-      }
-    } else {
-      copyLink();
-    }
-  };
-
   return (
-    <div className="border border-border bg-background">
-      <div className="p-4 border-b border-border">
+    <div className="rounded-[26px] border border-white/75 bg-white/88 p-5 shadow-sm">
+      <div>
         <div className="flex items-center gap-2">
-          <Link2 className="w-4 h-4 text-wedding-gold" />
-          <h3 className="font-body text-xs tracking-[0.15em] uppercase">Share Your Wedding</h3>
+          <QrCode className="h-4 w-4" />
+          <h3 className="font-body text-base font-semibold">Printable QR codes</h3>
         </div>
         <p className="font-body text-xs text-muted-foreground mt-1">
           Share your wedding page with guests, or print the QR codes for your venue.
         </p>
       </div>
 
-      <div className="p-4 space-y-6">
-        {/* Wedding Page Link */}
-        <div className="space-y-3">
-          <p className="font-body text-[10px] tracking-[0.15em] uppercase text-muted-foreground">
-            Wedding Page
-          </p>
-          <div className="flex items-center gap-2">
-            <input
-              type="text"
-              value={weddingUrl}
-              readOnly
-              className="flex-1 bg-muted/30 border border-border px-3 py-2 font-body text-xs text-muted-foreground truncate min-h-[40px]"
-            />
-            <button
-              onClick={copyLink}
-              className="p-2 border border-border hover:bg-muted transition-colors min-h-[40px] min-w-[40px] flex items-center justify-center"
-            >
-              <Link2 className="w-4 h-4" />
-            </button>
-            <button
-              onClick={shareLink}
-              className="p-2 border border-border hover:bg-muted transition-colors min-h-[40px] min-w-[40px] flex items-center justify-center"
-            >
-              <Share2 className="w-4 h-4" />
-            </button>
-            <a
-              href={weddingUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="p-2 border border-border hover:bg-muted transition-colors min-h-[40px] min-w-[40px] flex items-center justify-center"
-            >
-              <ExternalLink className="w-4 h-4" />
-            </a>
-          </div>
-        </div>
-
-        {/* QR Codes */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="mt-4">
+        <div className="grid grid-cols-2 gap-3">
           {/* Invitation QR */}
-          <div className="p-4 border border-border text-center">
-            <p className="font-body text-[10px] tracking-[0.15em] uppercase text-muted-foreground mb-3">
+          <div className="rounded-2xl bg-black/[0.04] p-3 text-center">
+            <p className="mb-3 font-body text-[10px] font-semibold text-muted-foreground">
               Invitation QR
             </p>
             <div className="flex justify-center mb-3">
-              <div className="p-3 bg-white border border-border inline-block">
-                <QRCodeSVG id="invitation-qr" value={weddingUrl} size={120} level="H" />
+              <div className="inline-block rounded-xl bg-white p-2">
+                <QRCodeSVG id="invitation-qr" value={weddingUrl} size={92} level="H" />
               </div>
             </div>
             <button
               onClick={() => downloadQR("invitation-qr", `${weddingSlug}-invitation`)}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-foreground text-background font-body text-[10px] tracking-[0.15em] uppercase min-h-[36px]"
+              className="inline-flex min-h-[36px] items-center gap-2 rounded-full bg-foreground px-3 py-2 font-body text-[10px] font-semibold text-background"
             >
               <Download className="w-3 h-3" /> Download
             </button>
           </div>
 
           {/* Check-in QR */}
-          <div className="p-4 border border-border text-center">
-            <p className="font-body text-[10px] tracking-[0.15em] uppercase text-muted-foreground mb-3">
+          <div className="rounded-2xl bg-black/[0.04] p-3 text-center">
+            <p className="mb-3 font-body text-[10px] font-semibold text-muted-foreground">
               Venue Check-in QR
             </p>
             <div className="flex justify-center mb-3">
-              <div className="p-3 bg-white border border-border inline-block">
-                <QRCodeSVG id="checkin-qr" value={checkinUrl} size={120} level="H" />
+              <div className="inline-block rounded-xl bg-white p-2">
+                <QRCodeSVG id="checkin-qr" value={checkinUrl} size={92} level="H" />
               </div>
             </div>
             <button
               onClick={() => downloadQR("checkin-qr", `${weddingSlug}-checkin`)}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-foreground text-background font-body text-[10px] tracking-[0.15em] uppercase min-h-[36px]"
+              className="inline-flex min-h-[36px] items-center gap-2 rounded-full bg-foreground px-3 py-2 font-body text-[10px] font-semibold text-background"
             >
               <Download className="w-3 h-3" /> Download
             </button>

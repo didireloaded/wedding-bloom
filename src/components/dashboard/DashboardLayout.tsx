@@ -52,15 +52,7 @@ const DashboardLayout = ({
   return (
     <div className="couple-app min-h-screen bg-[#dedede] md:py-6">
       <div className="mobile-pwa-frame relative mx-auto min-h-screen w-full max-w-[430px] md:min-h-[880px] md:max-h-[920px] overflow-hidden bg-[linear-gradient(145deg,#ffd9c9_0%,#f8f4ef_48%,#d9b5f1_100%)] shadow-2xl md:rounded-[34px] md:border-[10px] md:border-[#f1f1f1]">
-        <div className="absolute top-[calc(env(safe-area-inset-top)+13px)] left-0 right-0 z-50 pointer-events-none">
-          <div className="mx-auto h-8 w-[104px] rounded-full bg-black" />
-          <div className="absolute left-8 top-1 font-body text-[12px] font-bold text-black">11:30</div>
-          <div className="absolute right-8 top-1 flex items-center gap-1 text-black">
-            <span className="h-3 w-4 rounded-[2px] border border-black block" />
-            <span className="h-2 w-2 rounded-full bg-black block" />
-          </div>
-        </div>
-        <header className="sticky top-0 z-30 px-5 pt-[calc(env(safe-area-inset-top)+56px)] pb-4">
+        <header className="sticky top-0 z-30 px-5 pt-[calc(env(safe-area-inset-top)+18px)] pb-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3 min-w-0">
               <img
@@ -88,7 +80,7 @@ const DashboardLayout = ({
                     )}
                   </button>
                   {showNotifications && (
-                    <div className="absolute right-5 top-[calc(env(safe-area-inset-top)+112px)] z-50 w-[calc(100vw-40px)] max-w-[390px] rounded-[24px] border border-white/80 bg-[#fbf8f4]/95 p-4 shadow-2xl backdrop-blur-xl">
+                    <div className="absolute right-5 top-[calc(env(safe-area-inset-top)+76px)] z-50 w-[calc(100vw-40px)] max-w-[390px] rounded-[24px] border border-white/80 bg-[#fbf8f4]/95 p-4 shadow-2xl backdrop-blur-xl">
                       <div className="flex items-center justify-between"><h3 className="font-body text-base font-semibold">Notifications</h3><button onClick={() => setShowNotifications(false)} aria-label="Close notifications"><X className="h-4 w-4" /></button></div>
                       <div className="mt-3 space-y-2">{notifications.length ? notifications.slice(0, 6).map((notification) => <button key={notification.id} onClick={() => { setShowNotifications(false); if (notification.targetTab) onTabChange?.(notification.targetTab); }} className="w-full rounded-2xl bg-white p-3 text-left"><p className="font-body text-sm font-medium">{notification.title}</p><p className="mt-1 font-body text-xs text-muted-foreground">{notification.body}</p></button>) : <p className="py-4 text-center font-body text-sm text-muted-foreground">You’re all caught up.</p>}</div>
                     </div>
@@ -98,7 +90,7 @@ const DashboardLayout = ({
           </div>
         </header>
 
-        <main className="h-[calc(100dvh-110px)] md:h-[calc(880px-110px)] overflow-y-auto px-5 pt-1 pb-[calc(env(safe-area-inset-bottom)+104px)]">
+        <main className="h-[calc(100dvh-82px)] md:h-[calc(880px-82px)] overflow-y-auto px-5 pt-1 pb-[calc(env(safe-area-inset-bottom)+104px)]">
           {children}
         </main>
 

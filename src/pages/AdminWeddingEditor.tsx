@@ -120,6 +120,23 @@ const AdminWeddingEditor = () => {
     setSaving(false);
   };
 
+  const togglePublished = async () => {
+    const nextPublished = !wedding.published;
+    setSaving(true);
+    const { error } = await supabase
+      .from("weddings")
+      .update({ published: nextPublished })
+      .eq("id", id!);
+
+    if (error) {
+      toast.error(error.message);
+    } else {
+      setWedding({ ...wedding, published: nextPublished });
+      toast.success(nextPublished ? "Wedding published." : "Wedding is now private.");
+    }
+    setSaving(false);
+  };
+
   const confirmAction = (title: string, description: string, onConfirm: () => void) => {
     setConfirmDialog({ open: true, title, description, onConfirm });
   };
@@ -252,8 +269,8 @@ const AdminWeddingEditor = () => {
   const pendingPhotos = guestPhotos.filter((p) => !p.approved);
   const approvedPhotos = guestPhotos.filter((p) => p.approved);
 
-  const inputClass = "w-full bg-transparent border-b border-foreground/20 py-2 font-body text-sm focus:outline-none focus:border-foreground";
-  const btnClass = "px-6 py-2 bg-foreground text-background font-body text-xs tracking-[0.2em] uppercase min-h-[44px]";
+  const inputClass = "w-full rounded-2xl border border-black/10 bg-white px-4 py-3 font-body text-sm outline-none transition focus:border-black/35 focus:ring-2 focus:ring-black/5";
+  const btnClass = "min-h-[44px] rounded-full bg-foreground px-6 py-2 font-body text-xs font-semibold text-background";
 
   const getCategoryIcon = (cat: string) => {
     if (cat === "hotels") return Hotel;
@@ -277,38 +294,39 @@ const AdminWeddingEditor = () => {
         </AlertDialogContent>
       </AlertDialog>
 
-      <nav className="border-b border-border px-4 sm:px-6 py-4 flex items-center justify-between">
+      <nav className="sticky top-0 z-30 flex items-center justify-between border-b border-black/5 bg-white/90 px-4 py-3 backdrop-blur-xl sm:px-6">
         <div className="flex items-center gap-3">
-          <button onClick={() => navigate("/admin")} className="text-muted-foreground hover:text-foreground"><ArrowLeft className="w-5 h-5" /></button>
-          <h1 className="font-display text-xl sm:text-2xl font-light">{wedding.couple_names}</h1>
-          <span className={`font-body text-[10px] tracking-widest uppercase px-2 py-1 ${wedding.published ? "bg-wedding-sage/30" : "bg-muted text-muted-foreground"}`}>
+          <button onClick={() => navigate("/admin")} className="grid h-10 w-10 place-items-center rounded-full bg-black/5 text-muted-foreground hover:text-foreground"><ArrowLeft className="w-5 h-5" /></button>
+          <div className="min-w-0"><p className="font-body text-[10px] font-semibold text-black/45">Wedding</p><h1 className="truncate font-body text-base font-semibold sm:text-lg">{wedding.couple_names}</h1></div>
+          <span className={`hidden rounded-full px-3 py-1 font-body text-[10px] font-semibold sm:inline-flex ${wedding.published ? "bg-[#d9f06e] text-black" : "bg-muted text-muted-foreground"}`}>
             {wedding.published ? "LIVE" : "DRAFT"}
           </span>
-          {wedding.live_mode && <span className="flex items-center gap-1 font-body text-[10px] tracking-widest uppercase px-2 py-1 bg-destructive/10 text-destructive"><Radio className="w-3 h-3 animate-pulse" /> LIVE MODE</span>}
+          {wedding.live_mode && <span className="hidden items-center gap-1 rounded-full bg-destructive/10 px-3 py-1 font-body text-[10px] font-semibold text-destructive sm:flex"><Radio className="w-3 h-3 animate-pulse" /> Live mode</span>}
         </div>
         <div className="flex items-center gap-2">
-          <a href={weddingUrl} target="_blank" rel="noopener noreferrer" className="p-2 text-muted-foreground hover:text-foreground"><Eye className="w-5 h-5" /></a>
-          <button onClick={deleteWedding} className="p-2 text-muted-foreground hover:text-destructive" title="Delete wedding"><Trash2 className="w-5 h-5" /></button>
-          <button onClick={saveWedding} disabled={saving} className="flex items-center gap-2 px-4 py-2 bg-foreground text-background font-body text-xs tracking-[0.2em] uppercase">
-            <Save className="w-4 h-4" /> {saving ? "SAVING..." : "SAVE"}
+          <a href={weddingUrl} target="_blank" rel="noopener noreferrer" className="grid h-10 w-10 place-items-center rounded-full bg-black/5 text-muted-foreground hover:text-foreground" title="Preview wedding"><Eye className="w-5 h-5" /></a>
+          <button onClick={togglePublished} disabled={saving} className={`hidden min-h-10 rounded-full px-4 font-body text-xs font-semibold sm:inline-flex sm:items-center ${wedding.published ? "border border-black/10 bg-white text-black" : "bg-[#d9f06e] text-black"}`}>{wedding.published ? "Make private" : "Publish"}</button>
+          <button onClick={deleteWedding} className="grid h-10 w-10 place-items-center rounded-full bg-black/5 text-muted-foreground hover:text-destructive" title="Delete wedding"><Trash2 className="w-5 h-5" /></button>
+          <button onClick={saveWedding} disabled={saving} className="flex min-h-10 items-center gap-2 rounded-full bg-foreground px-4 font-body text-xs font-semibold text-background">
+            <Save className="w-4 h-4" /> {saving ? "Saving" : "Save"}
           </button>
         </div>
       </nav>
 
-      <div className="border-b border-border overflow-x-auto">
-        <div className="flex px-4 sm:px-6">
+      <div className="sticky top-[65px] z-20 overflow-x-auto border-b border-black/5 bg-[#f1f1f1]/95 py-2 backdrop-blur-xl">
+        <div className="flex gap-1 px-4 sm:px-6">
           {tabs.map((t) => (
-            <button key={t} onClick={() => setActiveTab(t)} className={`px-3 sm:px-4 py-3 font-body text-[10px] sm:text-xs tracking-[0.15em] sm:tracking-[0.2em] uppercase border-b-2 transition-colors whitespace-nowrap ${activeTab === t ? "border-foreground text-foreground" : "border-transparent text-muted-foreground hover:text-foreground"}`}>
+            <button key={t} onClick={() => setActiveTab(t)} className={`whitespace-nowrap rounded-full px-4 py-2 font-body text-xs font-semibold transition-colors ${activeTab === t ? "bg-[#202020] text-white" : "text-muted-foreground hover:bg-white hover:text-foreground"}`}>
               {t}
             </button>
           ))}
         </div>
       </div>
 
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
+      <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6 sm:py-8">
         {/* DETAILS */}
         {activeTab === "details" && (
-          <div className="space-y-6">
+          <div className="space-y-6 rounded-[28px] border border-white/80 bg-white/75 p-5 shadow-sm sm:p-7">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {[
                 { label: "COUPLE NAMES", key: "couple_names" },
@@ -353,16 +371,16 @@ const AdminWeddingEditor = () => {
             </div>
             <div>
               <label className="wedding-label block mb-2">COVER IMAGE</label>
-              {wedding.cover_image && <img src={wedding.cover_image} alt="Cover" className="w-full max-w-md h-48 object-cover mb-3 rounded" />}
-              <label className="inline-flex items-center gap-2 px-4 py-2 border border-foreground/20 cursor-pointer font-body text-xs tracking-[0.2em] uppercase hover:bg-foreground hover:text-background transition-colors min-h-[44px]">
+              {wedding.cover_image && <img src={wedding.cover_image} alt="Cover" className="mb-3 h-48 w-full max-w-md rounded-2xl object-cover" />}
+              <label className="inline-flex min-h-[44px] cursor-pointer items-center gap-2 rounded-full border border-black/10 bg-white px-4 py-2 font-body text-xs font-semibold transition-colors hover:bg-black hover:text-white">
                 <Upload className="w-4 h-4" /> Upload Cover
                 <input type="file" accept="image/*" onChange={(e) => handleImageUpload(e, "cover")} className="hidden" />
               </label>
             </div>
-            <div className="flex items-center gap-6">
+            <div className="flex flex-wrap items-center gap-4 rounded-2xl bg-black/[0.035] p-4">
               <div className="flex items-center gap-4">
                 <label className="wedding-label">PUBLISHED</label>
-                <button onClick={() => setWedding({ ...wedding, published: !wedding.published })} className={`w-12 h-6 rounded-full transition-colors ${wedding.published ? "bg-wedding-sage" : "bg-muted"} relative`}>
+                <button onClick={togglePublished} disabled={saving} className={`w-12 h-6 rounded-full transition-colors ${wedding.published ? "bg-[#b7d84b]" : "bg-muted"} relative`}>
                   <span className={`absolute top-1 w-4 h-4 rounded-full bg-background transition-transform ${wedding.published ? "left-7" : "left-1"}`} />
                 </button>
               </div>
@@ -373,10 +391,10 @@ const AdminWeddingEditor = () => {
                 </button>
               </div>
             </div>
-            <div className="p-4 border border-border">
+            <div className="rounded-2xl border border-black/10 bg-white p-4">
               <div className="flex items-center justify-between mb-2">
                 <p className="wedding-label">COUPLE ACCESS CODE</p>
-                <button onClick={regenerateAccessCode} className="inline-flex items-center gap-1 px-3 py-1.5 border border-foreground/20 font-body text-[10px] tracking-widest uppercase hover:bg-foreground hover:text-background transition-colors">
+                <button onClick={regenerateAccessCode} className="inline-flex items-center gap-1 rounded-full border border-black/10 px-3 py-1.5 font-body text-[10px] font-semibold transition-colors hover:bg-black hover:text-white">
                   <RefreshCw className="w-3 h-3" /> Regenerate
                 </button>
               </div>

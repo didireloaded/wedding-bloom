@@ -1,7 +1,6 @@
 import { motion } from "framer-motion";
 import { ChevronDown, CalendarPlus } from "lucide-react";
 import { generateICS } from "@/lib/calendarUtils";
-import weddingCover from "@/assets/wedding-cover.jpg";
 
 interface WeddingHeroProps {
   coupleNames?: string;
@@ -16,15 +15,15 @@ const WeddingHero = ({ coupleNames = "John & Anna", date = "24 JUNE 2026", venue
   return (
     <section className="relative h-screen flex items-center justify-center overflow-hidden">
       <div className="absolute inset-0">
-        <motion.img
+        {coverImage ? <motion.img
           initial={{ scale: 1.1 }}
           animate={{ scale: 1 }}
           transition={{ duration: 1.8, ease: "easeOut" }}
-          src={coverImage || weddingCover}
+          src={coverImage}
           alt="Wedding couple"
           className="w-full h-full object-cover"
           style={{ objectPosition: 'center 20%' }}
-        />
+        /> : <div className="absolute inset-0 bg-[linear-gradient(145deg,#eecfc3_0%,#c7b6dc_55%,#202020_100%)]" />}
         <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-black/30 to-black/50" />
       </div>
 

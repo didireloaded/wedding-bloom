@@ -1,6 +1,5 @@
 import { motion } from "framer-motion";
 import { CalendarPlus } from "lucide-react";
-import heroImg1 from "@/assets/wedding-hero-1.jpg";
 
 interface WeddingStoryProps {
   story?: string;
@@ -10,13 +9,11 @@ interface WeddingStoryProps {
 }
 
 const WeddingStory = ({ story, weddingDate, onAddToCalendar, storyImage }: WeddingStoryProps) => {
-  const defaultStory = "We met on a warm September evening at a friend's dinner party. What started as a conversation about travel and coffee turned into hours of laughter. Three years of adventures later, on a quiet Valentine's evening overlooking the Amalfi Coast, John got down on one knee. Now we're ready for our greatest adventure yet — and we want you to be part of it.";
-
   return (
     <section className="wedding-section bg-wedding-blush/50">
       <div className="max-w-6xl mx-auto">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
-          <motion.div
+        <div className={`grid grid-cols-1 gap-12 items-center ${storyImage ? "lg:grid-cols-2 lg:gap-20" : ""}`}>
+          {storyImage && <motion.div
             initial={{ opacity: 0, x: -40 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
@@ -24,9 +21,9 @@ const WeddingStory = ({ story, weddingDate, onAddToCalendar, storyImage }: Weddi
             className="order-2 lg:order-1"
           >
             <div className="arch-image aspect-[3/4] max-w-sm mx-auto lg:mx-0 shadow-2xl shadow-foreground/5">
-              <img src={storyImage || heroImg1} alt="Our story" className="w-full h-full object-cover" loading="lazy" />
+              <img src={storyImage} alt="Our story" className="w-full h-full object-cover" loading="lazy" />
             </div>
-          </motion.div>
+          </motion.div>}
 
           <motion.div
             initial={{ opacity: 0, x: 40 }}
@@ -35,13 +32,12 @@ const WeddingStory = ({ story, weddingDate, onAddToCalendar, storyImage }: Weddi
             transition={{ duration: 1 }}
             className="order-1 lg:order-2 text-center lg:text-left"
           >
-            <p className="wedding-label mb-4">OUR STORY</p>
-            <h2 className="font-display text-3xl sm:text-4xl md:text-5xl font-light italic mb-8 leading-tight">
-              A love story written in the stars
+            <p className="mb-3 font-body text-xs font-semibold text-muted-foreground">Our story</p>
+            <h2 className="mb-5 font-body text-3xl font-semibold leading-tight sm:text-4xl md:text-5xl">
+              How we found each other
             </h2>
-            <div className="wedding-divider lg:!mx-0 mb-8" />
-            <p className="font-body text-sm md:text-base font-light leading-[2] text-muted-foreground max-w-lg mx-auto lg:mx-0">
-              {story || defaultStory}
+            <p className="mx-auto max-w-lg font-body text-sm leading-7 text-muted-foreground md:text-base lg:mx-0">
+              {story}
             </p>
 
             {weddingDate && onAddToCalendar && (
@@ -56,9 +52,9 @@ const WeddingStory = ({ story, weddingDate, onAddToCalendar, storyImage }: Weddi
                 </p>
                 <button
                   onClick={onAddToCalendar}
-                  className="inline-flex items-center gap-2 border border-foreground/20 px-6 py-2.5 font-body text-[10px] tracking-[0.25em] uppercase hover:bg-foreground hover:text-background transition-all min-h-[44px]"
+                  className="inline-flex min-h-11 items-center gap-2 rounded-full bg-foreground px-5 py-2.5 font-body text-xs font-semibold text-background transition-opacity hover:opacity-85"
                 >
-                  <CalendarPlus className="w-3.5 h-3.5" /> ADD TO CALENDAR
+                  <CalendarPlus className="w-3.5 h-3.5" /> Add to calendar
                 </button>
               </motion.div>
             )}
