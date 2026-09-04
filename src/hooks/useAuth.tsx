@@ -19,6 +19,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(previewMode ? ({ id: "preview-admin", email: "preview@forevervow.local" } as User) : null);
   const [session, setSession] = useState<Session | null>(previewMode ? ({ access_token: "preview-token", user } as Session) : null);
   const [loading, setLoading] = useState(!previewMode);
+  const [isAdmin, setIsAdmin] = useState(previewMode);
+
+  const refreshRole = async (nextUser: User | null) => {
+    if (!nextUser) {
+      setIsAdmin(false);
+      return;
+    }
+    const { data } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", nextUser.id)
+      .eq("role", "admin")
+      .maybeSingle();
+    setIsAdmin(Boolean(data));
+  };
 
   useEffect(() => {
     if (previewMode) return;
@@ -28,11 +43,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setSession(data.session);
       setUser(data.session?.user ?? null);
       setLoading(false);
+      void refreshRole(data.session?.user ?? null);
     });
     const { data: listener } = supabase.auth.onAuthStateChange((_event, nextSession) => {
       setSession(nextSession);
       setUser(nextSession?.user ?? null);
       setLoading(false);
+      void refreshRole(nextSession?.user ?? null);
     });
     return () => { active = false; listener.subscription.unsubscribe(); };
   }, [previewMode]);
@@ -54,7 +71,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, isAdmin: previewMode, loading, signIn, signUp, signOut }}>
+    <AuthContext.Provider value={{ user, session, isAdmin, loading, signIn, signUp, signOut }}>
       {children}
     </AuthContext.Provider>
   );

@@ -31,6 +31,9 @@ const Index = () => {
             COUPLE LOGIN
           </Link>
         </div>
+        <Link to="/admin/login" className="mt-8 inline-block font-body text-xs text-muted-foreground underline underline-offset-4 hover:text-foreground">
+          Owner access
+        </Link>
       </motion.div>
     </div>
   );
