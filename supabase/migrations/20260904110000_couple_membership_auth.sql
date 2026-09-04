@@ -13,8 +13,8 @@ CREATE OR REPLACE FUNCTION public.is_wedding_member(target_wedding_id uuid)
 RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public
 AS $$ SELECT EXISTS (SELECT 1 FROM public.wedding_members WHERE wedding_id = target_wedding_id AND user_id = auth.uid()); $$;
 
-CREATE POLICY "Members can view their wedding membership" ON public.wedding_members FOR SELECT USING (user_id = auth.uid() OR public.is_admin());
-CREATE POLICY "Members can update their membership" ON public.wedding_members FOR UPDATE USING (user_id = auth.uid() OR public.is_admin());
-CREATE POLICY "Admins can manage wedding memberships" ON public.wedding_members FOR ALL USING (public.is_admin());
+CREATE POLICY "Members can view their wedding membership" ON public.wedding_members FOR SELECT USING (user_id = auth.uid() OR public.has_role(auth.uid(), 'admin'::public.app_role));
+CREATE POLICY "Members can update their membership" ON public.wedding_members FOR UPDATE USING (user_id = auth.uid() OR public.has_role(auth.uid(), 'admin'::public.app_role));
+CREATE POLICY "Admins can manage wedding memberships" ON public.wedding_members FOR ALL USING (public.has_role(auth.uid(), 'admin'::public.app_role));
 
 CREATE INDEX IF NOT EXISTS wedding_members_user_idx ON public.wedding_members(user_id, wedding_id);
