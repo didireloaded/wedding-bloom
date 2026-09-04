@@ -118,6 +118,23 @@
 }
 
 @layer components {
+  /* Couple surfaces use the clean mobile planner language; invitation pages keep their editorial type system. */
+  .couple-app h1,
+  .couple-app h2,
+  .couple-app h3,
+  .couple-app h4,
+  .couple-app h5,
+  .couple-app h6,
+  .couple-app .font-display {
+    font-family: var(--font-body);
+    font-style: normal;
+    letter-spacing: 0;
+  }
+
+  .couple-app .wedding-label {
+    @apply tracking-[0.12em];
+  }
+
   .wedding-section {
     @apply py-20 md:py-32 px-6 md:px-12;
   }

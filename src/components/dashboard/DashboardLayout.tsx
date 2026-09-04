@@ -59,7 +59,7 @@ const DashboardLayout = ({
   };
 
   return (
-    <div className="min-h-screen bg-[#dedede] md:py-6">
+    <div className="couple-app min-h-screen bg-[#dedede] md:py-6">
       <div className="mobile-pwa-frame relative mx-auto min-h-screen w-full max-w-[430px] md:min-h-[880px] md:max-h-[920px] overflow-hidden bg-[linear-gradient(145deg,#ffd9c9_0%,#f8f4ef_48%,#d9b5f1_100%)] shadow-2xl md:rounded-[34px] md:border-[10px] md:border-[#f1f1f1]">
         <div className="absolute top-[calc(env(safe-area-inset-top)+13px)] left-0 right-0 z-50 pointer-events-none">
           <div className="mx-auto h-8 w-[104px] rounded-full bg-black" />
