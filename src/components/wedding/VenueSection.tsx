@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { MapPin, Navigation, Map, CalendarPlus } from "lucide-react";
+import { MapPin, Navigation, Map, CalendarPlus, Martini, Music, Camera, Gift, Utensils, DoorOpen } from "lucide-react";
 import { generateICS } from "@/lib/calendarUtils";
 
 interface VenueSectionProps {
@@ -21,6 +21,15 @@ const getSmartDirectionsUrl = (query: string) => {
 
 const VenueSection = ({ ceremonyVenue = "Villa Cimbrone Gardens", receptionVenue = "The Grand Hall", weddingDate, ceremonyTime, coupleNames }: VenueSectionProps) => {
   const mapQuery = encodeURIComponent(ceremonyVenue);
+  const venuePoints = [
+    { label: "Entrance", detail: "Start here for arrivals and check-in.", className: "left-[42%] bottom-[8%]", icon: DoorOpen },
+    { label: "Ceremony", detail: ceremonyVenue, className: "left-[35%] top-[14%]", icon: MapPin },
+    { label: "Reception", detail: receptionVenue || "Reception area", className: "right-[16%] top-[34%]", icon: Utensils },
+    { label: "Bar", detail: "Drinks and refreshments.", className: "left-[10%] top-[38%]", icon: Martini },
+    { label: "Dance Floor", detail: "Music, first dance and late-night celebration.", className: "left-[34%] bottom-[32%]", icon: Music },
+    { label: "Photo Booth", detail: "Capture memories for the couple.", className: "right-[10%] bottom-[18%]", icon: Camera },
+    { label: "Gift Table", detail: "Cards, gifts and keepsakes.", className: "left-[13%] bottom-[18%]", icon: Gift },
+  ];
 
   return (
     <section className="wedding-section bg-background">
@@ -114,6 +123,52 @@ const VenueSection = ({ ceremonyVenue = "Villa Cimbrone Gardens", receptionVenue
             </div>
           </motion.div>
         </div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.8 }}
+          className="mt-16"
+        >
+          <div className="mb-8 text-center">
+            <p className="wedding-label mb-4">EXPLORE THE VENUE</p>
+            <h3 className="font-display text-3xl md:text-5xl font-light">Event Map</h3>
+            <p className="mx-auto mt-3 max-w-xl font-body text-sm leading-7 text-muted-foreground">
+              Once you arrive, use this layout to find the ceremony, reception, photos, gifts and celebration spaces.
+            </p>
+          </div>
+
+          <div className="relative mx-auto aspect-[4/3] max-w-3xl overflow-hidden border border-border/60 bg-[linear-gradient(145deg,hsl(var(--wedding-blush)),hsl(var(--wedding-ivory))_48%,hsl(var(--wedding-champagne)))] p-5 shadow-xl shadow-foreground/5">
+            <div className="absolute left-1/2 top-6 -translate-x-1/2 rounded-full border border-foreground/15 bg-background/75 px-8 py-3 text-center font-body text-[10px] font-semibold uppercase tracking-[0.25em]">
+              Stage
+            </div>
+            <div className="absolute left-[26%] top-[30%] h-16 w-24 rounded-full border border-foreground/10 bg-background/55" />
+            <div className="absolute right-[25%] top-[30%] h-16 w-24 rounded-full border border-foreground/10 bg-background/55" />
+            <div className="absolute left-[24%] bottom-[28%] h-16 w-24 rounded-full border border-foreground/10 bg-background/55" />
+            <div className="absolute right-[24%] bottom-[28%] h-16 w-24 rounded-full border border-foreground/10 bg-background/55" />
+            <div className="absolute left-1/2 bottom-[33%] -translate-x-1/2 rounded-full border border-wedding-gold/40 bg-background/75 px-6 py-3 font-body text-[10px] uppercase tracking-[0.2em]">
+              Table 7 · You
+            </div>
+
+            {venuePoints.map((point) => {
+              const Icon = point.icon;
+              return (
+                <button
+                  key={point.label}
+                  title={`${point.label}: ${point.detail}`}
+                  className={`absolute ${point.className} group flex h-10 w-10 items-center justify-center rounded-full bg-foreground text-background shadow-lg transition-transform hover:scale-105`}
+                >
+                  <Icon className="h-4 w-4" />
+                  <span className="pointer-events-none absolute left-1/2 top-11 z-10 w-36 -translate-x-1/2 rounded-xl bg-foreground px-3 py-2 text-center font-body text-[10px] leading-4 text-background opacity-0 shadow-lg transition-opacity group-hover:opacity-100 group-focus:opacity-100">
+                    <strong className="block">{point.label}</strong>
+                    {point.detail}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </motion.div>
       </div>
     </section>
   );

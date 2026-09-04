@@ -1,4 +1,4 @@
-import { ReactNode } from "react";
+import { ReactNode, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Bell, CalendarDays, Camera, Check, Globe2, Home, Plus, User, Users, X } from "lucide-react";
 
@@ -12,6 +12,7 @@ interface DashboardLayoutProps {
   onTabChange?: (tab: string) => void;
   notificationCount?: number;
   onRestartTour?: () => void;
+  notifications?: { id: string; title: string; body: string; targetTab?: string }[];
 }
 
 const getCountdown = (dateStr?: string) => {
@@ -36,14 +37,16 @@ const DashboardLayout = ({
   onTabChange,
   notificationCount = 0,
   onRestartTour,
+  notifications = [],
 }: DashboardLayoutProps) => {
+  const [showNotifications, setShowNotifications] = useState(false);
   const navigate = useNavigate();
   const firstName = coupleName.split("&")[0]?.trim() || "there";
   const tabs = [
     { id: "home", label: "Home", icon: Home },
     { id: "guests", label: "Guests", icon: Users },
     { id: "calendar", label: "Calendar", icon: CalendarDays },
-    { id: "moments", label: "Moments", icon: Camera },
+    { id: "moments", label: "Memories", icon: Camera },
     { id: "website", label: "Website", icon: Globe2 },
     { id: "profile", label: "Profile", icon: User },
   ];
@@ -57,7 +60,7 @@ const DashboardLayout = ({
 
   return (
     <div className="min-h-screen bg-[#dedede] md:py-6">
-      <div className="mobile-pwa-frame relative mx-auto min-h-screen md:min-h-[880px] md:max-h-[920px] md:w-[430px] overflow-hidden bg-[linear-gradient(145deg,#ffd9c9_0%,#f8f4ef_48%,#d9b5f1_100%)] shadow-2xl md:rounded-[34px] md:border-[10px] md:border-[#f1f1f1]">
+      <div className="mobile-pwa-frame relative mx-auto min-h-screen w-full max-w-[430px] md:min-h-[880px] md:max-h-[920px] overflow-hidden bg-[linear-gradient(145deg,#ffd9c9_0%,#f8f4ef_48%,#d9b5f1_100%)] shadow-2xl md:rounded-[34px] md:border-[10px] md:border-[#f1f1f1]">
         <div className="absolute top-[calc(env(safe-area-inset-top)+13px)] left-0 right-0 z-50 pointer-events-none">
           <div className="mx-auto h-8 w-[104px] rounded-full bg-black" />
           <div className="absolute left-8 top-1 font-body text-[12px] font-bold text-black">11:30</div>
@@ -98,6 +101,7 @@ const DashboardLayout = ({
                     <Plus className="w-5 h-5" />
                   </button>
                   <button
+                    onClick={() => setShowNotifications((visible) => !visible)}
                     className="relative w-12 h-12 rounded-full bg-white border border-white/70 flex items-center justify-center shadow-sm"
                     aria-label="Notifications"
                   >
@@ -108,6 +112,12 @@ const DashboardLayout = ({
                       </span>
                     )}
                   </button>
+                  {showNotifications && (
+                    <div className="absolute right-5 top-[calc(env(safe-area-inset-top)+112px)] z-50 w-[calc(100vw-40px)] max-w-[390px] rounded-[24px] border border-white/80 bg-[#fbf8f4]/95 p-4 shadow-2xl backdrop-blur-xl">
+                      <div className="flex items-center justify-between"><h3 className="font-body text-base font-semibold">Notifications</h3><button onClick={() => setShowNotifications(false)} aria-label="Close notifications"><X className="h-4 w-4" /></button></div>
+                      <div className="mt-3 space-y-2">{notifications.length ? notifications.slice(0, 6).map((notification) => <button key={notification.id} onClick={() => { setShowNotifications(false); if (notification.targetTab) onTabChange?.(notification.targetTab); }} className="w-full rounded-2xl bg-white p-3 text-left"><p className="font-body text-sm font-medium">{notification.title}</p><p className="mt-1 font-body text-xs text-muted-foreground">{notification.body}</p></button>) : <p className="py-4 text-center font-body text-sm text-muted-foreground">You’re all caught up.</p>}</div>
+                    </div>
+                  )}
                 </>
               )}
             </div>

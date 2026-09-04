@@ -1,30 +1,24 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 
 const CoupleLogin = () => {
-  const [code, setCode] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const navigate = useNavigate();
+  const { signIn } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
 
-    const { data, error } = await supabase
-      .from("weddings")
-      .select("id, slug")
-      .eq("access_code", code.trim())
-      .maybeSingle();
-
-    if (error || !data) {
-      toast.error("Invalid wedding code. Please try again.");
+    const { error } = await signIn(email.trim(), password);
+    if (error) {
+      toast.error(error.message || "Unable to sign in. Please try again.");
     } else {
-      sessionStorage.setItem("couple_wedding_id", data.id);
-      sessionStorage.setItem("couple_wedding_slug", data.slug);
-      sessionStorage.setItem("couple_access_code", code.trim());
       navigate("/couple-dashboard");
     }
     setSubmitting(false);
@@ -40,21 +34,22 @@ const CoupleLogin = () => {
         <p className="wedding-label mb-3">COUPLE ACCESS</p>
         <h1 className="font-display text-4xl font-light mb-2">Welcome</h1>
         <p className="font-body text-sm text-muted-foreground mb-10">
-          Enter your wedding code to access your dashboard.
+          Sign in to access your wedding dashboard.
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <label className="wedding-label block mb-2">WEDDING CODE</label>
+            <label className="wedding-label block mb-2">EMAIL</label>
             <input
-              type="text"
+              type="email"
               required
-              value={code}
-              onChange={(e) => setCode(e.target.value)}
-              placeholder="Enter your code"
-              className="w-full bg-transparent border-b border-foreground/20 py-3 font-body text-sm text-center tracking-[0.3em] uppercase focus:outline-none focus:border-foreground transition-colors"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="you@example.com"
+              className="w-full bg-transparent border-b border-foreground/20 py-3 font-body text-sm text-center focus:outline-none focus:border-foreground transition-colors"
             />
           </div>
+          <div><label className="wedding-label block mb-2">PASSWORD</label><input type="password" required value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Your password" className="w-full bg-transparent border-b border-foreground/20 py-3 font-body text-sm text-center focus:outline-none focus:border-foreground transition-colors" /></div>
 
           <button
             type="submit"

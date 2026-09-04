@@ -15,6 +15,7 @@ import DressCodeSection from "@/components/wedding/DressCodeSection";
 import RSVPSection from "@/components/wedding/RSVPSection";
 import WeddingFooter from "@/components/wedding/WeddingFooter";
 import { Helmet } from "react-helmet-async";
+import { getWeddingPhase } from "@/lib/weddingPhase";
 
 const VenueSection = lazy(() => import("@/components/wedding/VenueSection"));
 const PhotoGallery = lazy(() => import("@/components/wedding/PhotoGallery"));
@@ -24,6 +25,7 @@ const WeddingUpdates = lazy(() => import("@/components/wedding/WeddingUpdates"))
 const WeddingChatAssistant = lazy(() => import("@/components/wedding/WeddingChatAssistant"));
 const Guestbook = lazy(() => import("@/components/wedding/Guestbook"));
 const LiveFeed = lazy(() => import("@/components/wedding/LiveFeed"));
+const SmartArrivalCheckin = lazy(() => import("@/components/wedding/SmartArrivalCheckin"));
 
 const SectionPlaceholder = () => (
   <div className="py-20 flex justify-center">
@@ -106,6 +108,7 @@ const WeddingPage = () => {
   const weddingDate = wedding.wedding_date
     ? new Date(wedding.wedding_date).toLocaleDateString("en-US", { day: "numeric", month: "long", year: "numeric" }).toUpperCase()
     : "";
+  const weddingPhase = getWeddingPhase(wedding, events);
 
   const handleAddToCalendar = () => {
     if (wedding.wedding_date) {
@@ -153,6 +156,12 @@ const WeddingPage = () => {
           color: `hsl(${(wedding.theme as Record<string, string>).foreground})`,
         } as React.CSSProperties : undefined}
       >
+        {weddingPhase === "wedding_day" || weddingPhase === "live" ? (
+          <div className="sticky top-0 z-40 bg-[#202020] px-5 py-3 text-center text-white shadow-lg">
+            <p className="font-body text-[10px] font-semibold uppercase tracking-[0.18em]">{weddingPhase === "live" ? "Wedding Live" : "Today's the Day"}</p>
+            <p className="mt-1 font-body text-xs text-white/70">{wedding.couple_names} · Your schedule and celebration are ready.</p>
+          </div>
+        ) : null}
         {/* 2. Nav */}
         <WeddingNav coupleNames={wedding.couple_names} />
 
@@ -200,6 +209,19 @@ const WeddingPage = () => {
                 coupleNames={wedding.couple_names}
               />
             </div>
+          </LazyVisible>
+        )}
+
+        {wedding.ceremony_venue && (
+          <LazyVisible>
+            <SmartArrivalCheckin
+              weddingId={wedding.id}
+              coupleNames={wedding.couple_names}
+              venue={wedding.ceremony_venue}
+              venueLatitude={(wedding as any).venue_latitude}
+              venueLongitude={(wedding as any).venue_longitude}
+              checkinRadiusMeters={(wedding as any).checkin_radius_meters}
+            />
           </LazyVisible>
         )}
 
