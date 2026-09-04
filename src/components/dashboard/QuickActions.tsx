@@ -4,10 +4,23 @@ import { toast } from "sonner";
 interface QuickActionsProps {
   weddingSlug: string;
   onEditDetails: () => void;
+  onTabChange?: (tab: string) => void;
 }
 
-const QuickActions = ({ weddingSlug, onEditDetails }: QuickActionsProps) => {
+const QuickActions = ({ weddingSlug, onEditDetails, onTabChange }: QuickActionsProps) => {
   const scrollTo = (id: string) => {
+    if (id === "dashboard-activity" && onTabChange) {
+      onTabChange("guests");
+      return;
+    }
+    if (id === "dashboard-photos" && onTabChange) {
+      onTabChange("moments");
+      return;
+    }
+    if (id === "dashboard-messages" && onTabChange) {
+      onTabChange("guests");
+      return;
+    }
     const el = document.getElementById(id);
     if (el) {
       el.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -32,7 +45,7 @@ const QuickActions = ({ weddingSlug, onEditDetails }: QuickActionsProps) => {
           className="inline-flex items-center gap-2 px-4 py-2.5 border border-border font-body text-xs tracking-[0.1em] uppercase hover:bg-muted transition-colors min-h-[40px]"
         >
           <CalendarPlus className="w-3.5 h-3.5" />
-          View Events & RSVPs
+          View RSVPs
         </button>
         <button
           onClick={() => scrollTo("dashboard-photos")}
