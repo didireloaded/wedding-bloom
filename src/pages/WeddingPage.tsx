@@ -21,6 +21,7 @@ import GuestBottomNav from "@/components/wedding/GuestBottomNav";
 import GuestHome from "@/components/wedding/GuestHome";
 import NotificationPrompt from "@/components/wedding/NotificationPrompt";
 import { getGuestSessionToken } from "@/lib/guestSession";
+import { GuestWeddingRealtime } from "@/components/realtime/WeddingRealtime";
 
 const VenueSection = lazy(() => import("@/components/wedding/VenueSection"));
 const PhotoGallery = lazy(() => import("@/components/wedding/PhotoGallery"));
@@ -168,6 +169,10 @@ const WeddingPage = () => {
           color: `hsl(${(wedding.theme as Record<string, string>).foreground})`,
         } as React.CSSProperties : undefined}
       >
+        <GuestWeddingRealtime
+          weddingId={wedding.id}
+          onEvent={() => window.dispatchEvent(new CustomEvent("forevervow:guest-realtime"))}
+        />
         {weddingPhase === "wedding_day" || weddingPhase === "live" ? (
           <div className="sticky top-0 z-40 bg-[#202020] px-5 py-3 text-center text-white shadow-lg">
             <p className="font-body text-[10px] font-semibold uppercase tracking-[0.18em]">{weddingPhase === "live" ? "Wedding Live" : "Today's the Day"}</p>

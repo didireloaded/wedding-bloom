@@ -23,6 +23,7 @@ import SetupProgress from "@/components/dashboard/SetupProgress";
 import QuickActions from "@/components/dashboard/QuickActions";
 import EditWeddingDetails from "@/components/dashboard/EditWeddingDetails";
 import NotificationPreferences from "@/components/dashboard/NotificationPreferences";
+import { WeddingRealtime } from "@/components/realtime/WeddingRealtime";
 import { getWeddingPhase } from "@/lib/weddingPhase";
 
 const withTimeout = async <T,>(promise: Promise<T>, ms = 4500): Promise<T> => {
@@ -342,6 +343,7 @@ const CoupleDashboard = () => {
       onRestartTour={() => setShowTour(true)}
       notifications={notifications}
     >
+      <WeddingRealtime weddingId={weddingId!} onEvent={() => void fetchData()} />
       {/* Walkthrough Tour */}
       <DashboardWalkthrough
         weddingId={weddingId!}
