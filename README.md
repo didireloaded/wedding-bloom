@@ -1,4 +1,8 @@
-# Welcome to your Lovable project
+# ForeverVow / Wedding Bloom
+
+## Native Web Push
+
+The browser only needs the public VAPID key as `VITE_VAPID_PUBLIC_KEY`. Configure `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`, and `NOTIFICATION_ENGINE_SECRET` as Supabase Edge Function secrets. Never place the private key in `.env`, `VITE_*`, the service worker, or Git. Invoke `process-notifications` from a protected Supabase Cron job using the engine secret.
 
 ## Project info
 
