@@ -1,0 +1,10 @@
+import { useState } from "react";
+
+const steps = ["The Two of You", "Your Wedding", "Your Story", "The Celebration", "Guest Information", "Your Photos", "Review"];
+
+export default function OnboardingWizard() {
+  const [step, setStep] = useState(0);
+  const [saved, setSaved] = useState(false);
+  const saveAndContinue = () => { setSaved(true); setStep((current) => Math.min(current + 1, steps.length - 1)); };
+  return <main className="min-h-screen bg-[#dedede] px-5 py-10"><div className="mx-auto max-w-[430px] rounded-[30px] bg-[#fbf8f4] p-6 shadow-xl"><p className="font-body text-xs uppercase tracking-[0.16em] text-muted-foreground">ForeverVow setup</p><div className="mt-5 flex items-center justify-between"><span className="font-body text-xs">Step {step + 1} of {steps.length}</span><span className="font-body text-xs text-muted-foreground">{Math.round(((step + 1) / steps.length) * 100)}%</span></div><div className="mt-2 h-1 rounded-full bg-black/10"><div className="h-1 rounded-full bg-[#202020] transition-all" style={{ width: `${((step + 1) / steps.length) * 100}%` }} /></div><h1 className="mt-8 font-body text-3xl font-semibold">{steps[step]}</h1><p className="mt-2 font-body text-sm text-muted-foreground">Add the details your wedding website needs. Your progress is kept as you move through setup.</p><div className="mt-8 space-y-3"><input placeholder={step === 0 ? "Your names" : step === 1 ? "Wedding date" : "Add a detail"} className="w-full rounded-2xl border border-black/10 bg-white px-4 py-4 font-body text-sm outline-none focus:border-black/30" /><textarea placeholder="Optional notes" className="min-h-28 w-full rounded-2xl border border-black/10 bg-white px-4 py-4 font-body text-sm outline-none focus:border-black/30" /></div><button onClick={saveAndContinue} className="mt-6 w-full rounded-full bg-[#202020] px-4 py-4 font-body text-xs font-semibold uppercase tracking-[0.14em] text-white">{step === steps.length - 1 ? "Review Wedding" : "Save and Continue"}</button>{saved && <p className="mt-3 text-center font-body text-xs text-emerald-700">Progress saved.</p>}</div></main>;
+}

@@ -15,6 +15,7 @@ const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
 const AdminWeddingEditor = lazy(() => import("./pages/AdminWeddingEditor"));
 const CoupleLogin = lazy(() => import("./pages/CoupleLogin"));
 const CoupleDashboard = lazy(() => import("./pages/CoupleDashboard"));
+const OnboardingWizard = lazy(() => import("./components/couple/OnboardingWizard"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
@@ -43,6 +44,7 @@ const App = () => (
                 <Route path="/admin/wedding/:id" element={<AdminWeddingEditor />} />
                 <Route path="/couple-login" element={<CoupleLogin />} />
                 <Route path="/couple-dashboard" element={<CoupleDashboard />} />
+                <Route path="/couple-onboarding" element={<OnboardingWizard />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </Suspense>
