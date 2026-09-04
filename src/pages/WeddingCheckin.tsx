@@ -60,17 +60,10 @@ const WeddingCheckin = () => {
       toast.error("Please enter your name.");
       return;
     }
+    // The legacy route must not write directly to checkins. The embedded flow
+    // validates the guest session, RSVP, location/QR token, and duplicate state.
     setSubmitting(true);
-    const [, match] = await Promise.all([
-      supabase.from("checkins").insert({
-        wedding_id: wedding.id,
-        guest_name: name.trim(),
-      } as any),
-      findRsvpMatch(name),
-    ]);
-    setRsvpMatch(match);
-    setCheckedIn(true);
-    setSubmitting(false);
+    window.location.assign(`/wedding/${slug}#checkin`);
   };
 
   if (loading) {
