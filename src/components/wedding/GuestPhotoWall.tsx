@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Camera } from "lucide-react";
+import { getGuestSessionToken } from "@/lib/guestSession";
 
 const optimizeImage = (file: File): Promise<Blob> => new Promise((resolve, reject) => {
   const image = new Image();
@@ -60,16 +61,20 @@ const GuestPhotoWall = ({ weddingId }: GuestPhotoWallProps) => {
     for (const [index, file] of selectedFiles.entries()) {
       setUploadProgress(`${index + 1} of ${selectedFiles.length}`);
       const optimized = await optimizeImage(file);
-      const path = `${weddingId}/photos/${Date.now()}-${Math.random().toString(36).slice(2)}.jpg`;
+      const guestSession = getGuestSessionToken(weddingId);
+      let path = `${weddingId}/photos/${Date.now()}-${Math.random().toString(36).slice(2)}.jpg`;
+      if (guestSession) {
+        const authorization = await supabase.functions.invoke("register-memory-upload", { body: { wedding_id: weddingId, guest_session: guestSession, file_name: file.name, mime_type: "image/jpeg", file_size: optimized.size } });
+        if (authorization.error || !authorization.data?.storage_path) throw authorization.error || new Error("Upload authorization failed");
+        path = authorization.data.storage_path;
+      }
       const { error } = await supabase.storage.from("wedding-assets").upload(path, optimized, { contentType: "image/jpeg" });
       if (!error) {
         const { data: { publicUrl } } = supabase.storage.from("wedding-assets").getPublicUrl(path);
-        await supabase.from("guest_photos").insert({
-          image_url: publicUrl,
-          wedding_id: weddingId,
-          guest_name: guestName || "Guest",
-          caption: caption.trim() || null,
-        });
+        if (guestSession) {
+          const completed = await supabase.functions.invoke("complete-memory-upload", { body: { wedding_id: weddingId, guest_session: guestSession, storage_path: path, image_url: publicUrl, guest_name: guestName || "Guest", caption: caption.trim() || null } });
+          if (completed.error) throw completed.error;
+        } else await supabase.from("guest_photos").insert({ image_url: publicUrl, wedding_id: weddingId, guest_name: guestName || "Guest", caption: caption.trim() || null } as any);
       }
     }
     toast.success(`${selectedFiles.length} photo${selectedFiles.length === 1 ? "" : "s"} uploaded. They'll appear after approval.`);
