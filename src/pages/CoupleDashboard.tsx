@@ -18,6 +18,7 @@ import DashboardWalkthrough from "@/components/dashboard/DashboardWalkthrough";
 import SetupProgress from "@/components/dashboard/SetupProgress";
 import EditWeddingDetails from "@/components/dashboard/EditWeddingDetails";
 import NotificationPreferences from "@/components/dashboard/NotificationPreferences";
+import AIChatAssistant from "@/components/dashboard/AIChatAssistant";
 import { WeddingRealtime } from "@/components/realtime/WeddingRealtime";
 import { getWeddingPhase } from "@/lib/weddingPhase";
 import { useAuth } from "@/hooks/useAuth";
@@ -613,6 +614,12 @@ const CoupleDashboard = () => {
             <button onClick={() => { void sendPushReminder(selectedGuest.id); setSelectedGuest(null); }} className="mt-4 w-full rounded-full bg-[#202020] px-4 py-3 font-body text-xs font-semibold uppercase tracking-[0.12em] text-white"><Send className="mr-2 inline h-4 w-4" />Send RSVP reminder</button>
           </div>
         </div>
+      )}
+
+      {!previewRequested && weddingId && (
+        <section className="mt-5">
+          <AIChatAssistant weddingId={weddingId} />
+        </section>
       )}
 
       {/* Edit Wedding Details Modal */}

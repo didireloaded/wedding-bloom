@@ -74,13 +74,13 @@ const CSVImporter = ({ adminUserId, onComplete }: CSVImporterProps) => {
       if (error) throw error;
       if (data?.mapping) {
         setMapping(data.mapping);
-        toast.success("AI mapped your columns successfully");
+        toast.success("Columns mapped successfully");
       } else {
-        toast.error("AI could not map columns — please map manually");
+        toast.error("Columns could not be mapped. Please map them manually.");
       }
     } catch (err) {
-      console.error("AI analysis failed:", err);
-      toast.error("AI analysis failed — please map columns manually");
+      console.error("Column analysis failed:", err);
+      toast.error("Column analysis failed. Please map columns manually.");
     }
     setStage("preview");
   };
@@ -143,7 +143,7 @@ const CSVImporter = ({ adminUserId, onComplete }: CSVImporterProps) => {
       } catch (err) {
         console.error(`Theme detection failed for ${w.couple_names}:`, err);
         // Default fallback
-        themes.set(i, { theme: "Classic white", new_theme: false, reason: "Fallback — AI analysis failed" });
+        themes.set(i, { theme: "Classic white", new_theme: false, reason: "Fallback used because theme analysis failed" });
       }
 
       setThemeProgress(Math.round(((i + 1) / weddings.length) * 100));
@@ -275,12 +275,12 @@ const CSVImporter = ({ adminUserId, onComplete }: CSVImporterProps) => {
     <div className="border border-border p-6 space-y-6">
       <div className="flex items-center gap-3">
         <Sparkles className="w-5 h-5 text-wedding-gold" />
-        <h2 className="font-display text-xl font-light">AI-Assisted Wedding Import</h2>
+        <h2 className="font-body text-xl font-semibold">Wedding import</h2>
       </div>
 
       <div className="flex items-center gap-2 px-3 py-2 bg-muted/50 border border-border text-xs font-body text-muted-foreground">
         <Shield className="w-3.5 h-3.5" />
-        <span>AI maps fields, cleans data & detects themes — never invents details. Nothing saved until you confirm.</span>
+        <span>ForeverVow maps fields, cleans data and detects themes. Nothing is saved until you confirm.</span>
       </div>
 
       <AnimatePresence mode="wait">
@@ -302,7 +302,7 @@ const CSVImporter = ({ adminUserId, onComplete }: CSVImporterProps) => {
         {stage === "analyzing" && (
           <motion.div key="analyzing" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex flex-col items-center gap-3 py-12">
             <Sparkles className="w-6 h-6 text-wedding-gold animate-spin" />
-            <p className="font-body text-sm text-muted-foreground">AI is analyzing your CSV columns...</p>
+            <p className="font-body text-sm text-muted-foreground">Analyzing your CSV columns...</p>
             <p className="font-body text-xs text-muted-foreground">{rawRows.length} rows · {csvColumns.length} columns detected</p>
           </motion.div>
         )}
@@ -311,7 +311,7 @@ const CSVImporter = ({ adminUserId, onComplete }: CSVImporterProps) => {
         {stage === "themes" && (
           <motion.div key="themes" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex flex-col items-center gap-4 py-12">
             <Palette className="w-6 h-6 text-wedding-gold animate-pulse" />
-            <p className="font-body text-sm text-muted-foreground">AI is detecting wedding themes...</p>
+            <p className="font-body text-sm text-muted-foreground">Detecting wedding themes...</p>
             <div className="w-full max-w-xs bg-muted h-2">
               <div className="bg-foreground h-2 transition-all duration-300" style={{ width: `${themeProgress}%` }} />
             </div>
@@ -328,7 +328,7 @@ const CSVImporter = ({ adminUserId, onComplete }: CSVImporterProps) => {
                 <ArrowRight className="w-4 h-4 text-wedding-gold" />
                 <p className="wedding-label">COLUMN MAPPING</p>
               </div>
-              <p className="font-body text-xs text-muted-foreground">AI suggested these mappings. Adjust if needed.</p>
+              <p className="font-body text-xs text-muted-foreground">Review these suggested mappings and adjust if needed.</p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {SYSTEM_FIELDS.map(({ key, label }) => (
                   <div key={key} className="flex items-center gap-2">
@@ -355,7 +355,7 @@ const CSVImporter = ({ adminUserId, onComplete }: CSVImporterProps) => {
                 onClick={detectThemes}
                 className="flex items-center gap-2 px-6 py-3 border border-wedding-gold/40 text-wedding-gold font-body text-xs tracking-[0.2em] uppercase hover:bg-wedding-gold/5 transition-colors"
               >
-                <Palette className="w-4 h-4" /> DETECT THEMES WITH AI
+                <Palette className="w-4 h-4" /> DETECT THEMES
               </button>
             )}
 
@@ -406,7 +406,7 @@ const CSVImporter = ({ adminUserId, onComplete }: CSVImporterProps) => {
                 {/* AI Theme Decisions Log */}
                 {themesDetected && (
                   <div className="space-y-2">
-                    <p className="wedding-label">AI THEME DECISIONS</p>
+                    <p className="wedding-label">THEME DECISIONS</p>
                     <div className="space-y-1 max-h-40 overflow-y-auto">
                       {previewData.map((w, i) => {
                         const theme = detectedThemes.get(i);
@@ -417,7 +417,7 @@ const CSVImporter = ({ adminUserId, onComplete }: CSVImporterProps) => {
                             <div>
                               <span className="font-medium">{w.couple_names}</span>
                               <span className="text-muted-foreground"> → {theme.theme}</span>
-                              {theme.new_theme && <span className="text-wedding-gold"> (AI Generated)</span>}
+                              {theme.new_theme && <span className="text-wedding-gold"> (New)</span>}
                               {theme.reason && <p className="text-muted-foreground mt-0.5">{theme.reason}</p>}
                             </div>
                           </div>

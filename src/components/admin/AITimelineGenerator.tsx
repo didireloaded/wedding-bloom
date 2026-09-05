@@ -36,7 +36,7 @@ const AITimelineGenerator = ({ ceremonyTime, receptionTime, venue, onGenerated }
     <div className="p-4 border border-wedding-gold/30 bg-wedding-champagne/10 space-y-3">
       <div className="flex items-center gap-2">
         <Sparkles className="w-4 h-4 text-wedding-gold" />
-        <h4 className="wedding-label">AI TIMELINE GENERATOR</h4>
+        <h4 className="wedding-label">TIMELINE BUILDER</h4>
       </div>
       <p className="font-body text-xs text-muted-foreground">Generate a professional wedding day timeline based on your times.</p>
       <div>

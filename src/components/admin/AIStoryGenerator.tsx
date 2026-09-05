@@ -37,7 +37,7 @@ const AIStoryGenerator = ({ coupleNames, onGenerated }: AIStoryGeneratorProps) =
   if (!open) {
     return (
       <button onClick={() => setOpen(true)} className="inline-flex items-center gap-2 px-4 py-2 border border-wedding-gold/30 text-wedding-gold font-body text-xs tracking-[0.2em] uppercase hover:bg-wedding-gold/10 transition-colors">
-        <Wand2 className="w-4 h-4" /> Generate with AI
+        <Wand2 className="w-4 h-4" /> Polish story
       </button>
     );
   }
@@ -46,7 +46,7 @@ const AIStoryGenerator = ({ coupleNames, onGenerated }: AIStoryGeneratorProps) =
     <div className="p-6 border border-wedding-gold/30 bg-wedding-champagne/10 space-y-4">
       <div className="flex items-center gap-2 mb-2">
         <Sparkles className="w-4 h-4 text-wedding-gold" />
-        <h4 className="wedding-label">AI STORY GENERATOR</h4>
+        <h4 className="wedding-label">STORY DRAFT</h4>
       </div>
       <div>
         <label className="wedding-label block mb-1">HOW DID YOU MEET?</label>

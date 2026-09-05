@@ -11,8 +11,8 @@ serve(async (req) => {
 
   try {
     const { columns, type, data } = await req.json();
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
+    const GOOGLE_AI_STUDIO_API_KEY = Deno.env.get("GOOGLE_AI_STUDIO_API_KEY");
+    if (!GOOGLE_AI_STUDIO_API_KEY) throw new Error("GOOGLE_AI_STUDIO_API_KEY is not configured");
 
     let prompt: string;
 
@@ -66,14 +66,14 @@ Return ONLY a JSON object mapping system field names to the matching CSV column 
 If a field has no match, omit it from the output.`;
     }
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const response = await fetch("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        Authorization: `Bearer ${GOOGLE_AI_STUDIO_API_KEY}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
+        model: "gemini-3-flash-preview",
         messages: [{ role: "user", content: prompt }],
       }),
     });
@@ -86,14 +86,14 @@ If a field has no match, omit it from the output.`;
         });
       }
       if (response.status === 402) {
-        return new Response(JSON.stringify({ error: "AI credits exhausted. Please add funds in Settings → Workspace → Usage." }), {
+        return new Response(JSON.stringify({ error: "Analysis service is currently unavailable." }), {
           status: 402,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
       const t = await response.text();
-      console.error("AI gateway error:", response.status, t);
-      throw new Error(`AI gateway error: ${response.status}`);
+      console.error("Analysis provider error:", response.status, t);
+      throw new Error(`Analysis provider error: ${response.status}`);
     }
 
     const aiData = await response.json();

@@ -345,7 +345,7 @@ const WeddingPage = () => {
         <div className="hidden md:block"><WeddingFooter coupleNames={wedding.couple_names} date={weddingDate} venue={wedding.ceremony_venue} /></div>
 
         {/* 16. Chat Assistant */}
-        {!isPostWedding && <div className="hidden md:block"><LazyVisible><WeddingChatAssistant weddingData={wedding} events={events} gallery={gallery} updates={updates} /></LazyVisible></div>}
+        {!isPostWedding && <LazyVisible><WeddingChatAssistant weddingId={wedding.id} weddingData={wedding} events={events} gallery={gallery} updates={updates} /></LazyVisible>}
 
         <div className="md:hidden"><GuestBottomNav tabs={guestExperience.tabs} active={guestTab} onChange={handleGuestAction} /></div>
       </div>

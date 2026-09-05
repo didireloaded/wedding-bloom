@@ -14,3 +14,9 @@ verify_jwt = false
 
 [functions.analyze-wedding-theme]
 verify_jwt = false
+
+[functions.resend-admin-webhook]
+verify_jwt = false
+
+[functions.resend-couple-webhook]
+verify_jwt = false

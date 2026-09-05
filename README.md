@@ -4,23 +4,11 @@
 
 The browser only needs the public VAPID key as `VITE_VAPID_PUBLIC_KEY`. Configure `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`, and `NOTIFICATION_ENGINE_SECRET` as Supabase Edge Function secrets. Never place the private key in `.env`, `VITE_*`, the service worker, or Git. Invoke `process-notifications` from a protected Supabase Cron job using the engine secret.
 
-## Project info
-
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+Resend delivery webhooks are handled by the public `resend-admin-webhook` and `resend-couple-webhook` Edge Functions. Configure `RESEND_ADMIN_WEBHOOK_SECRET` and `RESEND_COUPLE_WEBHOOK_SECRET` as Supabase Edge Function secrets; never expose either signing secret through a `VITE_*` variable. Both handlers verify the raw signed request, deduplicate it with the `svix-id`, and store the verified event in `resend_webhook_events`.
 
 ## How can I edit this code?
 
-There are several ways of editing your application.
-
-**Use Lovable**
-
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
-
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+Work in the existing repository with Codex or your preferred IDE. Keep changes scoped and preserve working guest, couple, and admin flows.
 
 The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
 
@@ -64,14 +52,6 @@ This project is built with:
 - shadcn-ui
 - Tailwind CSS
 
-## How can I deploy this project?
+## Deployment
 
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+The public PWA is deployed through ChatGPT Sites. Supabase provides authentication, database, storage, realtime, and Edge Functions.

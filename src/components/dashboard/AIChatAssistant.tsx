@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { MessageSquare, Send, Sparkles, Minimize2, Maximize2 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
+import { supabase } from "@/integrations/supabase/client";
 
 interface ChatMessage {
   role: "user" | "assistant";
@@ -47,11 +48,14 @@ const AIChatAssistant = ({ weddingId, isAdmin = false }: AIChatAssistantProps) =
     };
 
     try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const accessToken = sessionData.session?.access_token;
+      if (!accessToken) throw new Error("Sign in required");
       const resp = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-wedding`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          Authorization: `Bearer ${accessToken}`,
         },
         body: JSON.stringify({
           type: "chat_assistant",
@@ -63,7 +67,11 @@ const AIChatAssistant = ({ weddingId, isAdmin = false }: AIChatAssistantProps) =
         }),
       });
 
-      if (!resp.ok || !resp.body) throw new Error("Stream failed");
+      if (!resp.ok) {
+        const payload = await resp.json().catch(() => null);
+        throw new Error(payload?.error || "Assistant request failed");
+      }
+      if (!resp.body) throw new Error("Assistant response was empty");
 
       const reader = resp.body.getReader();
       const decoder = new TextDecoder();
@@ -91,8 +99,9 @@ const AIChatAssistant = ({ weddingId, isAdmin = false }: AIChatAssistantProps) =
           }
         }
       }
-    } catch {
-      updateAssistant("Sorry, I couldn't process that. Please try again.");
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "";
+      updateAssistant(message === "Sign in required" ? "Please sign in to use the wedding assistant." : message || "Sorry, I couldn't process that. Please try again.");
     }
     setLoading(false);
   };
@@ -112,12 +121,12 @@ const AIChatAssistant = ({ weddingId, isAdmin = false }: AIChatAssistantProps) =
       ];
 
   return (
-    <div className={`border border-border bg-background ${expanded ? "fixed inset-4 z-50 shadow-2xl" : ""}`}>
+    <div className={`overflow-hidden rounded-[24px] border border-border bg-background ${expanded ? "fixed inset-4 z-50 shadow-2xl" : ""}`}>
       <div className="p-4 border-b border-border flex items-center justify-between">
         <div className="flex items-center gap-2">
           <MessageSquare className="w-4 h-4 text-wedding-gold" />
           <h3 className="font-body text-xs tracking-[0.15em] uppercase">
-            {isAdmin ? "Admin AI Assistant" : "AI Assistant"}
+            {isAdmin ? "Owner assistant" : "Wedding assistant"}
           </h3>
         </div>
         <button

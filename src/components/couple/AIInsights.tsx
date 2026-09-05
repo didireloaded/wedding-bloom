@@ -108,7 +108,7 @@ const AIInsights = ({ weddingData }: AIInsightsProps) => {
             <Sparkles className="w-5 h-5 text-wedding-gold" />
           </div>
           <div>
-            <h2 className="font-display text-xl font-light">AI Dashboard</h2>
+            <h2 className="font-body text-xl font-semibold">Wedding overview</h2>
             {lastGenerated && (
               <p className="font-body text-[10px] text-muted-foreground tracking-wide">
                 Last updated at {lastGenerated}
@@ -130,7 +130,7 @@ const AIInsights = ({ weddingData }: AIInsightsProps) => {
       <div className="space-y-4">
         <div className="flex items-center gap-2">
           <TrendingUp className="w-4 h-4 text-wedding-gold" />
-          <p className="wedding-label">AI INSIGHTS</p>
+          <p className="wedding-label">CURRENT OVERVIEW</p>
         </div>
 
         {loadingInsights ? (
@@ -173,7 +173,7 @@ const AIInsights = ({ weddingData }: AIInsightsProps) => {
       <div className="space-y-4">
         <div className="flex items-center gap-2">
           <Lightbulb className="w-4 h-4 text-wedding-gold" />
-          <p className="wedding-label">AI SUGGESTIONS</p>
+          <p className="wedding-label">RECOMMENDED NEXT</p>
         </div>
 
         {loadingSuggestions ? (

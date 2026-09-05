@@ -9,7 +9,7 @@ const corsHeaders = {
 // ─── Master AI System Prompt ────────────────────────────────────────────────
 // This is the shared intelligence layer injected into every task. It defines
 // the AI's role, personality, and behavioural rules for the whole platform.
-const BASE_SYSTEM_PROMPT = `You are the AI intelligence layer for a wedding website platform.
+const BASE_SYSTEM_PROMPT = `You are ForeverVow's wedding assistant.
 
 Your role is to help couples understand what is happening around their wedding website and assist guests with useful information.
 
@@ -54,8 +54,8 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
+    const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
+    if (!OPENAI_API_KEY) throw new Error("OPENAI_API_KEY is not configured");
 
     const { type, ...params } = await req.json();
 
@@ -218,10 +218,26 @@ Always call the suggest_seating tool.`,
       }
 
       case "chat_assistant": {
-        let weddingContext: any = params.weddingData || null;
+        let weddingContext: any = null;
         const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
         const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
         const sb = createClient(supabaseUrl, supabaseKey);
+        const token = req.headers.get("Authorization")?.replace(/^Bearer\s+/i, "") || "";
+        const { data: authData } = token ? await sb.auth.getUser(token) : { data: { user: null } };
+        const userId = authData.user?.id;
+
+        const isAdminUser = async () => {
+          if (!userId) return false;
+          const { data } = await sb.from("user_roles").select("role").eq("user_id", userId).eq("role", "admin").maybeSingle();
+          return Boolean(data);
+        };
+
+        const canManageWedding = async (weddingId: string) => {
+          if (!userId) return false;
+          if (await isAdminUser()) return true;
+          const { data } = await sb.from("wedding_members").select("id").eq("wedding_id", weddingId).eq("user_id", userId).maybeSingle();
+          return Boolean(data);
+        };
 
         // Helper to build context for a single wedding
         const buildWeddingContext = async (weddingId: string) => {
@@ -289,8 +305,21 @@ Always call the suggest_seating tool.`,
           };
         };
 
+        const buildPublicWeddingContext = async (weddingId: string) => {
+          const [weddingRes, eventsRes, updatesRes] = await Promise.all([
+            sb.from("weddings").select("couple_names,wedding_date,ceremony_venue,ceremony_time,reception_venue,reception_time,dress_code,story,rsvp_deadline,slug").eq("id", weddingId).eq("published", true).maybeSingle(),
+            sb.from("events").select("title,event_time,location,description").eq("wedding_id", weddingId).order("sort_order"),
+            sb.from("wedding_updates").select("message,created_at").eq("wedding_id", weddingId).order("created_at", { ascending: false }).limit(10),
+          ]);
+          if (!weddingRes.data) return null;
+          return { ...weddingRes.data, events: eventsRes.data || [], recent_updates: updatesRes.data || [] };
+        };
+
         // Admin multi-wedding mode
         if (params.isAdmin && !params.weddingId) {
+          if (!(await isAdminUser())) {
+            return new Response(JSON.stringify({ error: "Admin access required" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+          }
           const { data: allWeddings } = await sb.from("weddings").select("id, couple_names").order("created_at", { ascending: false }).limit(20);
           
           if (allWeddings && allWeddings.length > 0) {
@@ -303,8 +332,15 @@ Always call the suggest_seating tool.`,
           }
         }
         // Single wedding mode
-        else if (params.weddingId && !weddingContext) {
-          weddingContext = await buildWeddingContext(params.weddingId);
+        else if (params.weddingId) {
+          weddingContext = params.isDashboard
+            ? (await canManageWedding(params.weddingId) ? await buildWeddingContext(params.weddingId) : null)
+            : await buildPublicWeddingContext(params.weddingId);
+          if (!weddingContext) {
+            return new Response(JSON.stringify({ error: params.isDashboard ? "Wedding access required" : "Wedding not available" }), { status: params.isDashboard ? 403 : 404, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+          }
+        } else {
+          return new Response(JSON.stringify({ error: "A wedding is required" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
         }
 
         const isDashboard = params.isDashboard === true;
@@ -873,7 +909,7 @@ Return a list of moment IDs to highlight. Always call the suggest_highlights too
     }
 
     const body: any = {
-      model: "google/gemini-3-flash-preview",
+      model: "gpt-4.1-mini",
       messages,
     };
     if (tools) body.tools = tools;
@@ -882,10 +918,10 @@ Return a list of moment IDs to highlight. Always call the suggest_highlights too
     // For chat assistant, use streaming
     if (type === "chat_assistant") {
       body.stream = true;
-      const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      const response = await fetch("https://api.openai.com/v1/chat/completions", {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${LOVABLE_API_KEY}`,
+          Authorization: `Bearer ${OPENAI_API_KEY}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify(body),
@@ -894,7 +930,7 @@ Return a list of moment IDs to highlight. Always call the suggest_highlights too
       if (!response.ok) {
         const status = response.status;
         if (status === 429) return new Response(JSON.stringify({ error: "Rate limited. Please try again shortly." }), { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-        if (status === 402) return new Response(JSON.stringify({ error: "AI credits exhausted. Please add funds." }), { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        if (status === 402) return new Response(JSON.stringify({ error: "Assistant service unavailable." }), { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } });
         const t = await response.text();
         console.error("AI error:", status, t);
         return new Response(JSON.stringify({ error: "AI service error" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
@@ -906,10 +942,10 @@ Return a list of moment IDs to highlight. Always call the suggest_highlights too
     }
 
     // Non-streaming for structured outputs
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        Authorization: `Bearer ${OPENAI_API_KEY}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify(body),
@@ -918,7 +954,7 @@ Return a list of moment IDs to highlight. Always call the suggest_highlights too
     if (!response.ok) {
       const status = response.status;
       if (status === 429) return new Response(JSON.stringify({ error: "Rate limited. Please try again shortly." }), { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-      if (status === 402) return new Response(JSON.stringify({ error: "AI credits exhausted. Please add funds." }), { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      if (status === 402) return new Response(JSON.stringify({ error: "Assistant service unavailable." }), { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       const t = await response.text();
       console.error("AI error:", status, t);
       return new Response(JSON.stringify({ error: "AI service error" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });

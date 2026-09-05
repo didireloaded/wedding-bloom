@@ -9,13 +9,14 @@ interface ChatMessage {
 }
 
 interface WeddingChatAssistantProps {
+  weddingId: string;
   weddingData: any;
   events?: any[];
   gallery?: any[];
   updates?: any[];
 }
 
-const WeddingChatAssistant = ({ weddingData, events = [], gallery = [], updates = [] }: WeddingChatAssistantProps) => {
+const WeddingChatAssistant = ({ weddingId }: WeddingChatAssistantProps) => {
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
@@ -46,14 +47,6 @@ const WeddingChatAssistant = ({ weddingData, events = [], gallery = [], updates 
       });
     };
 
-    // Build richer context
-    const weddingContext = {
-      ...weddingData,
-      events,
-      gallery: gallery.map((g) => ({ url: g.image_url, caption: g.caption || "" })),
-      updates,
-    };
-
     try {
       const resp = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-wedding`, {
         method: "POST",
@@ -63,13 +56,17 @@ const WeddingChatAssistant = ({ weddingData, events = [], gallery = [], updates 
         },
         body: JSON.stringify({
           type: "chat_assistant",
+          weddingId,
           question: input.trim(),
-          weddingData: weddingContext,
           history: newMessages.slice(0, -1).map((m) => ({ role: m.role, content: m.content })),
         }),
       });
 
-      if (!resp.ok || !resp.body) throw new Error("Stream failed");
+      if (!resp.ok) {
+        const payload = await resp.json().catch(() => null);
+        throw new Error(payload?.error || "Assistant request failed");
+      }
+      if (!resp.body) throw new Error("Assistant response was empty");
 
       const reader = resp.body.getReader();
       const decoder = new TextDecoder();
@@ -95,8 +92,8 @@ const WeddingChatAssistant = ({ weddingData, events = [], gallery = [], updates 
           } catch { /* partial */ }
         }
       }
-    } catch {
-      updateAssistant("Sorry, I couldn't process that. Please try again.");
+    } catch (error) {
+      updateAssistant(error instanceof Error ? error.message : "Sorry, I couldn't process that. Please try again.");
     }
     setLoading(false);
   };
@@ -106,7 +103,8 @@ const WeddingChatAssistant = ({ weddingData, events = [], gallery = [], updates 
       {/* Floating button */}
       <motion.button
         onClick={() => setOpen(!open)}
-        className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full bg-foreground text-background flex items-center justify-center shadow-lg hover:scale-105 transition-transform"
+        aria-label={open ? "Close wedding assistant" : "Open wedding assistant"}
+        className="fixed bottom-24 right-4 z-50 w-14 h-14 rounded-full bg-foreground text-background flex items-center justify-center shadow-lg hover:scale-105 transition-transform md:bottom-6 md:right-6"
         whileTap={{ scale: 0.95 }}
       >
         {open ? <X className="w-5 h-5" /> : <MessageCircle className="w-5 h-5" />}
@@ -119,7 +117,7 @@ const WeddingChatAssistant = ({ weddingData, events = [], gallery = [], updates 
             initial={{ opacity: 0, y: 20, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
-            className="fixed bottom-24 right-4 z-50 flex max-h-[70vh] w-[calc(100vw-2rem)] flex-col overflow-hidden rounded-[24px] border border-border bg-background shadow-2xl sm:right-6 sm:w-96"
+            className="fixed bottom-40 right-4 z-50 flex max-h-[65vh] w-[calc(100vw-2rem)] flex-col overflow-hidden rounded-[24px] border border-border bg-background shadow-2xl sm:right-6 sm:w-96 md:bottom-24"
           >
             {/* Header */}
             <div className="p-4 border-b border-border flex items-center gap-2">

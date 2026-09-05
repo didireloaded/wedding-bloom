@@ -124,7 +124,7 @@ const AIInvitationGenerator = ({ coupleNames, weddingDate, venue, weddingLink, t
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Sparkles className="w-4 h-4 text-wedding-gold" />
-            <p className="wedding-label">AI INVITATION MESSAGES</p>
+            <p className="wedding-label">INVITATION MESSAGES</p>
           </div>
           <button onClick={generateMessages} disabled={loading} className="flex items-center gap-2 px-4 py-2 border border-wedding-gold/30 text-wedding-gold font-body text-xs tracking-[0.2em] uppercase hover:bg-wedding-gold/10 transition-colors min-h-[44px] disabled:opacity-50">
             <Wand2 className="w-4 h-4" /> {loading ? "GENERATING..." : "GENERATE"}
