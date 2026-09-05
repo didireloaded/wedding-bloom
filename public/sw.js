@@ -1,4 +1,4 @@
-const CACHE_NAME = 'evervow-v1';
+const CACHE_NAME = 'forevervow-v2';
 const PRECACHE_URLS = [
   '/',
   '/favicon.png',
@@ -28,7 +28,8 @@ self.addEventListener('fetch', (event) => {
   const { request } = event;
 
   // Skip non-GET and cross-origin requests
-  if (request.method !== 'GET') return;
+  const url = new URL(request.url);
+  if (request.method !== 'GET' || url.origin !== self.location.origin) return;
 
   // For navigation requests, try network first then cache
   if (request.mode === 'navigate') {
@@ -37,6 +38,9 @@ self.addEventListener('fetch', (event) => {
     );
     return;
   }
+
+  // Cache only static assets, never API responses or authenticated documents.
+  if (!['script', 'style', 'image', 'font'].includes(request.destination)) return;
 
   // For assets, use stale-while-revalidate
   event.respondWith(
@@ -69,10 +73,15 @@ self.addEventListener('push', (event) => {
 
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
-  const targetUrl = new URL(event.notification.data?.target_url || '/', self.location.origin).href;
+  let target = new URL('/', self.location.origin);
+  try {
+    const requested = new URL(event.notification.data?.target_url || '/', self.location.origin);
+    if (requested.origin === self.location.origin) target = requested;
+  } catch { /* Malformed targets open the app home. */ }
+  const targetUrl = target.href;
   event.waitUntil(self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clients) => {
-    const existing = clients.find((client) => 'focus' in client);
-    if (existing) { existing.navigate(targetUrl); return existing.focus(); }
+    const existing = clients.find((client) => client.url === targetUrl && 'focus' in client);
+    if (existing) return existing.focus();
     return self.clients.openWindow(targetUrl);
   }));
 });

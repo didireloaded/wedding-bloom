@@ -16,7 +16,7 @@ interface EventTimelineProps {
 const EventTimeline = ({ events }: EventTimelineProps) => {
   const items = events || [];
 
-  if (items.length === 0) return null;
+  if (items.length === 0) return <section className="wedding-section font-body"><h2 className="text-2xl font-semibold">Wedding schedule</h2><p className="mt-4 text-sm text-muted-foreground">The couple will share the schedule here when it is ready.</p></section>;
 
   return (
     <section className="wedding-section bg-wedding-champagne/40">

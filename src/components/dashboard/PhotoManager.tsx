@@ -41,7 +41,8 @@ const PhotoManager = ({ weddingId, galleryImages, guestPhotos, onRefresh }: Phot
     const { error } = await supabase
       .from("guest_photos")
       .update({ approved: true })
-      .eq("id", photoId);
+      .eq("id", photoId).eq("wedding_id", weddingId).select("id").single();
+    if (error) toast.error("Photo could not be approved. Please try again.");
     if (!error) {
       toast.success("Photo approved!");
       onRefresh();
@@ -49,7 +50,8 @@ const PhotoManager = ({ weddingId, galleryImages, guestPhotos, onRefresh }: Phot
   };
 
   const deletePhoto = async (photoId: string, table: "gallery" | "guest_photos") => {
-    const { error } = await supabase.from(table).delete().eq("id", photoId);
+    const { error } = await supabase.from(table).delete().eq("id", photoId).eq("wedding_id", weddingId).select("id").single();
+    if (error) toast.error("Photo could not be removed. Please try again.");
     if (!error) {
       toast.success("Photo removed");
       onRefresh();

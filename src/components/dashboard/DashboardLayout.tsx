@@ -21,9 +21,9 @@ const getCountdown = (dateStr?: string) => {
   today.setHours(0, 0, 0, 0);
   weddingDay.setHours(0, 0, 0, 0);
   const diff = Math.round((weddingDay.getTime() - today.getTime()) / 86400000);
-  if (diff === 0) return "Your wedding is today! 🎉";
+  if (diff === 0) return "Your wedding is today!";
   if (diff > 0) return `${diff} day${diff === 1 ? "" : "s"} to go`;
-  return `Married ${Math.abs(diff)} day${Math.abs(diff) === 1 ? "" : "s"} ago ✨`;
+  return `Married ${Math.abs(diff)} day${Math.abs(diff) === 1 ? "" : "s"} ago`;
 };
 
 const DashboardLayout = ({
@@ -45,7 +45,7 @@ const DashboardLayout = ({
     { id: "guests", label: "Guests", icon: Users },
     { id: "calendar", label: "Calendar", icon: CalendarDays },
     { id: "moments", label: "Memories", icon: Camera },
-    { id: "website", label: "Website", icon: Globe2 },
+    { id: "updates", label: "Updates", icon: Bell },
     { id: "profile", label: "Profile", icon: User },
   ];
 

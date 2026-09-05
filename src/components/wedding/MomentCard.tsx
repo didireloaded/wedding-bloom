@@ -1,3 +1,4 @@
+import { Heart, Hand } from "lucide-react";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
@@ -31,13 +32,11 @@ const ReactionButton = ({
   momentId,
   type,
   count,
-  emoji,
   label,
 }: {
   momentId: string;
   type: "heart" | "applause";
   count: number;
-  emoji: string;
   label: string;
 }) => {
   const key = `reacted-${momentId}-${type}`;
@@ -59,13 +58,13 @@ const ReactionButton = ({
     <div className="relative overflow-visible">
       <button
         onClick={handleReact}
-        className={`flex items-center gap-1.5 px-3 py-1.5 font-body text-xs border transition-all min-h-[36px] ${
+        className={`rounded-full flex items-center gap-1.5 px-3 py-1.5 font-body text-xs border transition-all min-h-[36px] ${
           reacted
             ? "border-wedding-gold/40 bg-wedding-champagne/20 text-foreground"
             : "border-border/40 text-muted-foreground hover:border-foreground/20"
         }`}
       >
-        <span>{emoji}</span>
+        {type === "heart" ? <Heart className="h-4 w-4" /> : <Hand className="h-4 w-4" />}
         <span>{localCount > 0 ? localCount : label}</span>
       </button>
       <AnimatePresence>
@@ -79,7 +78,7 @@ const ReactionButton = ({
             className="absolute bottom-full pointer-events-none select-none text-base"
             style={{ left: "50%" }}
           >
-            {type === "heart" ? "♥" : "👏"}
+            {type === "heart" ? <Heart className="h-4 w-4" /> : <Hand className="h-4 w-4" />}
           </motion.span>
         ))}
       </AnimatePresence>
@@ -157,14 +156,12 @@ const MomentCard = ({ moment, isNew }: MomentCardProps) => {
           momentId={moment.id}
           type="heart"
           count={moment.reaction_counts?.heart ?? 0}
-          emoji="♥"
           label="Love"
         />
         <ReactionButton
           momentId={moment.id}
           type="applause"
           count={moment.reaction_counts?.applause ?? 0}
-          emoji="👏"
           label="Applause"
         />
       </div>

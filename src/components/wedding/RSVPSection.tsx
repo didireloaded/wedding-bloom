@@ -4,7 +4,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Heart, Sparkles, MessageSquare, CalendarPlus } from "lucide-react";
 import { generateICS } from "@/lib/calendarUtils";
-import { saveGuestSessionToken } from "@/lib/guestSession";
+import { getGuestSessionToken, saveGuestSessionToken } from "@/lib/guestSession";
 
 interface RSVPSectionProps {
   weddingId?: string;
@@ -79,60 +79,25 @@ const RSVPSection = ({ weddingId, weddingDate, ceremonyTime, venue, coupleNames,
     if (!form.attending) { toast.error("Please select whether you will attend."); return; }
     if (!form.name.trim()) { toast.error("Please enter your name."); return; }
     setSubmitting(true);
-    if (weddingId) {
-      // Check capacity before accepting
-      if (form.attending === "accept" && maxGuests) {
-        const { data: currentRsvps } = await supabase
-          .from("rsvps")
-          .select("guest_count")
-          .eq("wedding_id", weddingId)
-          .eq("attending", true);
-        const currentTotal = (currentRsvps || []).reduce((s, r) => s + r.guest_count, 0);
-        if (currentTotal + parseInt(form.guestCount) > maxGuests) {
-          toast.error(`Sorry, the event has reached its capacity of ${maxGuests} guests.`);
-          setSubmitting(false);
-          return;
-        }
-      }
-      // Check for duplicate RSVP
-      const { data: existing } = await supabase
-        .from("rsvps")
-        .select("id")
-        .eq("wedding_id", weddingId)
-        .eq("guest_name", form.name.trim())
-        .maybeSingle();
-      if (existing) {
-        // Update existing RSVP instead of creating duplicate
-        const { error } = await supabase.from("rsvps").update({
-          attending: form.attending === "accept",
-          guest_count: parseInt(form.guestCount),
-          email: form.email.trim() || null,
-          phone: form.phone.trim() || null,
-          dietary_preference: form.dietaryPreference || null,
-          dietary_note: form.dietaryNote.trim() || null,
-          message: form.message.trim() || null,
-        }).eq("id", existing.id);
-        if (error) { toast.error("Something went wrong. Please try again."); setSubmitting(false); return; }
-        toast.success("Your RSVP has been updated!");
-        const session = await supabase.functions.invoke("create-guest-session", { body: { wedding_id: weddingId, rsvp_id: existing.id, guest_name: form.name.trim(), email: form.email.trim() } });
-        if (session.data?.guest_session) saveGuestSessionToken(weddingId, session.data.guest_session);
-      } else {
-        const { data: created, error } = await supabase.from("rsvps").insert({
-          wedding_id: weddingId,
-          guest_name: form.name.trim(),
-          email: form.email.trim() || null,
-          phone: form.phone.trim() || null,
-          attending: form.attending === "accept",
-          guest_count: parseInt(form.guestCount),
-          dietary_preference: form.dietaryPreference || null,
-          dietary_note: form.dietaryNote.trim() || null,
-          message: form.message.trim() || null,
-        } as any);
-        if (error) { toast.error("Something went wrong. Please try again."); setSubmitting(false); return; }
-        toast.success("Thank you! Your RSVP has been submitted.");
-        const session = await supabase.functions.invoke("create-guest-session", { body: { wedding_id: weddingId, rsvp_id: created?.id, guest_name: form.name.trim(), email: form.email.trim() } });
-        if (session.data?.guest_session) saveGuestSessionToken(weddingId, session.data.guest_session);
-      }
+    if (!weddingId) {
+      toast.error("Preview only. Open a published wedding to respond.");
+      setSubmitting(false);
+      return;
+    }
+    try {
+      const { data, error } = await supabase.rpc("submit_guest_response" as never, {
+        p_wedding_id: weddingId,
+        p_response: form,
+        p_session_token: getGuestSessionToken(weddingId),
+      } as never);
+      if (error) throw error;
+      const result = data as { guest_session?: string } | null;
+      if (!result?.guest_session) throw new Error("Your response could not be confirmed.");
+      saveGuestSessionToken(weddingId, result.guest_session);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Your response was not saved. Please try again.");
+      setSubmitting(false);
+      return;
     }
     setAttendingStatus(form.attending);
     setSubmitted(true);
@@ -170,9 +135,10 @@ const RSVPSection = ({ weddingId, weddingDate, ceremonyTime, venue, coupleNames,
           <Heart className="w-10 h-10 mx-auto mb-6 text-wedding-gold" strokeWidth={1} />
           <h2 className="mb-4 font-body text-3xl font-semibold sm:text-4xl">Thank you</h2>
           <p className="font-body text-sm text-muted-foreground leading-relaxed">
-            Your response has been received. We can't wait to celebrate with you!
+            {attendingStatus === "accept" ? "We can't wait to celebrate with you!" : attendingStatus === "decline" ? "Thank you for letting us know. You will be missed." : "No rush. You can update your response here when you know."}
           </p>
-          {weddingDate && (
+          <button onClick={() => setSubmitted(false)} className="mt-4 rounded-full border px-5 py-3 text-sm">Change response</button>
+          {weddingDate && attendingStatus !== "decline" && (
             <button
               onClick={() => generateICS(coupleNames || "", weddingDate, ceremonyTime || null, venue || "", window.location.href)}
               className="mt-6 inline-flex min-h-[48px] items-center gap-2 rounded-full bg-foreground px-6 py-3.5 font-body text-xs font-semibold text-background transition-opacity hover:opacity-85"
@@ -298,12 +264,13 @@ const RSVPSection = ({ weddingId, weddingDate, ceremonyTime, venue, coupleNames,
             <div>
               <label className="wedding-label block mb-4">
                 Will you attend?
-                {aiParsedHint && <span className="ml-2 text-wedding-gold text-[9px]">✨ Filled from your message</span>}
+                {aiParsedHint && <span className="ml-2 text-wedding-gold text-[9px]">Filled from your message</span>}
               </label>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-3 gap-2">
                 {[
-                  { key: "accept", label: "Joyfully Accept" },
-                  { key: "decline", label: "Regretfully Decline" },
+                  { key: "accept", label: "Accept" },
+                  { key: "decline", label: "Decline" },
+                  { key: "not_sure", label: "Not sure" },
                 ].map((option) => (
                   <button
                     key={option.key}
@@ -339,7 +306,7 @@ const RSVPSection = ({ weddingId, weddingDate, ceremonyTime, venue, coupleNames,
               <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }}>
                 <label className="wedding-label block mb-3">
                   Number of guests
-                  {aiParsedHint && <span className="ml-2 text-wedding-gold text-[9px]">✨ Filled from your message</span>}
+                  {aiParsedHint && <span className="ml-2 text-wedding-gold text-[9px]">Filled from your message</span>}
                 </label>
                 <div className="flex gap-3">
                   {[1, 2, 3, 4, 5].map((n) => (

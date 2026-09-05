@@ -11,6 +11,7 @@ const Index = lazy(() => import("./pages/Index"));
 const WeddingPage = lazy(() => import("./pages/WeddingPage"));
 const WeddingCheckin = lazy(() => import("./pages/WeddingCheckin"));
 const AdminLogin = lazy(() => import("./pages/AdminLogin"));
+const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
 const AdminWeddingEditor = lazy(() => import("./pages/AdminWeddingEditor"));
 const CoupleLogin = lazy(() => import("./pages/CoupleLogin"));
@@ -40,6 +41,7 @@ const App = () => (
                 <Route path="/wedding/:slug" element={<WeddingPage />} />
                 <Route path="/wedding/:slug/checkin" element={<WeddingCheckin />} />
                 <Route path="/admin/login" element={<AdminLogin />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
                 <Route path="/admin" element={<AdminDashboard />} />
                 <Route path="/admin/wedding/:id" element={<AdminWeddingEditor />} />
                 <Route path="/couple-login" element={<CoupleLogin />} />

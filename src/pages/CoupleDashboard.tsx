@@ -11,6 +11,7 @@ import PhotoManager from "@/components/dashboard/PhotoManager";
 import GuestMessages from "@/components/dashboard/GuestMessages";
 import WeddingTools from "@/components/dashboard/WeddingTools";
 import DailyReport from "@/components/dashboard/DailyReport";
+import CoupleUpdates from "@/components/dashboard/CoupleUpdates";
 import MomentsManager from "@/components/dashboard/MomentsManager";
 import ShareWeddingLink from "@/components/dashboard/ShareWeddingLink";
 import DashboardWalkthrough from "@/components/dashboard/DashboardWalkthrough";
@@ -21,7 +22,7 @@ import { WeddingRealtime } from "@/components/realtime/WeddingRealtime";
 import { getWeddingPhase } from "@/lib/weddingPhase";
 import { useAuth } from "@/hooks/useAuth";
 
-const withTimeout = async <T,>(promise: Promise<T>, ms = 4500): Promise<T> => {
+const withTimeout = async <T,>(promise: PromiseLike<T>, ms = 4500): Promise<T> => {
   let timeoutId: ReturnType<typeof setTimeout>;
   const timeout = new Promise<never>((_, reject) => {
     timeoutId = setTimeout(() => reject(new Error("Preview data request timed out")), ms);
@@ -83,13 +84,14 @@ const CoupleDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [showTour, setShowTour] = useState(false);
   const [showEditDetails, setShowEditDetails] = useState(false);
-  const [activeTab, setActiveTab] = useState(searchParams.get("tab") || "home");
+  const [activeTab, setActiveTab] = useState(searchParams.get("tab") === "website" ? "profile" : searchParams.get("tab") || "home");
   const [guestSearch, setGuestSearch] = useState("");
   const [guestFilter, setGuestFilter] = useState<"all" | "confirmed" | "pending" | "declined" | "checked-in">("all");
   const [selectedGuest, setSelectedGuest] = useState<any | null>(null);
   const [publishing, setPublishing] = useState(false);
 
   const changeTab = (tab: string) => {
+    if (tab === "website") tab = "profile";
     setActiveTab(tab);
     const nextParams = new URLSearchParams(searchParams);
     if (weddingSlug) nextParams.set("slug", weddingSlug);
@@ -184,6 +186,13 @@ const CoupleDashboard = () => {
       )
       .subscribe();
 
+    const photosChannel = supabase.channel(`couple-photos-${weddingId}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "guest_photos", filter: `wedding_id=eq.${weddingId}` }, () => void fetchData())
+      .subscribe();
+    const refreshVisible = () => { if (document.visibilityState === "visible") void fetchData(); };
+    const refreshTimer = window.setInterval(refreshVisible, 30000);
+    document.addEventListener("visibilitychange", refreshVisible);
+
     const momentsChannel = supabase
       .channel(`moments-${weddingId}`)
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "wedding_moments", filter: `wedding_id=eq.${weddingId}` },
@@ -196,6 +205,9 @@ const CoupleDashboard = () => {
       supabase.removeChannel(rsvpChannel);
       supabase.removeChannel(guestbookChannel);
       supabase.removeChannel(momentsChannel);
+      supabase.removeChannel(photosChannel);
+      window.clearInterval(refreshTimer);
+      document.removeEventListener("visibilitychange", refreshVisible);
     };
   }, [authLoading, previewRequested, user?.id, weddingId]);
 
@@ -549,7 +561,15 @@ const CoupleDashboard = () => {
         </div>
       )}
 
-      {activeTab === "website" && (
+      {activeTab === "updates" && (
+        <div className="space-y-5">
+          <CoupleUpdates weddingId={weddingId!} />
+          <ActivityFeed rsvps={rsvps} guestbookMessages={guestbookMessages} guestPhotos={guestPhotos} checkins={checkins} moments={moments} />
+          <DailyReport weddingId={weddingId!} />
+        </div>
+      )}
+
+      {activeTab === "profile" && (
         <div className="space-y-5">
           <WebsiteWorkspace
             wedding={wedding}
@@ -576,7 +596,6 @@ const CoupleDashboard = () => {
             onEditDetails={() => setShowEditDetails(true)}
             onTabChange={changeTab}
           />
-          <DailyReport weddingId={weddingId!} />
         </div>
       )}
 

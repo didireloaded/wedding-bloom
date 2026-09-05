@@ -16,7 +16,7 @@ const optimizeImage = (file: File): Promise<Blob> => new Promise((resolve, rejec
     canvas.toBlob((blob) => blob ? resolve(blob) : reject(new Error("Could not optimize image")), "image/jpeg", 0.84);
     URL.revokeObjectURL(image.src);
   };
-  image.onerror = reject;
+  image.onerror = () => { URL.revokeObjectURL(image.src); reject(new Error("This image could not be opened.")); };
   image.src = URL.createObjectURL(file);
 });
 
@@ -55,33 +55,36 @@ const GuestPhotoWall = ({ weddingId }: GuestPhotoWallProps) => {
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
+    const input = e.target;
+    const guestSession = getGuestSessionToken(weddingId);
+    if (!guestSession) { toast.error("Please respond to the RSVP before sharing photos."); return; }
     setUploading(true);
-    const selectedFiles = Array.from(files);
-    if (guestName.trim()) localStorage.setItem(`forevervow-guest-name-${weddingId}`, guestName.trim());
-    for (const [index, file] of selectedFiles.entries()) {
-      setUploadProgress(`${index + 1} of ${selectedFiles.length}`);
-      const optimized = await optimizeImage(file);
-      const guestSession = getGuestSessionToken(weddingId);
-      let path = `${weddingId}/photos/${Date.now()}-${Math.random().toString(36).slice(2)}.jpg`;
-      if (guestSession) {
+    const selectedFiles = Array.from(files).slice(0, 10);
+    let uploaded = 0;
+    try {
+      for (const [index, file] of selectedFiles.entries()) {
+        setUploadProgress(`${index + 1} of ${selectedFiles.length}`);
+        if (!file.type.startsWith("image/") || file.size > 15 * 1024 * 1024) throw new Error("Choose images smaller than 15 MB.");
+        const optimized = await optimizeImage(file);
         const authorization = await supabase.functions.invoke("register-memory-upload", { body: { wedding_id: weddingId, guest_session: guestSession, file_name: file.name, mime_type: "image/jpeg", file_size: optimized.size } });
-        if (authorization.error || !authorization.data?.storage_path) throw authorization.error || new Error("Upload authorization failed");
-        path = authorization.data.storage_path;
-      }
-      const { error } = await supabase.storage.from("wedding-assets").upload(path, optimized, { contentType: "image/jpeg" });
-      if (!error) {
+        if (authorization.error || !authorization.data?.upload_token) throw new Error("Could not authorize your upload.");
+        const path = authorization.data.storage_path;
+        const { error } = await supabase.storage.from("wedding-assets").uploadToSignedUrl(path, authorization.data.upload_token, optimized, { contentType: "image/jpeg" });
+        if (error) throw error;
         const { data: { publicUrl } } = supabase.storage.from("wedding-assets").getPublicUrl(path);
-        if (guestSession) {
-          const completed = await supabase.functions.invoke("complete-memory-upload", { body: { wedding_id: weddingId, guest_session: guestSession, storage_path: path, image_url: publicUrl, guest_name: guestName || "Guest", caption: caption.trim() || null } });
-          if (completed.error) throw completed.error;
-        } else await supabase.from("guest_photos").insert({ image_url: publicUrl, wedding_id: weddingId, guest_name: guestName || "Guest", caption: caption.trim() || null } as any);
+        const completed = await supabase.functions.invoke("complete-memory-upload", { body: { wedding_id: weddingId, guest_session: guestSession, storage_path: path, image_url: publicUrl, guest_name: guestName.trim() || "Guest", caption: caption.trim() || null } });
+        if (completed.error || !completed.data?.id) throw new Error("The photo uploaded but could not be delivered. Please try again.");
+        uploaded += 1;
       }
+      setCaption("");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Upload failed. Please try again.");
+    } finally {
+      if (uploaded) toast.success(`${uploaded} photo${uploaded === 1 ? "" : "s"} sent to the couple. Public after approval.`);
+      setUploading(false);
+      setUploadProgress("");
+      input.value = "";
     }
-    toast.success(`${selectedFiles.length} photo${selectedFiles.length === 1 ? "" : "s"} uploaded. They'll appear after approval.`);
-    setUploading(false);
-    setUploadProgress("");
-    setCaption("");
-    e.target.value = "";
   };
 
   return (
@@ -119,9 +122,9 @@ const GuestPhotoWall = ({ weddingId }: GuestPhotoWallProps) => {
             placeholder="Add a caption (optional)"
             className="w-full bg-transparent border-b border-foreground/15 py-3 font-body text-sm text-center focus:outline-none focus:border-wedding-gold transition-colors placeholder:text-muted-foreground/40"
           />
-          <label className="block w-full border-2 border-dashed border-foreground/15 p-8 sm:p-12 text-center cursor-pointer hover:border-wedding-gold/40 hover:bg-wedding-champagne/10 transition-all">
+          <label className="block w-full rounded-3xl border-2 border-dashed border-foreground/15 p-8 sm:p-12 text-center cursor-pointer hover:border-wedding-gold/40 hover:bg-wedding-champagne/10 transition-all">
             <Camera className="w-8 h-8 mx-auto text-muted-foreground/40 mb-4" strokeWidth={1} />
-            <p className="font-display text-lg font-light mb-2">
+            <p className="font-body text-lg font-semibold mb-2">
               {uploading ? `Uploading ${uploadProgress}...` : "Take a Photo"}
             </p>
             <p className="font-body text-xs text-muted-foreground">Camera opens on mobile · Gallery upload also works</p>
@@ -139,7 +142,7 @@ const GuestPhotoWall = ({ weddingId }: GuestPhotoWallProps) => {
                 whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.03 }}
-                className="break-inside-avoid overflow-hidden relative group"
+                className="rounded-2xl break-inside-avoid overflow-hidden relative group"
               >
                 <img src={p.image_url} alt={`By ${p.guest_name}`} className="w-full object-cover" loading="lazy" />
                 <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/50 to-transparent p-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">

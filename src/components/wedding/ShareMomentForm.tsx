@@ -59,7 +59,7 @@ const ShareMomentForm = ({ weddingId, isLiveMode, onPosted }: ShareMomentFormPro
       if (isLiveMode && data) {
         onPosted(data);
       } else {
-        toast.success("Your moment has been submitted for approval ✨");
+        toast.success("Your moment has been submitted for approval");
       }
 
       setName("");

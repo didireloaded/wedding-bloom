@@ -1,6 +1,7 @@
 import { lazy, Suspense, useState, useEffect } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
 import { useWeddingData } from "@/hooks/useWeddingData";
+import { weddingSchedule } from "@/lib/weddingSchedule";
 import { useLazySection } from "@/hooks/useLazySection";
 import { supabase } from "@/integrations/supabase/client";
 import { generateICS } from "@/lib/calendarUtils";
@@ -64,7 +65,7 @@ const WeddingPage = () => {
   const [invitationOpen, setInvitationOpen] = useState(isPreview);
   const weddingData = useWeddingData(isPreview ? undefined : slug);
   const wedding = isPreview ? previewWedding : weddingData.wedding;
-  const events = isPreview ? previewEvents : weddingData.events;
+  const events = weddingSchedule(isPreview ? previewEvents : weddingData.events, wedding);
   const gallery = isPreview ? previewGallery : weddingData.gallery;
   const updates = isPreview ? previewUpdates : weddingData.updates;
   const loading = isPreview ? false : weddingData.loading;
@@ -235,7 +236,7 @@ const WeddingPage = () => {
         )}
 
         {/* 6. Events */}
-        {!isPostWedding && events.length > 0 && (
+        {!isPostWedding && (
           <div id="events" className={`${guestTab === "schedule" ? "block" : "hidden"} md:block`}>
             <EventTimeline events={events} />
           </div>

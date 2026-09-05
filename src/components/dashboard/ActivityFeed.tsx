@@ -25,10 +25,10 @@ const ActivityFeed = ({ rsvps, guestbookMessages, guestPhotos, checkins, moments
       name: r.guest_name,
       detail:
         r.attending === true
-          ? `is coming!${r.guest_count >= 3 ? " 🎉" : ""} (${r.guest_count} guest${r.guest_count === 1 ? "" : "s"})`
+          ? `is coming (${r.guest_count} guest${r.guest_count === 1 ? "" : "s"})`
           : r.attending === false
           ? "won't be able to make it"
-          : "submitted an RSVP",
+          : "is still deciding",
       timestamp: r.submitted_at,
     })),
     ...guestbookMessages.slice(0, 10).map((m) => ({
@@ -49,7 +49,7 @@ const ActivityFeed = ({ rsvps, guestbookMessages, guestPhotos, checkins, moments
       id: `checkin-${c.id}`,
       type: "checkin" as const,
       name: c.guest_name,
-      detail: "has arrived! 🎊",
+      detail: "has arrived",
       timestamp: c.checkin_time,
     })),
     ...moments.slice(0, 10).map((m) => ({
@@ -94,10 +94,10 @@ const ActivityFeed = ({ rsvps, guestbookMessages, guestPhotos, checkins, moments
   };
 
   return (
-    <div className="border border-border bg-background">
+    <div className="overflow-hidden rounded-3xl border border-black/5 bg-white/80">
       <div className="p-4 border-b border-border flex items-center gap-2">
         <Activity className="w-4 h-4 text-wedding-gold" />
-        <h3 className="font-body text-xs tracking-[0.15em] uppercase">What's Happening</h3>
+        <h3 className="font-body text-sm font-semibold">What's happening</h3>
       </div>
 
       <div className="divide-y divide-border/50 max-h-[400px] overflow-y-auto">

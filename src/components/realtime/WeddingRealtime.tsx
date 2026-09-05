@@ -50,7 +50,7 @@ function BroadcastRealtime({
       });
 
       events.forEach((event) => {
-        channel?.on("broadcast", { event }, (payload) => handlerRef.current(payload as RealtimeEvent));
+        channel?.on("broadcast", { event }, (payload) => handlerRef.current({ event: payload.event, payload: payload.payload }));
       });
 
       channel.subscribe((status) => {

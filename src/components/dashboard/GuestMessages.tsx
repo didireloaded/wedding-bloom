@@ -2,6 +2,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import { BookOpen, Check, EyeOff, Trash2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 interface GuestMessagesProps {
   weddingId: string;
@@ -14,12 +15,11 @@ const GuestMessages = ({ weddingId, accessCode, messages, onRefresh }: GuestMess
   const [filter, setFilter] = useState<"all" | "pending" | "approved">("all");
 
   const moderateMessage = async (messageId: string, action: "approve" | "hide" | "delete") => {
-    const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/guestbook-moderate`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ wedding_id: weddingId, access_code: accessCode, action, message_id: messageId }),
-    });
-    if (res.ok) {
+    const query = action === "delete"
+      ? supabase.from("guestbook").delete()
+      : supabase.from("guestbook").update({ approved: action === "approve" });
+    const { error } = await query.eq("wedding_id", weddingId).eq("id", messageId).select("id").single();
+    if (!error) {
       toast.success(action === "approve" ? "Message approved!" : action === "hide" ? "Message hidden from page" : "Message deleted");
       onRefresh();
     } else {
@@ -37,11 +37,11 @@ const GuestMessages = ({ weddingId, accessCode, messages, onRefresh }: GuestMess
   const approvedCount = messages.filter((m) => m.approved).length;
 
   return (
-    <div className="border border-border bg-background">
+    <div className="overflow-hidden rounded-3xl border border-black/5 bg-white/80">
       <div className="p-4 border-b border-border flex items-center justify-between flex-wrap gap-2">
         <div className="flex items-center gap-2">
           <BookOpen className="w-4 h-4 text-wedding-gold" />
-          <h3 className="font-body text-xs tracking-[0.15em] uppercase">What Guests Are Saying</h3>
+          <h3 className="font-body text-sm font-semibold">What guests are saying</h3>
         </div>
         <div className="flex items-center gap-1">
           {[
@@ -52,7 +52,7 @@ const GuestMessages = ({ weddingId, accessCode, messages, onRefresh }: GuestMess
             <button
               key={f.key}
               onClick={() => setFilter(f.key as any)}
-              className={`px-2 py-1 font-body text-[9px] tracking-wider uppercase transition-colors min-h-[28px] ${
+              className={`rounded-full px-3 py-2 font-body text-xs transition-colors min-h-10 ${
                 filter === f.key
                   ? "bg-foreground text-background"
                   : "text-muted-foreground hover:text-foreground"
@@ -82,7 +82,7 @@ const GuestMessages = ({ weddingId, accessCode, messages, onRefresh }: GuestMess
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex-1 min-w-0">
-                    <p className="font-display text-sm font-light italic">"{msg.message}"</p>
+                    <p className="font-body text-sm leading-6 break-words">{msg.message}</p>
                     <div className="flex items-center gap-2 flex-wrap mt-2">
                       <p className="font-body text-xs text-muted-foreground">{msg.guest_name}</p>
                       {!msg.approved && (
