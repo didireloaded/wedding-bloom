@@ -257,7 +257,17 @@
   }
 
   .mobile-pwa-frame {
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    height: 100vh;
+    height: 100dvh;
     -webkit-overflow-scrolling: touch;
+  }
+
+  @media (min-width: 768px) {
+    .mobile-pwa-frame {
+      height: min(920px, calc(100dvh - 3rem));
+    }
   }
 
   .mobile-pwa-frame main {

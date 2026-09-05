@@ -1,5 +1,5 @@
 import { ReactNode, useState } from "react";
-import { Bell, CalendarDays, Camera, Globe2, Home, User, Users, X } from "lucide-react";
+import { Bell, CalendarDays, Camera, Home, User, Users, X } from "lucide-react";
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -50,9 +50,9 @@ const DashboardLayout = ({
   ];
 
   return (
-    <div className="couple-app min-h-screen bg-[#dedede] md:py-6">
-      <div className="mobile-pwa-frame relative mx-auto min-h-screen w-full max-w-[430px] md:min-h-[880px] md:max-h-[920px] overflow-hidden bg-[linear-gradient(145deg,#ffd9c9_0%,#f8f4ef_48%,#d9b5f1_100%)] shadow-2xl md:rounded-[34px] md:border-[10px] md:border-[#f1f1f1]">
-        <header className="sticky top-0 z-30 px-5 pt-[calc(env(safe-area-inset-top)+18px)] pb-4">
+    <div className="couple-app h-screen h-[100dvh] overflow-hidden bg-[#dedede] md:p-6">
+      <div className="mobile-pwa-frame relative mx-auto w-full max-w-[430px] overflow-hidden bg-[linear-gradient(145deg,#ffd9c9_0%,#f8f4ef_48%,#d9b5f1_100%)] shadow-2xl md:rounded-[34px] md:border-[10px] md:border-[#f1f1f1]">
+        <header className="relative z-30 px-4 pb-3 pt-[max(env(safe-area-inset-top),14px)] sm:px-5 sm:pb-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3 min-w-0">
               <img
@@ -90,12 +90,12 @@ const DashboardLayout = ({
           </div>
         </header>
 
-        <main className="h-[calc(100dvh-82px)] md:h-[calc(880px-82px)] overflow-y-auto px-5 pt-1 pb-[calc(env(safe-area-inset-bottom)+104px)]">
+        <main className="min-h-0 overflow-y-auto overscroll-contain px-4 pb-4 pt-1 sm:px-5">
           {children}
         </main>
 
-        <div className="absolute left-5 right-5 bottom-[calc(env(safe-area-inset-bottom)+18px)] z-40">
-          <nav className="h-[76px] rounded-[28px] bg-white/78 backdrop-blur-2xl border border-white/75 shadow-[0_18px_45px_rgba(30,24,20,0.18)] px-2 flex items-center justify-between">
+        <div className="relative z-40 px-2 pb-[max(env(safe-area-inset-bottom),8px)] pt-1 sm:px-5 sm:pb-[max(env(safe-area-inset-bottom),14px)]">
+          <nav className="flex h-[68px] items-center justify-between rounded-[24px] border border-white/75 bg-white/85 px-1 shadow-[0_12px_35px_rgba(30,24,20,0.16)] backdrop-blur-2xl sm:h-[72px] sm:rounded-[28px] sm:px-2">
             {tabs.map((tab) => {
               const Icon = tab.icon;
               const selected = activeTab === tab.id;
@@ -103,13 +103,13 @@ const DashboardLayout = ({
                 <button
                   key={tab.id}
                   onClick={() => onTabChange?.(tab.id)}
-                  className={`h-14 min-w-0 flex-1 rounded-2xl flex flex-col items-center justify-center gap-1 transition-all ${
+                  className={`flex h-[52px] min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-2xl px-0.5 transition-all sm:h-14 ${
                     selected ? "bg-foreground text-background shadow-lg" : "text-black hover:text-foreground"
                   }`}
                   aria-label={tab.label}
                 >
                   <Icon className="w-4 h-4" />
-                  <span className="font-body text-[8px] leading-none">{tab.label}</span>
+                  <span className="max-w-full truncate font-body text-[8px] leading-none sm:text-[9px]">{tab.label}</span>
                 </button>
               );
             })}
