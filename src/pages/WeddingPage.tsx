@@ -21,6 +21,7 @@ import { resolveGuestExperience } from "@/lib/guestExperience";
 import GuestBottomNav from "@/components/wedding/GuestBottomNav";
 import GuestHome from "@/components/wedding/GuestHome";
 import NotificationPrompt from "@/components/wedding/NotificationPrompt";
+import GuestNotificationInbox from "@/components/wedding/GuestNotificationInbox";
 import { getGuestSessionToken } from "@/lib/guestSession";
 import { GuestWeddingRealtime } from "@/components/realtime/WeddingRealtime";
 import { ArrowLeft, Bell, BookOpen, Images, MessageCircle } from "lucide-react";
@@ -215,6 +216,7 @@ const WeddingPage = () => {
           {guestTab === "more" && <GuestMore wedding={wedding} hasUpdates={updates.length > 0} onAction={handleGuestAction} />}
           {["story", "wall", "photos", "moments"].includes(guestTab) && <MobileBack title={guestTab === "story" ? "Our story" : guestTab === "wall" ? "Guestbook" : guestTab === "photos" ? "Photos" : "Updates"} onBack={() => handleGuestAction("more")} />}
           {!isPreview && guestTab === "home" && <NotificationPrompt weddingId={wedding.id} coupleNames={wedding.couple_names} guestSession={getGuestSessionToken(wedding.id)} />}
+          {!isPreview && guestTab === "home" && <GuestNotificationInbox weddingId={wedding.id} guestSession={getGuestSessionToken(wedding.id)} />}
         </div>
 
         {/* 3. Hero */}

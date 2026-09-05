@@ -36,7 +36,7 @@ serve(async (req) => {
       for (const subscription of subscriptions || []) {
         const recipientType = isReminder ? "guest" : "couple";
         const { data: delivery } = await db.from("notification_deliveries").upsert({ wedding_id: event.wedding_id, notification_event_id: event.id, push_subscription_id: subscription.id, recipient_type: recipientType, category: event.event_type, title, body, target_url, delivery_status: "pending" }, { onConflict: "notification_event_id,push_subscription_id,category" }).select("id").single();
-        await db.from("in_app_notifications").insert({ wedding_id: event.wedding_id, recipient_type: recipientType, recipient_device_id: subscription.couple_device_id, category: event.event_type, title, body, target_url });
+        await db.from("in_app_notifications").insert({ wedding_id: event.wedding_id, recipient_type: recipientType, recipient_device_id: isReminder ? subscription.guest_id : subscription.couple_device_id, category: event.event_type, title, body, target_url });
         try { await webpush.sendNotification({ endpoint: subscription.endpoint, keys: { p256dh: subscription.p256dh_key, auth: subscription.auth_key } }, JSON.stringify({ title, body, target_url })); await db.from("notification_deliveries").update({ sent_at: new Date().toISOString(), delivery_status: "sent" }).eq("id", delivery?.id); }
         catch (pushError) { const statusCode = (pushError as any)?.statusCode; await db.from("notification_deliveries").update({ delivery_status: "failed", error_code: String(statusCode || "push_failed") }).eq("id", delivery?.id); if (statusCode === 404 || statusCode === 410) await db.from("push_subscriptions").update({ enabled: false }).eq("id", subscription.id); }
       }
