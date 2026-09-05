@@ -1,4 +1,4 @@
-import { Heart, Hand } from "lucide-react";
+import { Heart, Hand, Star } from "lucide-react";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
@@ -125,8 +125,8 @@ const MomentCard = ({ moment, isNew }: MomentCardProps) => {
           </div>
         </div>
         {moment.highlighted && (
-          <span className="font-body text-[8px] tracking-[0.2em] uppercase text-wedding-gold border border-wedding-gold/30 px-2 py-1">
-            ✦ Featured
+          <span className="inline-flex items-center gap-1 rounded-full border border-wedding-gold/30 px-2 py-1 font-body text-[9px] font-semibold text-wedding-gold">
+            <Star className="h-3 w-3" /> Featured
           </span>
         )}
       </div>

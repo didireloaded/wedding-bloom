@@ -19,24 +19,29 @@ const MomentsManager = ({ weddingId, moments, isLiveMode, onRefresh }: MomentsMa
   const withPhotos = moments.filter((m) => !!m.photo_url);
 
   const callManageMoments = async (action: string, momentId?: string) => {
-    const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/manage-moments`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        wedding_id: weddingId,
-        access_code: sessionStorage.getItem("couple_access_code") || "",
-        action,
-        moment_id: momentId,
-      }),
-    });
-    if (!res.ok) throw new Error("Request failed");
-    return res.json();
+    if (action === "toggle_live_mode") {
+      const { error } = await supabase.from("weddings").update({ live_mode: !isLiveMode }).eq("id", weddingId);
+      if (error) throw error;
+      return;
+    }
+    if (!momentId) throw new Error("Moment required");
+    if (action === "delete") {
+      const { error } = await supabase.from("wedding_moments").delete().eq("wedding_id", weddingId).eq("id", momentId);
+      if (error) throw error;
+      return;
+    }
+    const moment = moments.find((item) => item.id === momentId);
+    const updates = action === "approve"
+      ? { approved: true }
+      : { approved: true, highlighted: !Boolean(moment?.highlighted) };
+    const { error } = await supabase.from("wedding_moments").update(updates).eq("wedding_id", weddingId).eq("id", momentId);
+    if (error) throw error;
   };
 
   const approveMoment = async (id: string, highlight = false) => {
     try {
       await callManageMoments(highlight ? "highlight" : "approve", id);
-      toast.success(highlight ? "Moment highlighted ✦" : "Moment approved");
+      toast.success(highlight ? "Moment highlighted" : "Moment approved");
       onRefresh();
     } catch {
       toast.error("Failed to update moment");
@@ -56,7 +61,7 @@ const MomentsManager = ({ weddingId, moments, isLiveMode, onRefresh }: MomentsMa
   const toggleLiveMode = async () => {
     try {
       await callManageMoments("toggle_live_mode");
-      toast.success(isLiveMode ? "Reception Mode disabled" : "Reception Mode enabled — moments auto-approved!");
+      toast.success(isLiveMode ? "Reception mode disabled" : "Reception mode enabled. New moments will be approved automatically.");
       onRefresh();
     } catch {
       toast.error("Failed to toggle Reception Mode");
@@ -66,7 +71,7 @@ const MomentsManager = ({ weddingId, moments, isLiveMode, onRefresh }: MomentsMa
   const toggleHighlight = async (id: string, currentlyHighlighted: boolean) => {
     try {
       await callManageMoments("highlight", id);
-      toast.success(currentlyHighlighted ? "Highlight removed" : "Moment highlighted ✦");
+      toast.success(currentlyHighlighted ? "Highlight removed" : "Moment highlighted");
       onRefresh();
     } catch {
       toast.error("Failed to update moment");
@@ -253,7 +258,7 @@ const MomentRow = ({
       <p className="font-body text-[10px] text-muted-foreground mt-1">
         {formatTime(moment.created_at)}
         {moment.highlighted && (
-          <span className="ml-2 text-wedding-gold">✦ Featured</span>
+          <span className="ml-2 inline-flex items-center gap-1 text-wedding-gold"><Star className="h-3 w-3" /> Featured</span>
         )}
       </p>
     </div>

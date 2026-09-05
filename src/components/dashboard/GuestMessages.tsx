@@ -76,8 +76,8 @@ const GuestMessages = ({ weddingId, accessCode, messages, onRefresh }: GuestMess
                 exit={{ opacity: 0, x: -10 }}
                 className={`p-4 space-y-3 ${
                   msg.approved
-                    ? "bg-wedding-sage/5 border-l-2 border-l-wedding-sage/20"
-                    : "bg-amber-50/30 dark:bg-amber-900/5 border-l-2 border-l-amber-200/40"
+                    ? "rounded-2xl bg-wedding-sage/10"
+                    : "rounded-2xl bg-amber-50/70 dark:bg-amber-900/10"
                 }`}
               >
                 <div className="flex items-start justify-between gap-3">
@@ -86,7 +86,7 @@ const GuestMessages = ({ weddingId, accessCode, messages, onRefresh }: GuestMess
                     <div className="flex items-center gap-2 flex-wrap mt-2">
                       <p className="font-body text-xs text-muted-foreground">{msg.guest_name}</p>
                       {!msg.approved && (
-                        <span className="font-body text-[8px] tracking-widest uppercase px-1.5 py-0.5 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400">
+                        <span className="rounded-full bg-amber-100 px-2 py-1 font-body text-[9px] font-semibold text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
                           Awaiting review
                         </span>
                       )}
@@ -101,14 +101,14 @@ const GuestMessages = ({ weddingId, accessCode, messages, onRefresh }: GuestMess
                     </p>
                   </div>
                   {msg.photo_url && (
-                    <img src={msg.photo_url} alt="" className="w-12 h-12 object-cover shrink-0" />
+                    <img src={msg.photo_url} alt="" className="h-12 w-12 shrink-0 rounded-xl object-cover" />
                   )}
                 </div>
                 <div className="flex gap-2">
                   {!msg.approved && (
                     <button
                       onClick={() => moderateMessage(msg.id, "approve")}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-foreground text-background font-body text-[9px] tracking-[0.1em] uppercase min-h-[32px]"
+                      className="inline-flex min-h-9 items-center gap-1.5 rounded-full bg-foreground px-3 py-1.5 font-body text-[10px] font-semibold text-background"
                     >
                       <Check className="w-3 h-3" /> Approve
                     </button>
@@ -116,14 +116,14 @@ const GuestMessages = ({ weddingId, accessCode, messages, onRefresh }: GuestMess
                   {msg.approved && (
                     <button
                       onClick={() => moderateMessage(msg.id, "hide")}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 border border-foreground/15 font-body text-[9px] tracking-[0.1em] uppercase min-h-[32px] hover:border-foreground/30"
+                      className="inline-flex min-h-9 items-center gap-1.5 rounded-full border border-foreground/15 px-3 py-1.5 font-body text-[10px] font-semibold hover:border-foreground/30"
                     >
                       <EyeOff className="w-3 h-3" /> Hide from page
                     </button>
                   )}
                   <button
                     onClick={() => moderateMessage(msg.id, "delete")}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 border border-destructive/20 text-destructive font-body text-[9px] tracking-[0.1em] uppercase min-h-[32px] hover:bg-destructive/5"
+                    className="inline-flex min-h-9 items-center gap-1.5 rounded-full border border-destructive/20 px-3 py-1.5 font-body text-[10px] font-semibold text-destructive hover:bg-destructive/5"
                   >
                     <Trash2 className="w-3 h-3" /> Delete
                   </button>

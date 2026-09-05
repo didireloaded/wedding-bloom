@@ -113,7 +113,7 @@ const WeddingPage = () => {
       return (
         <div className="guest-app min-h-screen flex items-center justify-center bg-background px-6">
           <div className="text-center max-w-md">
-            <h1 className="font-display text-3xl sm:text-4xl font-light mb-4">Not Yet Published</h1>
+            <h1 className="mb-4 font-body text-3xl font-semibold sm:text-4xl">Not yet published</h1>
             <p className="font-body text-sm text-muted-foreground leading-relaxed">
               The wedding page for <strong>{unpublishedWedding.couple_names}</strong> hasn't been published yet.
               Publish it from the Admin Dashboard to make it live.
@@ -125,7 +125,7 @@ const WeddingPage = () => {
     return (
       <div className="guest-app min-h-screen flex items-center justify-center bg-background px-6">
         <div className="text-center">
-          <h1 className="font-display text-4xl font-light mb-4">Wedding Not Found</h1>
+          <h1 className="mb-4 font-body text-4xl font-semibold">Wedding not found</h1>
           <p className="font-body text-sm text-muted-foreground">This wedding page may not exist or hasn't been published yet.</p>
         </div>
       </div>
@@ -133,7 +133,7 @@ const WeddingPage = () => {
   }
 
   const weddingDate = wedding.wedding_date
-    ? new Date(wedding.wedding_date).toLocaleDateString("en-US", { day: "numeric", month: "long", year: "numeric" }).toUpperCase()
+    ? new Date(wedding.wedding_date).toLocaleDateString("en-US", { day: "numeric", month: "long", year: "numeric" })
     : "";
   const weddingPhase = getWeddingPhase(wedding, events);
   const guestExperience = resolveGuestExperience(weddingPhase, "unknown_guest");

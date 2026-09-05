@@ -398,7 +398,7 @@ const AdminWeddingEditor = () => {
                   <RefreshCw className="w-3 h-3" /> Regenerate
                 </button>
               </div>
-              <p className="font-body text-lg tracking-widest">{wedding.access_code}</p>
+              <p className="font-body text-lg font-semibold">{wedding.access_code}</p>
               <p className="font-body text-xs text-muted-foreground mt-1">Share this code with the couple so they can log in at /couple-login</p>
             </div>
           </div>
@@ -461,7 +461,7 @@ const AdminWeddingEditor = () => {
             ) : (
               events.map((ev) => (
                 <div key={ev.id} className="flex items-center justify-between p-4 border border-border">
-                  <div><p className="font-display text-lg font-light">{ev.title}</p><p className="font-body text-xs text-muted-foreground">{ev.event_time} — {ev.location}</p></div>
+                  <div><p className="font-body text-lg font-semibold">{ev.title}</p><p className="font-body text-xs text-muted-foreground">{ev.event_time} — {ev.location}</p></div>
                   <button onClick={() => removeEvent(ev.id)} className="text-muted-foreground hover:text-destructive"><Trash2 className="w-4 h-4" /></button>
                 </div>
               ))
@@ -490,7 +490,7 @@ const AdminWeddingEditor = () => {
             ) : (
               guests.map((g) => (
                 <div key={g.id} className="flex items-center justify-between p-4 border border-border">
-                  <div><p className="font-display text-lg font-light">{g.name}</p><p className="font-body text-xs text-muted-foreground">{g.email} {g.phone && `• ${g.phone}`} • {g.invited_guests} guest(s)</p></div>
+                  <div><p className="font-body text-lg font-semibold">{g.name}</p><p className="font-body text-xs text-muted-foreground">{g.email} {g.phone && `• ${g.phone}`} • {g.invited_guests} guest(s)</p></div>
                   <button onClick={() => removeGuest(g.id)} className="text-muted-foreground hover:text-destructive"><Trash2 className="w-4 h-4" /></button>
                 </div>
               ))
@@ -512,12 +512,12 @@ const AdminWeddingEditor = () => {
                 <div className="flex items-center justify-between">
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4 flex-1">
                     {[{ label: "TOTAL RSVPS", value: rsvps.length }, { label: "CONFIRMED", value: rsvpConfirmed }, { label: "DECLINED", value: rsvpDeclined }, { label: "PENDING", value: rsvpPending }].map((stat) => (
-                      <div key={stat.label} className="p-4 border border-border text-center"><p className="font-display text-3xl font-light">{stat.value}</p><p className="wedding-label mt-1">{stat.label}</p></div>
+                      <div key={stat.label} className="rounded-2xl border border-border bg-white p-4 text-center"><p className="font-body text-3xl font-semibold">{stat.value}</p><p className="wedding-label mt-1">{stat.label}</p></div>
                     ))}
                   </div>
                 </div>
                 <div className="flex items-center justify-between">
-                  <div className="p-4 border border-border text-center flex-1"><p className="font-display text-2xl font-light">{totalGuests}</p><p className="wedding-label mt-1">TOTAL CONFIRMED GUESTS</p></div>
+                  <div className="flex-1 rounded-2xl border border-border bg-white p-4 text-center"><p className="font-body text-2xl font-semibold">{totalGuests}</p><p className="wedding-label mt-1">Total confirmed guests</p></div>
                   <button onClick={exportRSVPsCSV} className="ml-4 inline-flex items-center gap-2 px-4 py-2 border border-foreground/20 font-body text-xs tracking-[0.2em] uppercase hover:bg-foreground hover:text-background transition-colors min-h-[44px]">
                     <Download className="w-4 h-4" /> Export CSV
                   </button>
@@ -767,7 +767,7 @@ const AdminWeddingEditor = () => {
         {/* QR CODE */}
         {activeTab === "qr" && (
           <div className="text-center space-y-6">
-            <h2 className="font-display text-2xl font-light">QR Code</h2>
+            <h2 className="font-body text-2xl font-semibold">QR code</h2>
             <p className="font-body text-sm text-muted-foreground">Scan to open the wedding page</p>
             <div className="inline-block p-6 bg-background border border-border">
               <QRCodeSVG id="wedding-qr" value={weddingUrl} size={256} level="H" />

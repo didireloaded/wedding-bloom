@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { ChevronDown, CalendarPlus } from "lucide-react";
+import { CalendarPlus, MapPin } from "lucide-react";
 import { generateICS } from "@/lib/calendarUtils";
 
 interface WeddingHeroProps {
@@ -13,7 +13,7 @@ interface WeddingHeroProps {
 
 const WeddingHero = ({ coupleNames = "John & Anna", date = "24 JUNE 2026", venue = "TUSCANY, ITALY", coverImage, weddingDate, ceremonyTime }: WeddingHeroProps) => {
   return (
-    <section className="relative h-screen flex items-center justify-center overflow-hidden">
+    <section className="relative flex min-h-[560px] max-h-[720px] h-[78vh] items-end overflow-hidden">
       <div className="absolute inset-0">
         {coverImage ? <motion.img
           initial={{ scale: 1.1 }}
@@ -24,18 +24,18 @@ const WeddingHero = ({ coupleNames = "John & Anna", date = "24 JUNE 2026", venue
           className="w-full h-full object-cover"
           style={{ objectPosition: 'center 20%' }}
         /> : <div className="absolute inset-0 bg-[linear-gradient(145deg,#eecfc3_0%,#c7b6dc_55%,#202020_100%)]" />}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-black/30 to-black/50" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-black/20 to-black/75" />
       </div>
 
-      <div className="relative z-10 text-center px-6 max-w-4xl mx-auto">
+      <div className="relative z-10 mx-auto w-full max-w-6xl px-6 pb-12 text-left md:px-10 md:pb-14">
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 1.2, delay: 0.3 }}
-          className="wedding-ornament mb-6"
+          className="mb-4"
         >
-          <span className="font-body text-[10px] sm:text-xs tracking-[0.4em] uppercase text-primary-foreground/70">
-            Together with their families
+          <span className="inline-flex rounded-full bg-white/15 px-3 py-2 font-body text-xs font-semibold text-white backdrop-blur-md">
+            Wedding companion
           </span>
         </motion.div>
 
@@ -43,7 +43,7 @@ const WeddingHero = ({ coupleNames = "John & Anna", date = "24 JUNE 2026", venue
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1.2, delay: 0.6 }}
-          className="font-display text-6xl sm:text-7xl md:text-8xl lg:text-[9rem] font-light text-primary-foreground leading-[0.9] tracking-wide"
+          className="max-w-3xl font-body text-5xl font-semibold leading-[0.96] text-white sm:text-6xl md:text-7xl"
         >
           {coupleNames}
         </motion.h1>
@@ -52,14 +52,11 @@ const WeddingHero = ({ coupleNames = "John & Anna", date = "24 JUNE 2026", venue
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 1, delay: 1.2 }}
-          className="mt-8 sm:mt-10"
+          className="mt-5"
         >
-          <div className="wedding-divider !bg-primary-foreground/30 mb-6" />
-          <p className="font-body text-[10px] sm:text-xs tracking-[0.4em] uppercase text-primary-foreground/80">
-            {date}
-          </p>
+          <p className="font-body text-sm font-medium text-white/90">{date}</p>
           {venue && (
-            <p className="font-body text-[10px] sm:text-xs tracking-[0.3em] uppercase text-primary-foreground/60 mt-2">
+            <p className="mt-2 flex items-center gap-2 font-body text-sm text-white/70"><MapPin className="h-4 w-4" />
               {venue}
             </p>
           )}
@@ -69,15 +66,13 @@ const WeddingHero = ({ coupleNames = "John & Anna", date = "24 JUNE 2026", venue
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 1.6 }}
-          className="mt-10 sm:mt-12 flex flex-col items-center gap-4"
+          className="mt-7 flex flex-wrap items-center gap-3"
         >
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            {/* RSVP — solid, dominant */}
+          <div className="flex flex-wrap items-center gap-3">
             <span className="relative inline-flex">
-              <span className="absolute inset-0 ring-2 ring-primary-foreground/30 ring-offset-2 ring-offset-transparent animate-pulse rounded-sm" />
               <a
                 href="#rsvp"
-                className="relative inline-flex items-center bg-foreground text-background px-10 sm:px-14 py-3.5 font-body text-[10px] tracking-[0.35em] uppercase hover:bg-foreground/90 transition-all duration-300 min-h-[48px]"
+                className="relative inline-flex min-h-12 items-center rounded-full bg-white px-8 py-3.5 font-body text-xs font-semibold text-black transition-colors hover:bg-white/90"
               >
                 RSVP
               </a>
@@ -85,32 +80,14 @@ const WeddingHero = ({ coupleNames = "John & Anna", date = "24 JUNE 2026", venue
             {weddingDate && (
               <button
                 onClick={() => generateICS(coupleNames, weddingDate, ceremonyTime || null, venue || "", window.location.href)}
-                className="inline-flex items-center gap-2 border border-primary-foreground/25 text-primary-foreground/80 px-8 py-3.5 font-body text-[10px] tracking-[0.25em] uppercase hover:bg-primary-foreground/10 transition-all duration-300 min-h-[48px]"
+                className="inline-flex min-h-12 items-center gap-2 rounded-full border border-white/30 bg-black/10 px-6 py-3.5 font-body text-xs font-semibold text-white backdrop-blur-md transition-colors hover:bg-white/10"
               >
-                <CalendarPlus className="w-3.5 h-3.5" /> ADD TO CALENDAR
+                <CalendarPlus className="w-4 h-4" /> Add to calendar
               </button>
             )}
           </div>
-          <a
-            href="#our-story"
-            className="font-body text-[9px] tracking-[0.25em] uppercase text-primary-foreground/50 hover:text-primary-foreground/80 transition-colors mt-2"
-          >
-            ↓ See full details
-          </a>
         </motion.div>
       </div>
-
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 1, delay: 2 }}
-        className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2"
-      >
-        <span className="font-body text-[8px] tracking-[0.3em] uppercase text-primary-foreground/50">
-          Scroll
-        </span>
-        <ChevronDown className="w-4 h-4 text-primary-foreground/40 scroll-indicator" />
-      </motion.div>
     </section>
   );
 };

@@ -57,36 +57,36 @@ const CoupleLogin = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background px-6">
+    <div className="couple-app min-h-screen flex items-center justify-center bg-[#f1f1f1] px-5 py-8">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-sm text-center"
+        className="w-full max-w-sm rounded-[30px] border border-white/80 bg-white/90 p-6 text-center shadow-sm"
       >
-        <p className="wedding-label mb-3">FOREVERVOW</p>
-        <h1 className="font-display text-4xl font-light mb-2">{mode === "signup" ? "Create your wedding home" : "Welcome back"}</h1>
+        <p className="mb-3 font-body text-xs font-semibold text-muted-foreground">ForeverVow</p>
+        <h1 className="mb-2 font-body text-3xl font-semibold">{mode === "signup" ? "Create your wedding home" : "Welcome back"}</h1>
         <p className="font-body text-sm text-muted-foreground mb-10">
           {mode === "signup" ? "Start with your account, then we’ll build your wedding space together." : "Sign in to continue to your wedding space."}
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <label className="wedding-label block mb-2">EMAIL</label>
+            <label className="mb-2 block text-left font-body text-xs font-semibold">Email</label>
             <input
               type="email"
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="you@example.com"
-              className="w-full bg-transparent border-b border-foreground/20 py-3 font-body text-sm text-center focus:outline-none focus:border-foreground transition-colors"
+              className="min-h-12 w-full rounded-2xl border border-black/10 bg-[#f6f6f6] px-4 py-3 text-left font-body text-sm outline-none focus:border-black/30"
             />
           </div>
-          <div><label className="wedding-label block mb-2">PASSWORD</label><input type="password" required value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Your password" className="w-full bg-transparent border-b border-foreground/20 py-3 font-body text-sm text-center focus:outline-none focus:border-foreground transition-colors" /></div>
+          <div><label className="mb-2 block text-left font-body text-xs font-semibold">Password</label><input type="password" required value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Your password" className="min-h-12 w-full rounded-2xl border border-black/10 bg-[#f6f6f6] px-4 py-3 text-left font-body text-sm outline-none focus:border-black/30" /></div>
 
           <button
             type="submit"
             disabled={submitting}
-            className="w-full py-4 bg-foreground text-background font-body text-xs tracking-[0.3em] uppercase hover:bg-foreground/90 transition-colors disabled:opacity-50"
+            className="w-full rounded-full bg-foreground py-4 font-body text-sm font-semibold text-background transition-colors hover:bg-foreground/90 disabled:opacity-50"
           >
             {submitting ? "PLEASE WAIT..." : mode === "signup" ? "CREATE ACCOUNT" : "SIGN IN"}
           </button>

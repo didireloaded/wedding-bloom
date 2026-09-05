@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 interface EditWeddingDetailsProps {
   open: boolean;
@@ -53,28 +54,14 @@ const EditWeddingDetails = ({
   const handleSave = async () => {
     setSaving(true);
     try {
-      const res = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/couple-update-wedding`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            wedding_id: weddingId,
-            access_code: accessCode,
-            updates: form,
-          }),
-        }
-      );
-      const data = await res.json();
-      if (!res.ok) {
-        toast.error(data.error || "Failed to save changes");
-        return;
-      }
-      toast.success("Wedding details updated!");
+      const updates = Object.fromEntries(Object.entries(form).map(([key, value]) => [key, value.trim() || null]));
+      const { error } = await supabase.from("weddings").update(updates).eq("id", weddingId);
+      if (error) throw error;
+      toast.success("Wedding details updated.");
       onSaved();
       onOpenChange(false);
     } catch {
-      toast.error("Something went wrong. Please try again.");
+      toast.error("Wedding details could not be saved.");
     } finally {
       setSaving(false);
     }

@@ -119,7 +119,7 @@ const WeddingChatAssistant = ({ weddingData, events = [], gallery = [], updates 
             initial={{ opacity: 0, y: 20, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
-            className="fixed bottom-24 right-4 sm:right-6 z-50 w-[calc(100vw-2rem)] sm:w-96 max-h-[70vh] bg-background border border-border shadow-2xl flex flex-col overflow-hidden"
+            className="fixed bottom-24 right-4 z-50 flex max-h-[70vh] w-[calc(100vw-2rem)] flex-col overflow-hidden rounded-[24px] border border-border bg-background shadow-2xl sm:right-6 sm:w-96"
           >
             {/* Header */}
             <div className="p-4 border-b border-border flex items-center gap-2">
@@ -144,7 +144,7 @@ const WeddingChatAssistant = ({ weddingData, events = [], gallery = [], updates 
               )}
               {messages.map((m, i) => (
                 <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
-                  <div className={`max-w-[80%] px-4 py-2 ${m.role === "user" ? "bg-foreground text-background" : "bg-muted"}`}>
+                  <div className={`max-w-[80%] rounded-2xl px-4 py-2 ${m.role === "user" ? "bg-foreground text-background" : "bg-muted"}`}>
                     {m.role === "assistant" ? (
                       <div className="font-body text-sm prose prose-sm max-w-none">
                         <ReactMarkdown>{m.content}</ReactMarkdown>

@@ -13,8 +13,8 @@ export default {
       },
     },
     fontFamily: {
-      display: ['Cormorant Garamond', 'serif'],
-      body: ['Josefin Sans', 'sans-serif'],
+      display: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+      body: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
     },
     extend: {
       colors: {

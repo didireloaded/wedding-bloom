@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import ShareMomentForm from "./ShareMomentForm";
 import MomentCard from "./MomentCard";
+import { Star } from "lucide-react";
 
 interface LiveFeedProps {
   weddingId: string;
@@ -287,7 +288,7 @@ const LiveFeed = ({ weddingId, coupleNames, isLiveMode }: LiveFeedProps) => {
         {/* Top Moments */}
         {topMoments.length > 0 && (
           <div className="mt-10 mb-8">
-            <p className="wedding-label mb-4">✦ TOP MOMENTS</p>
+            <p className="mb-4 flex items-center justify-center gap-2 font-body text-xs font-semibold"><Star className="h-4 w-4" /> Top moments</p>
             <div className="flex gap-4 overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0 sm:grid sm:grid-cols-3">
               {topMoments.map((moment) => (
                 <div

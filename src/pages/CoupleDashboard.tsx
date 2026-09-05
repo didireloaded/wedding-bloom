@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { AlertCircle, CalendarDays, Check, Clock, Copy, ExternalLink, Globe2, Heart, Image, Loader2, MapPin, MessageCircle, Send, ShieldCheck, Sparkles, User, Users, Wand2, X } from "lucide-react";
+import { AlertCircle, CalendarDays, Check, Clock, Copy, ExternalLink, Globe2, Heart, Image, Loader2, MapPin, MessageCircle, Pencil, Plus, Send, ShieldCheck, Sparkles, Trash2, User, Users, Wand2, X } from "lucide-react";
 import { toast } from "sonner";
 
 // Dashboard Components
@@ -292,18 +292,13 @@ const CoupleDashboard = () => {
     if (gbRes.data) setGuestbookMessages(gbRes.data);
     if (evRes.data) setEvents(evRes.data);
 
-    // Fetch moments via edge function to bypass RLS
-    try {
-      const momRes = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/manage-moments`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ wedding_id: weddingId, access_code: accessCode, action: "list" }),
-      });
-      const momData = momRes.ok ? await momRes.json() : { data: [] };
-      if (momData.data) setMoments(momData.data);
-    } catch {
-      setMoments([]);
-    }
+    const { data: momentData, error: momentError } = await supabase
+      .from("wedding_moments")
+      .select("*")
+      .eq("wedding_id", weddingId!)
+      .order("created_at", { ascending: false });
+    if (momentError) console.error("Could not load moments:", momentError);
+    setMoments(momentData || []);
 
     setLoading(false);
   };
@@ -367,7 +362,18 @@ const CoupleDashboard = () => {
   });
   const weddingUrl = `${window.location.origin}/wedding/${weddingSlug || wedding.slug}`;
   const copyWeddingLink = () => { navigator.clipboard.writeText(weddingUrl); toast.success("Wedding link copied."); };
-  const copyReminderMessage = () => { navigator.clipboard.writeText(`Hi! Just a reminder to RSVP for ${wedding.couple_names}. We would love to celebrate with you: ${weddingUrl}`); toast.success("Reminder message copied."); };
+  const sendPushReminder = async (targetRsvpId?: string) => {
+    if (weddingId === "preview-wedding") return toast.info("Reminders are available in your real wedding workspace.");
+    const { error } = await supabase.from("notification_events").insert({
+      wedding_id: weddingId!,
+      event_type: "rsvp_reminder",
+      actor_type: "couple",
+      payload: targetRsvpId ? { target_rsvp_id: targetRsvpId } : {},
+      priority: "high",
+    });
+    if (error) return toast.error("The reminder could not be queued.");
+    toast.success("Reminder queued for guests who enabled notifications.");
+  };
   const togglePublished = async () => {
     if (weddingId === "preview-wedding") return toast.info("Publishing is available in your real wedding workspace.");
     setPublishing(true);
@@ -429,6 +435,7 @@ const CoupleDashboard = () => {
           events={events}
           pending={pending}
           onEditDetails={() => setShowEditDetails(true)}
+          onRefresh={fetchData}
         />
       )}
 
@@ -467,12 +474,10 @@ const CoupleDashboard = () => {
               </p>
             </div>
             <button
-              onClick={() => {
-                copyWeddingLink();
-              }}
+              onClick={() => void sendPushReminder()}
               className="ml-4 whitespace-nowrap rounded-full bg-black px-3 py-2 font-body text-[10px] font-semibold text-white"
             >
-              Copy Link
+              Send reminder
             </button>
           </div>
         )}
@@ -605,7 +610,7 @@ const CoupleDashboard = () => {
             <div className="flex items-start justify-between"><div><p className="font-body text-xs uppercase tracking-[0.16em] text-muted-foreground">Guest details</p><h3 className="mt-1 font-body text-2xl font-semibold">{selectedGuest.guest_name || "Unnamed guest"}</h3></div><button onClick={() => setSelectedGuest(null)} className="rounded-full bg-black/5 p-2" aria-label="Close guest details"><X className="h-4 w-4" /></button></div>
             <div className="mt-5 grid grid-cols-2 gap-2"><div className="rounded-2xl bg-white p-3"><p className="font-body text-[10px] uppercase tracking-[0.12em] text-muted-foreground">Response</p><p className="mt-1 font-body text-sm">{selectedGuest.attending === true ? "Confirmed" : selectedGuest.attending === false ? "Declined" : "Pending"}</p></div><div className="rounded-2xl bg-white p-3"><p className="font-body text-[10px] uppercase tracking-[0.12em] text-muted-foreground">Party size</p><p className="mt-1 font-body text-sm">{selectedGuest.guest_count || 1}</p></div></div>
             <div className="mt-3 space-y-2 rounded-2xl bg-white p-4 font-body text-sm"><p>{selectedGuest.email || "No email provided"}</p><p>{selectedGuest.phone || "No phone provided"}</p><p className="text-muted-foreground">Dietary: {selectedGuest.dietary_preference || "No preference noted"}</p></div>
-            <button onClick={() => { copyReminderMessage(); setSelectedGuest(null); }} className="mt-4 w-full rounded-full bg-[#202020] px-4 py-3 font-body text-xs font-semibold uppercase tracking-[0.12em] text-white"><Send className="mr-2 inline h-4 w-4" />Copy RSVP reminder</button>
+            <button onClick={() => { void sendPushReminder(selectedGuest.id); setSelectedGuest(null); }} className="mt-4 w-full rounded-full bg-[#202020] px-4 py-3 font-body text-xs font-semibold uppercase tracking-[0.12em] text-white"><Send className="mr-2 inline h-4 w-4" />Send RSVP reminder</button>
           </div>
         </div>
       )}
@@ -786,8 +791,8 @@ function CoupleHome({ wedding, progress, completedTasks, totalTasks, confirmed, 
         {(wedding.cover_image || wedding.hero_image) && <img src={wedding.cover_image || wedding.hero_image} alt="" className="absolute inset-0 h-full w-full object-cover" />}
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
         <div className="relative p-5">
-          <p className="font-body text-xs uppercase tracking-[0.2em] text-white/70">Wedding Status</p>
-          <h2 className="font-display text-3xl mt-14">{wedding.couple_names}</h2>
+          <p className="font-body text-xs font-semibold text-white/70">Wedding status</p>
+          <h2 className="mt-14 font-body text-3xl font-semibold">{wedding.couple_names}</h2>
           <div className="flex items-center gap-3 font-body text-xs text-white/80 mt-2">
             <span>{confirmed} confirmed</span>
             <span>{rsvps.length} invited</span>
@@ -837,8 +842,40 @@ function WebsiteWorkspace({ wedding, weddingSlug, publishing, onPublish, onEditD
   );
 }
 
-function PlannerSchedule({ wedding, events, onEditDetails }: any) {
+function PlannerSchedule({ wedding, events, onEditDetails, onRefresh }: any) {
   const date = wedding.wedding_date ? new Date(wedding.wedding_date) : new Date();
+  const emptyEvent = { id: "", title: "", event_date: wedding.wedding_date || "", event_time: "", location: "", description: "" };
+  const [editing, setEditing] = useState<any | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  const saveEvent = async () => {
+    if (!editing?.title.trim()) return toast.error("Add an event title.");
+    setSaving(true);
+    const values = {
+      wedding_id: wedding.id,
+      title: editing.title.trim(),
+      event_date: editing.event_date || null,
+      event_time: editing.event_time || null,
+      location: editing.location.trim() || null,
+      description: editing.description.trim() || null,
+      sort_order: editing.sort_order ?? events.length,
+    };
+    const { error } = editing.id
+      ? await supabase.from("events").update(values).eq("wedding_id", wedding.id).eq("id", editing.id)
+      : await supabase.from("events").insert(values);
+    setSaving(false);
+    if (error) return toast.error("The schedule could not be saved.");
+    toast.success(editing.id ? "Event updated." : "Event added.");
+    setEditing(null);
+    await onRefresh();
+  };
+
+  const removeEvent = async (id: string) => {
+    const { error } = await supabase.from("events").delete().eq("wedding_id", wedding.id).eq("id", id);
+    if (error) return toast.error("The event could not be deleted.");
+    toast.success("Event deleted.");
+    await onRefresh();
+  };
 
   return (
     <div className="space-y-5">
@@ -847,7 +884,19 @@ function PlannerSchedule({ wedding, events, onEditDetails }: any) {
           <p className="font-body text-sm font-semibold">{date.toLocaleDateString(undefined, { weekday: "short", month: "long", day: "numeric" })}</p>
           <h1 className="font-body text-[32px] font-semibold leading-tight tracking-normal mt-1">Wedding Schedule</h1>
         </div>
+        <button onClick={() => setEditing(emptyEvent)} className="flex h-11 w-11 items-center justify-center rounded-full bg-[#202020] text-white" aria-label="Add event"><Plus className="h-4 w-4" /></button>
       </div>
+
+      {editing && (
+        <section className="space-y-3 rounded-[24px] border border-black/5 bg-white p-4 shadow-sm">
+          <div className="flex items-center justify-between"><h2 className="font-body text-sm font-semibold">{editing.id ? "Edit event" : "Add event"}</h2><button onClick={() => setEditing(null)} aria-label="Close event editor"><X className="h-4 w-4" /></button></div>
+          <input aria-label="Event title" value={editing.title} onChange={(e) => setEditing({ ...editing, title: e.target.value })} placeholder="Event title" className="min-h-11 w-full rounded-xl border border-black/10 px-3 font-body text-sm" />
+          <div className="grid grid-cols-2 gap-2"><input aria-label="Event date" type="date" value={editing.event_date || ""} onChange={(e) => setEditing({ ...editing, event_date: e.target.value })} className="min-h-11 min-w-0 rounded-xl border border-black/10 px-3 font-body text-xs" /><input aria-label="Event time" type="time" value={editing.event_time || ""} onChange={(e) => setEditing({ ...editing, event_time: e.target.value })} className="min-h-11 min-w-0 rounded-xl border border-black/10 px-3 font-body text-xs" /></div>
+          <input aria-label="Event location" value={editing.location || ""} onChange={(e) => setEditing({ ...editing, location: e.target.value })} placeholder="Location" className="min-h-11 w-full rounded-xl border border-black/10 px-3 font-body text-sm" />
+          <textarea aria-label="Event description" value={editing.description || ""} onChange={(e) => setEditing({ ...editing, description: e.target.value })} placeholder="Details" rows={3} className="w-full resize-none rounded-xl border border-black/10 p-3 font-body text-sm" />
+          <button onClick={saveEvent} disabled={saving} className="min-h-11 w-full rounded-full bg-[#202020] px-4 font-body text-xs font-semibold text-white disabled:opacity-50">{saving ? "Saving..." : "Save event"}</button>
+        </section>
+      )}
 
       <div className="space-y-3">
         {events.map((event: any) => (
@@ -859,9 +908,7 @@ function PlannerSchedule({ wedding, events, onEditDetails }: any) {
                   <h2 className="font-body text-sm font-semibold">{event.title}</h2>
                   <p className="font-body text-xs text-muted-foreground leading-5 mt-1">{event.location || event.description || "Details will appear here."}</p>
                 </div>
-                <button onClick={onEditDetails} className="px-3 py-2 rounded-full bg-[#202020] text-white font-body text-[10px] font-semibold">
-                  Edit
-                </button>
+                <div className="flex gap-1"><button onClick={() => setEditing({ ...event })} className="flex h-9 w-9 items-center justify-center rounded-full bg-[#202020] text-white" aria-label={`Edit ${event.title}`}><Pencil className="h-3.5 w-3.5" /></button><button onClick={() => removeEvent(event.id)} className="flex h-9 w-9 items-center justify-center rounded-full border border-black/10 text-destructive" aria-label={`Delete ${event.title}`}><Trash2 className="h-3.5 w-3.5" /></button></div>
               </div>
             </div>
           </div>

@@ -187,8 +187,8 @@ const CSVImporter = ({ adminUserId, onComplete }: CSVImporterProps) => {
             accent_color: themeResult.colors.accent,
             background_color: themeResult.colors.background || "30 30% 96%",
             foreground_color: themeResult.colors.foreground || "0 0% 10%",
-            font_display: themeResult.font_display || "Cormorant Garamond",
-            font_body: themeResult.font_body || "Josefin Sans",
+            font_display: "Inter",
+            font_body: "Inter",
             generated_by_ai: true,
           } as any).select("id, primary_color, secondary_color, accent_color, background_color, foreground_color, font_display, font_body, name").single();
 
