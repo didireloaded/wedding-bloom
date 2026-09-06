@@ -859,6 +859,11 @@ function WebsiteWorkspace({ wedding, weddingSlug, publishing, onPublish, onEditD
 
 function PlannerSchedule({ wedding, events, onEditDetails, onRefresh }: any) {
   const date = wedding.wedding_date ? new Date(wedding.wedding_date) : new Date();
+  const weekDays = Array.from({ length: 7 }, (_, index) => {
+    const day = new Date(date);
+    day.setDate(date.getDate() + index - 3);
+    return day;
+  });
   const emptyEvent = { id: "", title: "", event_date: wedding.wedding_date || "", event_time: "", location: "", description: "" };
   const [editing, setEditing] = useState<any | null>(null);
   const [saving, setSaving] = useState(false);
@@ -900,6 +905,10 @@ function PlannerSchedule({ wedding, events, onEditDetails, onRefresh }: any) {
           <h1 className="font-body text-[32px] font-semibold leading-tight tracking-normal mt-1">Wedding Schedule</h1>
         </div>
         <button onClick={() => setEditing(emptyEvent)} className="flex h-11 w-11 items-center justify-center rounded-full bg-[#202020] text-white" aria-label="Add event"><Plus className="h-4 w-4" /></button>
+      </div>
+
+      <div className="grid grid-cols-7 gap-1.5" aria-label="Wedding week">
+        {weekDays.map((day, index) => <div key={day.toISOString()} className={`rounded-2xl px-1 py-3 text-center font-body ${index === 3 ? "bg-[#ff6245] text-white" : "border border-white/10 bg-[#242424] text-white/65"}`}><p className="text-[9px] font-medium">{day.toLocaleDateString(undefined, { weekday: "narrow" })}</p><p className="mt-2 text-sm font-semibold">{day.getDate()}</p></div>)}
       </div>
 
       {editing && (
