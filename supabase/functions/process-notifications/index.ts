@@ -14,34 +14,52 @@ serve(async (req) => {
     if (!engineSecret || req.headers.get("x-notification-engine-secret") !== engineSecret) return json({ error: "Unauthorized" }, 401);
     const db = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
     webpush.setVapidDetails(Deno.env.get("VAPID_SUBJECT") || "mailto:hello@forevervow.app", Deno.env.get("VAPID_PUBLIC_KEY")!, Deno.env.get("VAPID_PRIVATE_KEY")!);
-    const { data: events, error } = await db.from("notification_events").select("*").eq("status", "pending").order("created_at", { ascending: true }).limit(50);
+    const { data: events, error } = await db.rpc('claim_notification_events');
     if (error) return json({ error: error.message }, 500);
     let processed = 0;
     for (const event of events || []) {
+      try {
       const { data: wedding } = await db.from("weddings").select("slug, couple_names").eq("id", event.wedding_id).single();
-      if (!wedding) continue;
+      if (!wedding) throw new Error('Wedding not found');
       const isReminder = event.event_type === "rsvp_reminder";
+      const forGuests = isReminder || event.event_type === 'wedding_update';
       const title = isReminder ? `${wedding.couple_names} are waiting for your RSVP` : event.event_type === "guest_arrived" ? "Guest arrival" : event.event_type === "photo_uploaded" ? "New wedding photo" : "Wedding update";
-      const body = isReminder ? "Please let the couple know whether you can celebrate with them." : messageFor(event);
-      const target_url = isReminder ? `/wedding/${wedding.slug}?view=rsvp` : targetFor(event.event_type, wedding.slug);
-      let subscriptionsQuery = db.from("push_subscriptions").select("*").eq("wedding_id", event.wedding_id).eq("audience_type", isReminder ? "guest" : "couple").eq("enabled", true);
+      const body = isReminder ? "Please let the couple know whether you can celebrate with them." : event.event_type === 'wedding_update' ? String(event.payload?.message || 'Your wedding has a new update.').slice(0, 240) : messageFor(event);
+      const target_url = isReminder ? `/wedding/${wedding.slug}?view=rsvp` : event.event_type === 'wedding_update' ? `/wedding/${wedding.slug}?view=updates` : targetFor(event.event_type, wedding.slug);
+      let subscriptionsQuery = db.from("push_subscriptions").select("*").eq("wedding_id", event.wedding_id).eq("audience_type", forGuests ? "guest" : "couple").eq("enabled", true);
       if (isReminder && event.payload?.target_rsvp_id) subscriptionsQuery = subscriptionsQuery.eq("guest_id", event.payload.target_rsvp_id);
-      const { data: rawSubscriptions } = await subscriptionsQuery;
+      const { data: rawSubscriptions, error: subscriptionError } = await subscriptionsQuery;
+      if (subscriptionError) throw subscriptionError;
       let subscriptions = rawSubscriptions || [];
-      if (isReminder && !event.payload?.target_rsvp_id) {
-        const { data: pendingRsvps } = await db.from("rsvps").select("id").eq("wedding_id", event.wedding_id).is("attending", null);
+      if (forGuests) {
+        const { data: inbox, error: inboxError } = await db.from('in_app_notifications').select('recipient_rsvp_id').eq('notification_event_id', event.id);
+        if (inboxError) throw inboxError;
+        const recipients = new Set((inbox || []).map(row => row.recipient_rsvp_id));
+        subscriptions = subscriptions.filter(subscription => recipients.has(subscription.guest_id));
+      }
+      if (isReminder) {
+        const { data: pendingRsvps, error: rsvpError } = await db.from("rsvps").select("id").eq("wedding_id", event.wedding_id).is("attending", null);
+        if (rsvpError) throw rsvpError;
         const pendingIds = new Set((pendingRsvps || []).map((rsvp) => rsvp.id));
         subscriptions = subscriptions.filter((subscription) => subscription.guest_id && pendingIds.has(subscription.guest_id));
       }
       for (const subscription of subscriptions || []) {
-        const recipientType = isReminder ? "guest" : "couple";
-        const { data: delivery } = await db.from("notification_deliveries").upsert({ wedding_id: event.wedding_id, notification_event_id: event.id, push_subscription_id: subscription.id, recipient_type: recipientType, category: event.event_type, title, body, target_url, delivery_status: "pending" }, { onConflict: "notification_event_id,push_subscription_id,category" }).select("id").single();
-        await db.from("in_app_notifications").insert({ wedding_id: event.wedding_id, recipient_type: recipientType, recipient_device_id: isReminder ? subscription.guest_id : subscription.couple_device_id, category: event.event_type, title, body, target_url });
+        const recipientType = forGuests ? "guest" : "couple";
+        const { data: previous, error: previousError } = await db.from('notification_deliveries').select('id,delivery_status').eq('notification_event_id', event.id).eq('push_subscription_id', subscription.id).eq('category', event.event_type).maybeSingle();
+        if (previousError) throw previousError;
+        if (previous?.delivery_status === 'sent') continue;
+        const { data: delivery, error: deliveryError } = await db.from("notification_deliveries").upsert({ wedding_id: event.wedding_id, notification_event_id: event.id, push_subscription_id: subscription.id, recipient_type: recipientType, category: event.event_type, title, body, target_url, delivery_status: "pending" }, { onConflict: "notification_event_id,push_subscription_id,category" }).select("id").single();
+        if (deliveryError) throw deliveryError;
+        if (!forGuests && !previous) await db.from("in_app_notifications").insert({ wedding_id: event.wedding_id, recipient_type: recipientType, recipient_device_id: subscription.couple_device_id, notification_event_id: event.id, category: event.event_type, title, body, target_url });
         try { await webpush.sendNotification({ endpoint: subscription.endpoint, keys: { p256dh: subscription.p256dh_key, auth: subscription.auth_key } }, JSON.stringify({ title, body, target_url })); await db.from("notification_deliveries").update({ sent_at: new Date().toISOString(), delivery_status: "sent" }).eq("id", delivery?.id); }
         catch (pushError) { const statusCode = (pushError as any)?.statusCode; await db.from("notification_deliveries").update({ delivery_status: "failed", error_code: String(statusCode || "push_failed") }).eq("id", delivery?.id); if (statusCode === 404 || statusCode === 410) await db.from("push_subscriptions").update({ enabled: false }).eq("id", subscription.id); }
       }
       await db.from("notification_events").update({ status: "processed", processed_at: new Date().toISOString() }).eq("id", event.id);
       processed += 1;
+      } catch (eventError) {
+        console.error('Notification event failed', event.id, eventError);
+        await db.from('notification_events').update({ status: 'failed', processed_at: new Date().toISOString() }).eq('id', event.id);
+      }
     }
     return json({ processed });
   } catch (error) { return json({ error: String(error) }, 500); }

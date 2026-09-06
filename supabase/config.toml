@@ -20,3 +20,9 @@ verify_jwt = false
 
 [functions.resend-couple-webhook]
 verify_jwt = false
+
+[functions.get-guest-notifications]
+verify_jwt = false
+
+[functions.process-notifications]
+verify_jwt = false

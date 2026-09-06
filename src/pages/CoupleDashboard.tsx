@@ -22,6 +22,10 @@ import AIChatAssistant from "@/components/dashboard/AIChatAssistant";
 import { WeddingRealtime } from "@/components/realtime/WeddingRealtime";
 import { getWeddingPhase } from "@/lib/weddingPhase";
 import { useAuth } from "@/hooks/useAuth";
+import NextUp from "@/components/dashboard/NextUp";
+import ReminderHistory from "@/components/dashboard/ReminderHistory";
+import MemoryKeepsake from "@/components/dashboard/MemoryKeepsake";
+import GuestPracticalInfo from "@/components/wedding/GuestPracticalInfo";
 
 const withTimeout = async <T,>(promise: PromiseLike<T>, ms = 4500): Promise<T> => {
   let timeoutId: ReturnType<typeof setTimeout>;
@@ -365,15 +369,14 @@ const CoupleDashboard = () => {
   const copyWeddingLink = () => { navigator.clipboard.writeText(weddingUrl); toast.success("Wedding link copied."); };
   const sendPushReminder = async (targetRsvpId?: string) => {
     if (weddingId === "preview-wedding") return toast.info("Reminders are available in your real wedding workspace.");
-    const { error } = await supabase.from("notification_events").insert({
-      wedding_id: weddingId!,
-      event_type: "rsvp_reminder",
-      actor_type: "couple",
-      payload: targetRsvpId ? { target_rsvp_id: targetRsvpId } : {},
-      priority: "high",
+    const { data, error } = await supabase.rpc("queue_rsvp_reminder", {
+      p_wedding_id: weddingId!,
+      ...(targetRsvpId ? { p_rsvp_id: targetRsvpId } : {}),
     });
     if (error) return toast.error("The reminder could not be queued.");
-    toast.success("Reminder queued for guests who enabled notifications.");
+    const recipients = Number((data as { recipients?: number })?.recipients || 0);
+    if (!recipients) return toast.info("No reminders sent. Guests must still be undecided and not reminded within 24 hours.");
+    toast.success(`Reminder added to ${recipients} guest inbox${recipients === 1 ? '' : 'es'}. Push notifications are sent where enabled.`);
   };
   const togglePublished = async () => {
     if (weddingId === "preview-wedding") return toast.info("Publishing is available in your real wedding workspace.");
@@ -440,6 +443,8 @@ const CoupleDashboard = () => {
         />
       )}
 
+      {(activeTab === "home" || activeTab === "calendar") && <div className="mt-5"><NextUp weddingId={weddingId!} onTabChange={changeTab} /></div>}
+
       {activeTab === "guests" && (
       <div className="space-y-5">
         {/* Welcome Greeting */}
@@ -495,6 +500,8 @@ const CoupleDashboard = () => {
 
         <ShareWeddingLink weddingSlug={weddingSlug || ""} />
 
+        <ReminderHistory weddingId={weddingId!} />
+
         {/* Activity + Guest Messages */}
         <div id="dashboard-activity" className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
           <ActivityFeed
@@ -519,6 +526,7 @@ const CoupleDashboard = () => {
 
       {activeTab === "moments" && (
         <div className="space-y-5">
+          <MemoryKeepsake wedding={wedding} gallery={galleryImages} photos={guestPhotos} messages={guestbookMessages} moments={moments} />
           <div>
             <h2 className="font-body text-2xl font-semibold tracking-normal">Memories</h2>
             <p className="font-body text-sm text-muted-foreground mt-1">
@@ -586,6 +594,7 @@ const CoupleDashboard = () => {
           />
           <ShareWeddingLink weddingSlug={weddingSlug || ""} />
           <WeddingTools weddingSlug={weddingSlug || ""} />
+          <GuestPracticalInfo key={weddingId} weddingId={weddingId!} editable />
           <SetupProgress wedding={wedding} eventsCount={events.length} hasSharedLink={wedding.published} />
         </div>
       )}
@@ -611,7 +620,7 @@ const CoupleDashboard = () => {
             <div className="flex items-start justify-between"><div><p className="font-body text-xs uppercase tracking-[0.16em] text-muted-foreground">Guest details</p><h3 className="mt-1 font-body text-2xl font-semibold">{selectedGuest.guest_name || "Unnamed guest"}</h3></div><button onClick={() => setSelectedGuest(null)} className="rounded-full bg-black/5 p-2" aria-label="Close guest details"><X className="h-4 w-4" /></button></div>
             <div className="mt-5 grid grid-cols-2 gap-2"><div className="rounded-2xl bg-white p-3"><p className="font-body text-[10px] uppercase tracking-[0.12em] text-muted-foreground">Response</p><p className="mt-1 font-body text-sm">{selectedGuest.attending === true ? "Confirmed" : selectedGuest.attending === false ? "Declined" : "Pending"}</p></div><div className="rounded-2xl bg-white p-3"><p className="font-body text-[10px] uppercase tracking-[0.12em] text-muted-foreground">Party size</p><p className="mt-1 font-body text-sm">{selectedGuest.guest_count || 1}</p></div></div>
             <div className="mt-3 space-y-2 rounded-2xl bg-white p-4 font-body text-sm"><p>{selectedGuest.email || "No email provided"}</p><p>{selectedGuest.phone || "No phone provided"}</p><p className="text-muted-foreground">Dietary: {selectedGuest.dietary_preference || "No preference noted"}</p></div>
-            <button onClick={() => { void sendPushReminder(selectedGuest.id); setSelectedGuest(null); }} className="mt-4 w-full rounded-full bg-[#202020] px-4 py-3 font-body text-xs font-semibold uppercase tracking-[0.12em] text-white"><Send className="mr-2 inline h-4 w-4" />Send RSVP reminder</button>
+            {selectedGuest.attending === null && <button onClick={() => { void sendPushReminder(selectedGuest.id); setSelectedGuest(null); }} className="mt-4 w-full rounded-full bg-[#202020] px-4 py-3 font-body text-xs font-semibold uppercase tracking-[0.12em] text-white"><Send className="mr-2 inline h-4 w-4" />Remind</button>}
           </div>
         </div>
       )}

@@ -1,6 +1,6 @@
 import { CalendarDays, CheckCircle, Images, MapPin, MessageCircle } from "lucide-react";
 
-export default function GuestHome({ wedding, phase, guestState, onAction }: any) {
+export default function GuestHome({ wedding, phase, guestState, response, onAction }: any) {
   const date = wedding.wedding_date ? new Date(wedding.wedding_date) : null;
   const days = date ? Math.max(0, Math.ceil((date.getTime() - new Date().setHours(0, 0, 0, 0)) / 86400000)) : null;
   const attending = guestState === "rsvp_confirmed" || guestState === "checked_in";
@@ -45,11 +45,14 @@ export default function GuestHome({ wedding, phase, guestState, onAction }: any)
       <p className="mt-2 font-body text-sm text-muted-foreground">{timing}</p>
       <div className="mt-6 rounded-[28px] bg-[#202020] p-5 text-white shadow-xl">
         <p className="font-body text-xs text-white/60">{isWeddingDay ? "Welcome to the wedding" : guestState === "checked_in" ? "Welcome" : attending ? "You're attending" : guestState === "rsvp_declined" ? "We'll miss you" : "Will you be celebrating with us?"}</p>
-        {attending && <p className="mt-2 font-body text-xl">Your place is on the list <CheckCircle className="ml-1 inline h-5 w-5 text-lime-300" /></p>}
+        {response && <p className="mt-2 break-words font-body text-lg">{response.guest_name}</p>}
+        {attending && <p className="mt-2 font-body text-xl">{guestState === 'checked_in' ? "You're checked in" : `Confirmed for ${response?.guest_count || 1} ${(response?.guest_count || 1) === 1 ? 'guest' : 'guests'}`} <CheckCircle className="ml-1 inline h-5 w-5 text-lime-300" /></p>}
+        {guestState === 'rsvp_pending' && <p className="mt-2 text-sm text-white/80">Your response is saved as not sure. You can update it when you know.</p>}
         <div className="mt-5 grid grid-cols-2 gap-2">
-          <button onClick={() => onAction(isWeddingDay ? "checkin" : attending ? "schedule" : "rsvp")} className="rounded-full bg-white px-3 py-3 font-body text-xs font-semibold text-black">{isWeddingDay ? "Check in" : attending ? "View schedule" : "RSVP"}</button>
+          <button onClick={() => onAction(isWeddingDay && attending && guestState !== 'checked_in' ? "checkin" : attending ? "schedule" : "rsvp")} className="rounded-full bg-white px-3 py-3 font-body text-xs font-semibold text-black">{isWeddingDay && attending && guestState !== 'checked_in' ? "Check in" : attending ? "View schedule" : response ? "Update response" : "RSVP"}</button>
           <button onClick={() => onAction(isWeddingDay ? "schedule" : "venue")} className="rounded-full border border-white/30 px-3 py-3 font-body text-xs">{isWeddingDay ? "View schedule" : "Get directions"}</button>
         </div>
+        {response && !isWeddingDay && <button onClick={() => onAction('rsvp')} className="mt-3 min-h-11 text-sm underline underline-offset-4">Change my response</button>}
       </div>
       <div className="mt-4 grid grid-cols-2 gap-3">
         <button onClick={() => onAction("schedule")} className="rounded-[22px] bg-white/85 p-4 text-left shadow-sm"><CalendarDays className="h-5 w-5" /><p className="mt-3 font-body text-sm font-semibold">Schedule</p></button>

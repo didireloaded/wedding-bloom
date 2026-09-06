@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
 import { Newspaper, ChevronLeft, ChevronRight, RefreshCw, Sparkles, Calendar } from "lucide-react";
 import { format, subDays, isToday, parseISO } from "date-fns";
+import { toast } from 'sonner';
 
 interface DailyReportProps {
   weddingId: string;
@@ -30,12 +31,14 @@ const DailyReport = ({ weddingId }: DailyReportProps) => {
 
   const fetchReports = async () => {
     setLoading(true);
-    const { data } = await supabase
+    if (weddingId === 'preview-wedding') { setLoading(false); return; }
+    const { data, error } = await supabase
       .from("wedding_reports")
       .select("*")
       .eq("wedding_id", weddingId)
       .order("report_date", { ascending: false })
       .limit(7);
+    if (error) toast.error('Reports could not be loaded. Please try again.');
     
     if (data) {
       setReports(data as Report[]);
@@ -44,6 +47,7 @@ const DailyReport = ({ weddingId }: DailyReportProps) => {
   };
 
   const generateReport = async () => {
+    if (weddingId === 'preview-wedding') return toast.info('Sign in to generate your wedding report.');
     setGenerating(true);
     try {
       const { data, error } = await supabase.functions.invoke("ai-wedding", {
@@ -53,25 +57,12 @@ const DailyReport = ({ weddingId }: DailyReportProps) => {
       if (error) throw error;
       
       if (data?.result) {
-        const today = format(new Date(), "yyyy-MM-dd");
-        
-        // Upsert the report
-        await supabase.from("wedding_reports").upsert({
-          wedding_id: weddingId,
-          report_date: today,
-          report_text: data.result.summary || data.result.greeting,
-          highlights: data.result.highlights || [],
-          action_items: data.result.actionItems || [],
-          stats: {},
-        }, {
-          onConflict: "wedding_id,report_date",
-        });
-        
         await fetchReports();
         setCurrentIndex(0);
-      }
+      } else throw new Error('No report returned');
     } catch (e) {
       console.error("Failed to generate report:", e);
+      toast.error('Your report could not be prepared. Please try again shortly.');
     }
     setGenerating(false);
   };

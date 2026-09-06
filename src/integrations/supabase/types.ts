@@ -12,6 +12,31 @@ export type Database = {
   __InternalSupabase: {
     PostgrestVersion: "14.5"
   }
+  graphql_public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json
+          operationName?: string
+          query?: string
+          variables?: Json
+        }
+        Returns: Json
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
   public: {
     Tables: {
       accommodations: {
@@ -539,8 +564,10 @@ export type Database = {
           category: string
           created_at: string
           id: string
+          notification_event_id: string | null
           read_at: string | null
           recipient_device_id: string | null
+          recipient_rsvp_id: string | null
           recipient_type: string
           target_url: string
           title: string
@@ -551,8 +578,10 @@ export type Database = {
           category: string
           created_at?: string
           id?: string
+          notification_event_id?: string | null
           read_at?: string | null
           recipient_device_id?: string | null
+          recipient_rsvp_id?: string | null
           recipient_type: string
           target_url: string
           title: string
@@ -563,14 +592,30 @@ export type Database = {
           category?: string
           created_at?: string
           id?: string
+          notification_event_id?: string | null
           read_at?: string | null
           recipient_device_id?: string | null
+          recipient_rsvp_id?: string | null
           recipient_type?: string
           target_url?: string
           title?: string
           wedding_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "in_app_notifications_notification_event_id_fkey"
+            columns: ["notification_event_id"]
+            isOneToOne: false
+            referencedRelation: "notification_events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "in_app_notifications_recipient_rsvp_id_fkey"
+            columns: ["recipient_rsvp_id"]
+            isOneToOne: false
+            referencedRelation: "rsvps"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "in_app_notifications_wedding_id_fkey"
             columns: ["wedding_id"]
@@ -721,6 +766,7 @@ export type Database = {
         Row: {
           actor_id: string | null
           actor_type: string | null
+          claimed_at: string | null
           created_at: string
           event_type: string
           id: string
@@ -734,6 +780,7 @@ export type Database = {
         Insert: {
           actor_id?: string | null
           actor_type?: string | null
+          claimed_at?: string | null
           created_at?: string
           event_type: string
           id?: string
@@ -747,6 +794,7 @@ export type Database = {
         Update: {
           actor_id?: string | null
           actor_type?: string | null
+          claimed_at?: string | null
           created_at?: string
           event_type?: string
           id?: string
@@ -979,6 +1027,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      resend_webhook_events: {
+        Row: {
+          audience: string
+          email_id: string | null
+          event_created_at: string | null
+          event_type: string
+          id: string
+          payload: Json
+          received_at: string
+          svix_id: string
+        }
+        Insert: {
+          audience: string
+          email_id?: string | null
+          event_created_at?: string | null
+          event_type: string
+          id?: string
+          payload: Json
+          received_at?: string
+          svix_id: string
+        }
+        Update: {
+          audience?: string
+          email_id?: string | null
+          event_created_at?: string | null
+          event_type?: string
+          id?: string
+          payload?: Json
+          received_at?: string
+          svix_id?: string
+        }
+        Relationships: []
       }
       rsvps: {
         Row: {
@@ -1379,6 +1460,50 @@ export type Database = {
           },
         ]
       }
+      wedding_guest_details: {
+        Row: {
+          accessibility: string
+          children: string
+          contact_email: string
+          contact_name: string
+          contact_phone: string
+          other_details: string
+          parking: string
+          transport: string
+          wedding_id: string
+        }
+        Insert: {
+          accessibility?: string
+          children?: string
+          contact_email?: string
+          contact_name?: string
+          contact_phone?: string
+          other_details?: string
+          parking?: string
+          transport?: string
+          wedding_id: string
+        }
+        Update: {
+          accessibility?: string
+          children?: string
+          contact_email?: string
+          contact_name?: string
+          contact_phone?: string
+          other_details?: string
+          parking?: string
+          transport?: string
+          wedding_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wedding_guest_details_wedding_id_fkey"
+            columns: ["wedding_id"]
+            isOneToOne: true
+            referencedRelation: "weddings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       wedding_members: {
         Row: {
           id: string
@@ -1667,6 +1792,44 @@ export type Database = {
           },
         ]
       }
+      wedding_tasks: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          due_date: string | null
+          id: string
+          target_tab: string
+          title: string
+          wedding_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          due_date?: string | null
+          id?: string
+          target_tab?: string
+          title: string
+          wedding_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          due_date?: string | null
+          id?: string
+          target_tab?: string
+          title?: string
+          wedding_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wedding_tasks_wedding_id_fkey"
+            columns: ["wedding_id"]
+            isOneToOne: false
+            referencedRelation: "weddings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       wedding_updates: {
         Row: {
           created_at: string
@@ -1800,6 +1963,29 @@ export type Database = {
     }
     Functions: {
       claim_first_admin: { Args: never; Returns: boolean }
+      claim_notification_events: {
+        Args: never
+        Returns: {
+          actor_id: string | null
+          actor_type: string | null
+          claimed_at: string | null
+          created_at: string
+          event_type: string
+          id: string
+          payload: Json
+          priority: string
+          processed_at: string | null
+          status: string
+          subject_id: string | null
+          wedding_id: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "notification_events"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       create_couple_wedding: {
         Args: {
           requested_date?: string
@@ -1856,6 +2042,10 @@ export type Database = {
       is_wedding_member: {
         Args: { target_wedding_id: string }
         Returns: boolean
+      }
+      queue_rsvp_reminder: {
+        Args: { p_rsvp_id?: string; p_wedding_id: string }
+        Returns: Json
       }
       regenerate_access_code: { Args: { wedding_id: string }; Returns: string }
       submit_guest_response: {
@@ -1994,6 +2184,9 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
   public: {
     Enums: {
       app_role: ["admin", "moderator", "user", "vendor"],

@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
+import type { GuestResponse } from '@/hooks/useGuestContext';
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Heart, Sparkles, MessageSquare, CalendarPlus } from "lucide-react";
@@ -7,6 +8,8 @@ import { generateICS } from "@/lib/calendarUtils";
 import { getGuestSessionToken, saveGuestSessionToken } from "@/lib/guestSession";
 
 interface RSVPSectionProps {
+  previousResponse?: GuestResponse;
+  restoring?: boolean;
   weddingId?: string;
   weddingDate?: string | null;
   ceremonyTime?: string | null;
@@ -28,7 +31,7 @@ const DIETARY_OPTIONS = [
   "Other",
 ];
 
-const RSVPSection = ({ weddingId, weddingDate, ceremonyTime, venue, coupleNames, rsvpDeadline, whatsappGroupUrl, maxGuests, rsvpImage }: RSVPSectionProps) => {
+const RSVPSection = ({ weddingId, weddingDate, ceremonyTime, venue, coupleNames, rsvpDeadline, whatsappGroupUrl, maxGuests, rsvpImage, previousResponse, restoring }: RSVPSectionProps) => {
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -46,6 +49,12 @@ const RSVPSection = ({ weddingId, weddingDate, ceremonyTime, venue, coupleNames,
   const [naturalInput, setNaturalInput] = useState("");
   const [parsingAI, setParsingAI] = useState(false);
   const [aiParsedHint, setAiParsedHint] = useState(false);
+  const restoredId = useRef<string | null>(null);
+  useEffect(() => {
+    if (!previousResponse || restoredId.current === previousResponse.id) return;
+    restoredId.current = previousResponse.id;
+    setForm({ name: previousResponse.guest_name, email: previousResponse.email || '', phone: previousResponse.phone || '', attending: previousResponse.attending === true ? 'accept' : previousResponse.attending === false ? 'decline' : 'not_sure', guestCount: String(previousResponse.guest_count), dietaryPreference: previousResponse.dietary_preference || '', dietaryNote: previousResponse.dietary_note || '', message: previousResponse.message || '' });
+  }, [previousResponse]);
 
   const parseNaturalLanguage = async () => {
     if (!naturalInput.trim()) { toast.error("Please type your RSVP message."); return; }
@@ -76,6 +85,7 @@ const RSVPSection = ({ weddingId, weddingDate, ceremonyTime, venue, coupleNames,
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (restoring) { toast.error('Your saved response is still loading. Please retry from Home.'); return; }
     if (!form.attending) { toast.error("Please select whether you will attend."); return; }
     if (!form.name.trim()) { toast.error("Please enter your name."); return; }
     setSubmitting(true);
