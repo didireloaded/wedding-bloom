@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { AlertCircle, CalendarDays, Check, Clock, Copy, ExternalLink, Globe2, Heart, Image, Loader2, MapPin, MessageCircle, Pencil, Plus, Send, ShieldCheck, Sparkles, Trash2, User, Users, Wand2, X } from "lucide-react";
+import { Activity, AlertCircle, CalendarDays, Check, Clock, Copy, ExternalLink, FileText, Globe2, Heart, Image, Loader2, MapPin, MessageCircle, Pencil, Plus, Radio, Send, ShieldCheck, Sparkles, Trash2, User, Users, Wand2, X } from "lucide-react";
 import { toast } from "sonner";
 import { Download } from 'lucide-react';
 
@@ -10,6 +10,7 @@ import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import CoupleOverview from "@/components/dashboard/CoupleOverview";
 import CoupleProfile from "@/components/dashboard/CoupleProfile";
 import CouplePageHeading from "@/components/dashboard/CouplePageHeading";
+import CalendarTimeline, { timeMinutes } from '@/components/dashboard/CalendarTimeline';
 import ActivityFeed from "@/components/dashboard/ActivityFeed";
 import PhotoManager from "@/components/dashboard/PhotoManager";
 import GuestMessages from "@/components/dashboard/GuestMessages";
@@ -100,6 +101,7 @@ const CoupleDashboard = () => {
   const [selectedGuest, setSelectedGuest] = useState<any | null>(null);
   const [publishing, setPublishing] = useState(false);
   const [memoryView, setMemoryView] = useState('photos');
+  const [updatesView, setUpdatesView] = useState<'share' | 'activity' | 'report'>('share');
   useEffect(() => {
     const tab = searchParams.get('tab') || 'home';
     setActiveTab(tab === 'website' ? 'profile' : tab);
@@ -576,9 +578,13 @@ const CoupleDashboard = () => {
 
       {activeTab === "updates" && (
         <div className="space-y-5">
-          <CoupleUpdates weddingId={weddingId!} />
-          <ActivityFeed rsvps={rsvps} guestbookMessages={guestbookMessages} guestPhotos={guestPhotos} checkins={checkins} moments={moments} />
-          <DailyReport weddingId={weddingId!} />
+          <CouplePageHeading title="Updates" detail="Keep everyone close to your day" />
+          <div className="fv-updates-tabs" role="tablist" aria-label="Updates views">
+            {([{ id: 'share', label: 'Share', icon: Radio }, { id: 'activity', label: 'Activity', icon: Activity }, { id: 'report', label: 'Report', icon: FileText }] as const).map(item => <button key={item.id} role="tab" aria-selected={updatesView === item.id} onClick={() => setUpdatesView(item.id)}><item.icon size={16} />{item.label}</button>)}
+          </div>
+          {updatesView === 'share' && <CoupleUpdates weddingId={weddingId!} />}
+          {updatesView === 'activity' && <ActivityFeed rsvps={rsvps} guestbookMessages={guestbookMessages} guestPhotos={guestPhotos} checkins={checkins} moments={moments} />}
+          {updatesView === 'report' && <DailyReport weddingId={weddingId!} />}
         </div>
       )}
 
@@ -700,6 +706,7 @@ function PlannerSchedule({ wedding, events, onEditDetails, onRefresh }: any) {
   };
 
   const removeEvent = async (id: string) => {
+    if (!window.confirm('Delete this wedding event?')) return;
     const { error } = await supabase.from("events").delete().eq("wedding_id", wedding.id).eq("id", id);
     if (error) return toast.error("The event could not be deleted.");
     toast.success("Event deleted.");
@@ -729,20 +736,11 @@ function PlannerSchedule({ wedding, events, onEditDetails, onRefresh }: any) {
       )}
 
       <div className="space-y-3">
-        {selectedEvents.map((event: any, index: number) => (
-          <div key={event.id} className="grid grid-cols-[64px_1fr] gap-3">
-            <div className="font-body text-xs text-muted-foreground pt-4">{event.event_time || "Time TBC"}</div>
-            <div className={`fv-calendar-event rounded-[22px] p-4 ${index % 2 ? 'fv-teal' : 'fv-lime'}`}>
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <h2 className="font-body text-sm font-semibold">{event.title}</h2>
-                  <p className="font-body text-xs text-muted-foreground leading-5 mt-1">{event.location || event.description || "Details will appear here."}</p>
-                </div>
-                <div className="flex gap-1"><button onClick={() => setEditing({ ...event })} className="flex h-9 w-9 items-center justify-center rounded-full bg-[#202020] text-white" aria-label={`Edit ${event.title}`}><Pencil className="h-3.5 w-3.5" /></button><button onClick={() => removeEvent(event.id)} className="flex h-9 w-9 items-center justify-center rounded-full border border-border text-destructive" aria-label={`Delete ${event.title}`}><Trash2 className="h-3.5 w-3.5" /></button></div>
-              </div>
-            </div>
-          </div>
-        ))}
+        <div className="fv-agenda-label">{selectedEvents.length} event{selectedEvents.length === 1 ? '' : 's'} planned</div>
+        <CalendarTimeline events={selectedEvents} onDelete={removeEvent} onEdit={event => {
+          const minutes = timeMinutes(event.event_time);
+          setEditing({ ...event, event_time: Number.isFinite(minutes) ? `${String(Math.floor(minutes / 60)).padStart(2, '0')}:${String(minutes % 60).padStart(2, '0')}` : '' });
+        }} />
         {selectedEvents.length === 0 && <div className="rounded-[22px] bg-card p-5 text-center"><CalendarDays className="mx-auto h-6 w-6 text-muted-foreground" /><h2 className="mt-3 font-body text-sm font-semibold">Nothing planned for this day</h2><button onClick={() => setEditing({ ...emptyEvent, event_date: selectedDate })} className="mt-4 rounded-full bg-primary px-4 py-2 font-body text-xs font-semibold text-primary-foreground">Add event</button></div>}
       </div>
     </div>
