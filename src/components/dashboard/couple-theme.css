@@ -15,6 +15,18 @@
 .couple-app main h2 { font-weight: 600; }
 .couple-app button:focus-visible { outline: 2px solid #b2dc6b; outline-offset: 3px; }
 .fv-overview,.fv-profile { display: grid; gap: 18px; padding: 8px 0 12px; }
+.fv-page-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 24px 20px; min-height: 124px; border-radius: 26px; color: #191919; background: linear-gradient(125deg,#f7aa6c 0%,#f99da9 60%,#a4c7ec 100%); }
+.fv-page-heading>div { min-width: 0; }
+.fv-page-heading p { font-size: 12px; line-height: 1.6; margin-bottom: 8px; }
+.fv-page-heading h1 { overflow-wrap: anywhere; }
+.fv-stat-lime { background: #b2dc6b; color: #17210c; }
+.fv-stat-teal { background: #22c4b5; color: #092c28; }
+.fv-stat-pink { background: #f5a5b9; color: #381522; }
+.fv-profile .fv-identity { border-bottom: 1px solid #353535; margin-bottom: 0; }
+.fv-settings-row>svg:first-child { background: #b2dc6b; color: #17210c; width: 36px; height: 36px; padding: 9px; border-radius: 50%; }
+.fv-settings-row:nth-of-type(2n)>svg:first-child { background: #22c4b5; color: #092c28; }
+.fv-settings-row:nth-of-type(3n)>svg:first-child { background: #f5a5b9; color: #381522; }
+.couple-app main>div.space-y-5 { padding-top: 8px; }
 .fv-day-card { border-radius: 26px; padding: 20px; color: #191919; background: linear-gradient(125deg,#f7aa6c 0%,#f99da9 60%,#a4c7ec 100%); }
 .fv-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .fv-row>span,.fv-row button { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; }

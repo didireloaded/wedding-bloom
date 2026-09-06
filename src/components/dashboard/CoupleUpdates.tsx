@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Send, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import CouplePageHeading from './CouplePageHeading';
 
 type Update = { id: string; message: string; created_at: string };
 
@@ -50,7 +51,7 @@ export default function CoupleUpdates({ weddingId }: { weddingId: string }) {
   }
 
   return <section className="space-y-4 font-body">
-    <h1 className="text-2xl font-semibold">Updates</h1>
+    <CouplePageHeading title="Updates" detail="Keep everyone close to your day" />
     <form onSubmit={post} className="space-y-3">
       <label className="block text-sm font-medium" htmlFor="guest-update">A message for your guests</label>
       <textarea id="guest-update" required maxLength={2000} rows={4} value={message} onChange={e => setMessage(e.target.value)} className="w-full resize-y rounded-3xl border border-border bg-card p-4 text-sm" placeholder="Share a change of plans or something to look forward to..." />

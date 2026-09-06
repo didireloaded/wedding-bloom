@@ -9,6 +9,7 @@ import { Download } from 'lucide-react';
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import CoupleOverview from "@/components/dashboard/CoupleOverview";
 import CoupleProfile from "@/components/dashboard/CoupleProfile";
+import CouplePageHeading from "@/components/dashboard/CouplePageHeading";
 import ActivityFeed from "@/components/dashboard/ActivityFeed";
 import PhotoManager from "@/components/dashboard/PhotoManager";
 import GuestMessages from "@/components/dashboard/GuestMessages";
@@ -457,21 +458,13 @@ const CoupleDashboard = () => {
 
       {activeTab === "guests" && (
       <div className="space-y-5">
-        {/* Welcome Greeting */}
-        <div>
-          <h2 className="font-body text-2xl font-semibold tracking-normal">
-            Guests
-          </h2>
-          <p className="font-body text-sm text-muted-foreground mt-1">
-            Track RSVPs, check-ins, guest messages, and follow-ups.
-          </p>
-        </div>
+        <CouplePageHeading title="Guests" detail={`${rsvps.length} responses · ${pending} still deciding`} />
 
         <div id="dashboard-overview" className="grid grid-cols-2 gap-3">
           {[
-            { label: "Confirmed", value: confirmed, icon: Check, tone: "bg-[#d9f06e]" },
-            { label: "Waiting", value: pending, icon: Clock, tone: "bg-card" },
-            { label: "Declined", value: declined, icon: X, tone: "bg-card" },
+            { label: "Confirmed", value: confirmed, icon: Check, tone: "fv-stat-lime" },
+            { label: "Waiting", value: pending, icon: Clock, tone: "fv-stat-teal" },
+            { label: "Declined", value: declined, icon: X, tone: "fv-stat-pink" },
             { label: "Arrived", value: checkins.length, icon: MapPin, tone: "bg-[#202020] text-white" },
           ].map((stat) => {
             const Icon = stat.icon;
@@ -536,12 +529,7 @@ const CoupleDashboard = () => {
 
       {activeTab === "moments" && (
         <div className="space-y-5">
-          <div>
-            <h2 className="font-body text-2xl font-semibold tracking-normal">Memories</h2>
-            <p className="font-body text-sm text-muted-foreground mt-1">
-              Photos, guest moments, and the shared wall from your wedding link.
-            </p>
-          </div>
+          <CouplePageHeading title="Memories" detail={`${galleryImages.length + guestPhotos.length} photos · ${moments.length} moments together`} />
           <div className="grid grid-cols-4 gap-2" role="tablist" aria-label="Memories views">
             {[
               ["Photos", galleryImages.length + guestPhotos.length],
@@ -720,13 +708,9 @@ function PlannerSchedule({ wedding, events, onEditDetails, onRefresh }: any) {
 
   return (
     <div className="space-y-5">
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="font-body text-sm font-semibold">{date.toLocaleDateString(undefined, { weekday: "short", month: "long", day: "numeric" })}</p>
-          <h1 className="font-body text-[32px] font-semibold leading-tight tracking-normal mt-1">Upcoming</h1>
-        </div>
+      <CouplePageHeading title="Calendar" detail={date.toLocaleDateString(undefined, { weekday: 'short', month: 'long', day: 'numeric' })}>
         <button onClick={() => setEditing({ ...emptyEvent, event_date: selectedDate })} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground" aria-label="Add event"><Plus className="h-4 w-4" /></button>
-      </div>
+      </CouplePageHeading>
 
       <div className="grid grid-cols-7 gap-1.5" aria-label="Wedding week">
         {weekDays.map((day, index) => <button onClick={() => setSelectedDate(dateKey(day))} aria-pressed={index === 3} aria-label={day.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })} key={dateKey(day)} className={`rounded-full px-1 py-3 text-center font-body ${index === 3 ? "bg-[#ff6245] text-white" : "border border-border bg-[#242424] text-white/65"}`}><p className="text-[10px] font-medium">{day.toLocaleDateString(undefined, { weekday: "narrow" })}</p><p className="mt-2 text-sm font-semibold">{day.getDate()}</p></button>)}
