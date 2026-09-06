@@ -59,8 +59,8 @@ const DashboardLayout = ({
   ];
 
   return (
-    <div className="couple-app h-screen h-[100dvh] overflow-hidden bg-[#080808] md:p-6">
-      <div className="mobile-pwa-frame relative mx-auto w-full max-w-[430px] overflow-hidden bg-[#111111] text-[#f7f7f2] shadow-2xl md:rounded-[34px] md:border md:border-white/10">
+    <div className="couple-app min-h-screen h-[100dvh] w-full overflow-hidden bg-[#080808] md:p-5 lg:p-6">
+      <div className="mobile-pwa-frame relative mx-auto w-full overflow-hidden bg-[#111111] text-[#f7f7f2] shadow-2xl md:max-w-[520px] md:rounded-[34px] md:border md:border-white/10">
         <header className="relative z-30 px-4 pb-3 pt-[max(env(safe-area-inset-top),14px)] sm:px-5 sm:pb-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3 min-w-0">
@@ -89,7 +89,7 @@ const DashboardLayout = ({
                     )}
                   </button>
                   {showNotifications && (
-                    <div className="absolute right-5 top-[calc(env(safe-area-inset-top)+76px)] z-50 w-[calc(100vw-40px)] max-w-[390px] rounded-[24px] border border-white/10 bg-[#181818]/95 p-4 text-white shadow-2xl backdrop-blur-xl">
+                    <div className="absolute left-4 right-4 top-[calc(env(safe-area-inset-top)+70px)] z-50 max-h-[min(65dvh,520px)] overflow-y-auto rounded-[24px] border border-white/10 bg-[#181818]/95 p-4 text-white shadow-2xl backdrop-blur-xl sm:left-auto sm:right-5 sm:w-[390px]">
                       <div className="flex items-center justify-between"><h3 className="font-body text-base font-semibold">Notifications</h3><button onClick={() => setShowNotifications(false)} aria-label="Close notifications"><X className="h-4 w-4" /></button></div>
                       <div className="mt-3 space-y-2">{notifications.length ? notifications.slice(0, 6).map((notification) => <button key={notification.id} onClick={() => { setShowNotifications(false); if (notification.targetTab) onTabChange?.(notification.targetTab); }} className="w-full rounded-2xl border border-white/10 bg-[#232323] p-3 text-left"><p className="font-body text-sm font-medium">{notification.title}</p><p className="mt-1 font-body text-xs text-white/55">{notification.body}</p></button>) : <p className="py-4 text-center font-body text-sm text-white/55">You’re all caught up.</p>}</div>
                     </div>
@@ -99,11 +99,11 @@ const DashboardLayout = ({
           </div>
         </header>
 
-        <main ref={scrollRef} className="min-h-0 overflow-y-auto overscroll-contain px-4 pb-4 pt-1 sm:px-5">
+        <main ref={scrollRef} className="min-h-0 overflow-y-auto overscroll-contain px-4 pb-5 pt-1 sm:px-5 md:px-6">
           {children}
         </main>
 
-        <div className="relative z-40 px-2 pb-[max(env(safe-area-inset-bottom),8px)] pt-1 sm:px-5 sm:pb-[max(env(safe-area-inset-bottom),14px)]">
+        <div className="relative z-40 px-[max(env(safe-area-inset-left),8px)] pb-[max(env(safe-area-inset-bottom),8px)] pr-[max(env(safe-area-inset-right),8px)] pt-1 sm:px-5 sm:pb-[max(env(safe-area-inset-bottom),14px)]">
           <nav className="flex h-[68px] items-center justify-between rounded-[24px] border border-white/10 bg-[#252525]/95 px-1 shadow-[0_16px_40px_rgba(0,0,0,0.38)] backdrop-blur-2xl sm:h-[72px] sm:rounded-[28px] sm:px-2">
             {tabs.map((tab) => {
               const Icon = tab.icon;

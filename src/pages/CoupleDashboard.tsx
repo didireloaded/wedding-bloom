@@ -476,7 +476,7 @@ const CoupleDashboard = () => {
 
         {/* Pending RSVP nudge */}
         {pending > 0 && (
-          <div className="flex items-center justify-between rounded-[22px] border border-border bg-card p-4 shadow-sm">
+          <div className="flex flex-col items-stretch gap-3 rounded-[22px] border border-border bg-card p-4 shadow-sm min-[380px]:flex-row min-[380px]:items-center min-[380px]:justify-between">
             <div className="flex items-center gap-3">
               <Clock className="w-4 h-4 text-amber-500 shrink-0" />
               <p className="font-body text-sm">
@@ -486,7 +486,7 @@ const CoupleDashboard = () => {
             </div>
             <button
               onClick={() => void sendPushReminder()}
-              className="ml-4 whitespace-nowrap rounded-full bg-black px-3 py-2 font-body text-[10px] font-semibold text-white"
+              className="min-h-11 whitespace-nowrap rounded-full bg-primary px-4 py-2 font-body text-xs font-semibold text-primary-foreground min-[380px]:ml-3"
             >
               Send reminder
             </button>

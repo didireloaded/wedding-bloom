@@ -9,8 +9,10 @@
   --border: 0 0% 23%; --input: 0 0% 25%; --ring: 82 60% 65%;
   color-scheme: dark;
 }
-.couple-app { font-family: var(--font-body), sans-serif; }
-.couple-app main { overflow-x: hidden; }
+.couple-app { font-family: var(--font-body), sans-serif; isolation: isolate; touch-action: manipulation; }
+.couple-app main { overflow-x: hidden; scroll-padding-block: 16px; -webkit-overflow-scrolling: touch; }
+.couple-app img { max-width: 100%; }
+.couple-app button,.couple-app a { -webkit-tap-highlight-color: transparent; }
 .couple-app main h1 { font-size: 26px; line-height: 1.2; font-weight: 650; }
 .couple-app main h2 { font-weight: 600; }
 .couple-app button:focus-visible { outline: 2px solid #b2dc6b; outline-offset: 3px; }
@@ -155,4 +157,16 @@
   .fv-bento { gap: 8px; }
   .fv-priorities { padding: 15px 10px; }
   .fv-priorities button { font-size: 11px; gap: 5px; }
+}
+@media (max-width: 767px) {
+  .couple-app input,.couple-app textarea,.couple-app select { font-size: 16px; }
+  .couple-app .fv-update-composer textarea { font-size: 16px; }
+  .couple-app input[type="date"],.couple-app input[type="time"] { min-width: 0; max-width: 100%; }
+}
+@media (orientation: landscape) and (max-height: 500px) {
+  .couple-app header { padding-top: max(env(safe-area-inset-top), 8px); padding-bottom: 7px; }
+  .couple-app header img { width: 36px; height: 36px; }
+  .couple-app header button[aria-label="Notifications"] { width: 40px; height: 40px; }
+  .couple-app nav { height: 60px; }
+  .couple-app nav>button { height: 48px; }
 }
