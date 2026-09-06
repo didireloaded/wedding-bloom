@@ -147,6 +147,7 @@
 .fv-update-card time { font-size: 10px; opacity: .7; }
 .fv-budget { display: grid; gap: 22px; }
 .fv-budget-balance { padding: 21px; border-radius: 27px; background: #050505; border: 1px solid #292929; }
+.fv-budget-balance.is-over { border-color: #ff665d80; background: linear-gradient(145deg,#260c0c,#080505 72%); }
 .fv-budget-balance-head { display: flex; align-items: center; justify-content: space-between; color: #b6b6b6; font-size: 12px; }
 .fv-budget-balance-head button { display: grid; place-items: center; width: 38px; height: 38px; border-radius: 50%; background: #252525; color: white; }
 .fv-budget-balance>p { margin-top: 18px; color: #aaa; font-size: 11px; }
@@ -154,8 +155,14 @@
 .fv-budget-balance h2.is-over { color: #ff8a80; }
 .fv-budget-progress { height: 9px; margin-top: 21px; border-radius: 8px; overflow: hidden; background: #292929; }
 .fv-budget-progress span { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg,#67abf8,#22c4b5,#b2dc6b); }
+.fv-budget-balance.is-over .fv-budget-progress span { background: linear-gradient(90deg,#ff9a85,#ff4f57); }
 .fv-budget-balance-foot { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 6px; margin-top: 11px; color: #aaa; font-size: 10px; }
 .fv-budget-balance-foot strong { color: white; }
+.fv-budget-balance.is-over .fv-budget-balance-foot span:last-child { color: #ff8a80; font-weight: 650; }
+.fv-over-budget { display: flex; align-items: center; gap: 12px; padding: 15px; border: 1px solid #ff665d55; border-radius: 21px; background: #321010; color: #ffd5d1; }
+.fv-over-budget>span { display: grid; place-items: center; width: 40px; height: 40px; flex-shrink: 0; border-radius: 50%; background: #ff6252; color: #240707; }
+.fv-over-budget strong { display: block; font-size: 13px; }
+.fv-over-budget p { margin-top: 3px; color: #ffaaa4; font-size: 11px; line-height: 1.5; }
 .fv-budget-actions { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; }
 .fv-budget-actions button { display: flex; flex-direction: column; align-items: center; gap: 8px; min-width: 0; color: #bbb; font-size: 10px; }
 .fv-budget-actions span { display: grid; place-items: center; width: 48px; height: 48px; border-radius: 50%; background: #252525; color: white; }

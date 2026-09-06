@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Camera, Car, CircleEllipsis, Download, MapPin, Pencil, Plus, ReceiptText, Shirt, Trash2, Utensils, Wallet } from 'lucide-react';
+import { Camera, Car, CircleEllipsis, Download, MapPin, Pencil, Plus, ReceiptText, Shirt, Trash2, TriangleAlert, Utensils, Wallet } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -27,6 +27,11 @@ export function summarizeBudget(entries: BudgetEntry[]) {
   }).filter(item => item.amount > 0).sort((a, b) => b.amount - a.amount);
 }
 
+export function calculateBudgetUsage(planned: number, spent: number) {
+  const percent = planned > 0 ? Math.round((spent / planned) * 100) : 0;
+  return { percent, progress: Math.min(100, Math.max(0, percent)), overBy: Math.max(0, spent - planned), isOver: planned > 0 && spent > planned };
+}
+
 export default function BudgetTracker({ weddingId, coupleNames, slug }: { weddingId: string; coupleNames: string; slug: string }) {
   const [adding, setAdding] = useState(false);
   const [editingBudget, setEditingBudget] = useState(false);
@@ -45,7 +50,7 @@ export default function BudgetTracker({ weddingId, coupleNames, slug }: { weddin
   const breakdown = useMemo(() => summarizeBudget(data.entries), [data.entries]);
   const budget = Number(planned || 0);
   const remaining = budget - spent;
-  const usedPercent = budget ? Math.min(100, Math.round((spent / budget) * 100)) : 0;
+  const usage = calculateBudgetUsage(budget, spent);
 
   const saveBudget = async () => { if (preview) return toast.info('Open your wedding workspace to save a budget.'); const amount = Number(planned); if (!Number.isFinite(amount) || amount < 0) return toast.error('Enter a valid budget.'); setBusy(true); const { error } = await supabase.from('wedding_budgets').upsert({ wedding_id: weddingId, planned_amount: amount, currency: data.currency }); setBusy(false); if (error) return toast.error('Budget could not be saved.'); toast.success('Budget updated.'); setEditingBudget(false); await q.refetch(); };
   const addEntry = async (event: React.FormEvent) => { event.preventDefault(); if (preview) return toast.info('Open your wedding workspace to add expenses.'); const amount = Number(form.amount); if (!form.title.trim() || !Number.isFinite(amount) || amount <= 0) return toast.error('Add a title and a positive amount.'); setBusy(true); const { error } = await supabase.from('wedding_budget_entries').insert({ wedding_id: weddingId, ...form, title: form.title.trim(), amount }); setBusy(false); if (error) return toast.error('Expense could not be added.'); setForm({ title: '', category: 'Venue', amount: '', spent_on: new Date().toISOString().slice(0, 10), notes: '' }); setAdding(false); await q.refetch(); };
@@ -55,13 +60,14 @@ export default function BudgetTracker({ weddingId, coupleNames, slug }: { weddin
   if (q.isLoading && !preview) return <section className="fv-budget-empty" role="status"><Wallet className="animate-pulse" size={24} /><p>Loading your budget...</p></section>;
 
   return <section className="fv-budget">
-    <div className="fv-budget-balance">
+    <div className={`fv-budget-balance ${usage.isOver ? 'is-over' : ''}`}>
       <div className="fv-budget-balance-head"><span>Wedding budget</span><button onClick={() => setEditingBudget(value => !value)} aria-label="Edit total budget"><Pencil size={16} /></button></div>
       <p>{remaining < 0 ? 'Over budget' : 'Left to spend'}</p>
       <h2 className={remaining < 0 ? 'is-over' : ''}>{money(Math.abs(remaining), data.currency)}</h2>
-      <div className="fv-budget-progress"><span style={{ width: `${usedPercent}%` }} /></div>
-      <div className="fv-budget-balance-foot"><span><strong>{money(spent, data.currency)}</strong> spent</span><span>{usedPercent}% of {money(budget, data.currency)}</span></div>
+      <div className="fv-budget-progress"><span style={{ width: `${usage.progress}%` }} /></div>
+      <div className="fv-budget-balance-foot"><span><strong>{money(spent, data.currency)}</strong> spent</span><span>{usage.percent}% of {money(budget, data.currency)}</span></div>
     </div>
+    {usage.isOver && <div className="fv-over-budget" role="status"><span><TriangleAlert size={20} /></span><div><strong>Budget exceeded</strong><p>You have spent {money(usage.overBy, data.currency)} more than your planned budget.</p></div></div>}
 
     <div className="fv-budget-actions"><button onClick={() => setAdding(value => !value)}><span><Plus size={19} /></span>Add expense</button><button onClick={() => setEditingBudget(value => !value)}><span><Pencil size={18} /></span>Edit budget</button><button onClick={download}><span><Download size={18} /></span>Export</button></div>
 
