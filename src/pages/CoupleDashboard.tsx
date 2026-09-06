@@ -586,23 +586,6 @@ const CoupleDashboard = () => {
 
       {activeTab === "profile" && (
         <div className="space-y-5">
-          <WebsiteWorkspace
-            wedding={wedding}
-            weddingSlug={weddingSlug || ""}
-            publishing={publishing}
-            onPublish={togglePublished}
-            onEditDetails={() => setShowEditDetails(true)}
-          />
-          <ShareWeddingLink weddingSlug={weddingSlug || ""} />
-          <WeddingTools weddingSlug={weddingSlug || ""} />
-          <GuestPracticalInfo key={weddingId} weddingId={weddingId!} editable />
-          <BudgetTracker weddingId={weddingId!} coupleNames={wedding.couple_names} slug={weddingSlug || wedding.slug} />
-          <SetupProgress wedding={wedding} eventsCount={events.length} hasSharedLink={wedding.published} />
-        </div>
-      )}
-
-      {activeTab === "profile" && (
-        <div className="space-y-5">
           <ProfilePanel
             wedding={wedding}
             weddingSlug={weddingSlug || ""}
@@ -613,8 +596,22 @@ const CoupleDashboard = () => {
             onEditDetails={() => setShowEditDetails(true)}
             onTabChange={changeTab}
           />
+          <details className="group rounded-[26px] border border-white/70 bg-white/88 p-4 shadow-sm">
+            <summary className="flex cursor-pointer list-none items-center justify-between font-body text-sm font-semibold">Publishing and guest link <Plus className="h-4 w-4 transition-transform group-open:rotate-45" /></summary>
+            <div className="mt-4 space-y-4"><WebsiteWorkspace wedding={wedding} weddingSlug={weddingSlug || ""} publishing={publishing} onPublish={togglePublished} onEditDetails={() => setShowEditDetails(true)} /><ShareWeddingLink weddingSlug={weddingSlug || ""} /></div>
+          </details>
+          <details className="group rounded-[26px] border border-white/70 bg-white/88 p-4 shadow-sm">
+            <summary className="flex cursor-pointer list-none items-center justify-between font-body text-sm font-semibold">Wedding tools and guest information <Plus className="h-4 w-4 transition-transform group-open:rotate-45" /></summary>
+            <div className="mt-4 space-y-4"><WeddingTools weddingSlug={weddingSlug || ""} /><GuestPracticalInfo key={weddingId} weddingId={weddingId!} editable /></div>
+          </details>
+          <details className="group rounded-[26px] border border-white/70 bg-white/88 p-4 shadow-sm">
+            <summary className="flex cursor-pointer list-none items-center justify-between font-body text-sm font-semibold">Budget and spending <Plus className="h-4 w-4 transition-transform group-open:rotate-45" /></summary>
+            <div className="mt-4"><BudgetTracker weddingId={weddingId!} coupleNames={wedding.couple_names} slug={weddingSlug || wedding.slug} /></div>
+          </details>
+          <SetupProgress wedding={wedding} eventsCount={events.length} hasSharedLink={wedding.published} />
         </div>
       )}
+
 
       {selectedGuest && (
         <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/30 p-3" onClick={() => setSelectedGuest(null)}>
