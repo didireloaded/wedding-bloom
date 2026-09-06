@@ -25,6 +25,7 @@ import { useAuth } from "@/hooks/useAuth";
 import NextUp from "@/components/dashboard/NextUp";
 import ReminderHistory from "@/components/dashboard/ReminderHistory";
 import MemoryKeepsake from "@/components/dashboard/MemoryKeepsake";
+import BudgetTracker from "@/components/dashboard/BudgetTracker";
 import GuestPracticalInfo from "@/components/wedding/GuestPracticalInfo";
 
 const withTimeout = async <T,>(promise: PromiseLike<T>, ms = 4500): Promise<T> => {
@@ -595,6 +596,7 @@ const CoupleDashboard = () => {
           <ShareWeddingLink weddingSlug={weddingSlug || ""} />
           <WeddingTools weddingSlug={weddingSlug || ""} />
           <GuestPracticalInfo key={weddingId} weddingId={weddingId!} editable />
+          <BudgetTracker weddingId={weddingId!} coupleNames={wedding.couple_names} slug={weddingSlug || wedding.slug} />
           <SetupProgress wedding={wedding} eventsCount={events.length} hasSharedLink={wedding.published} />
         </div>
       )}

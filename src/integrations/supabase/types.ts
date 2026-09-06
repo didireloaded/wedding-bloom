@@ -1345,6 +1345,79 @@ export type Database = {
           },
         ]
       }
+      wedding_budget_entries: {
+        Row: {
+          amount: number
+          category: string
+          created_at: string
+          id: string
+          notes: string
+          receipt_url: string | null
+          spent_on: string
+          title: string
+          wedding_id: string
+        }
+        Insert: {
+          amount: number
+          category: string
+          created_at?: string
+          id?: string
+          notes?: string
+          receipt_url?: string | null
+          spent_on?: string
+          title: string
+          wedding_id: string
+        }
+        Update: {
+          amount?: number
+          category?: string
+          created_at?: string
+          id?: string
+          notes?: string
+          receipt_url?: string | null
+          spent_on?: string
+          title?: string
+          wedding_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wedding_budget_entries_wedding_id_fkey"
+            columns: ["wedding_id"]
+            isOneToOne: false
+            referencedRelation: "weddings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      wedding_budgets: {
+        Row: {
+          currency: string
+          planned_amount: number
+          updated_at: string
+          wedding_id: string
+        }
+        Insert: {
+          currency?: string
+          planned_amount?: number
+          updated_at?: string
+          wedding_id: string
+        }
+        Update: {
+          currency?: string
+          planned_amount?: number
+          updated_at?: string
+          wedding_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wedding_budgets_wedding_id_fkey"
+            columns: ["wedding_id"]
+            isOneToOne: true
+            referencedRelation: "weddings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       wedding_checkin_settings: {
         Row: {
           checkin_closes_at: string | null
