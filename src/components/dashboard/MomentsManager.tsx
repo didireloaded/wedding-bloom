@@ -131,7 +131,7 @@ const MomentsManager = ({ weddingId, moments, isLiveMode, onRefresh }: MomentsMa
         <button
           onClick={suggestHighlights}
           disabled={aiLoading || approved.length === 0}
-          className="flex min-h-10 items-center gap-2 rounded-full border border-black/10 bg-white px-4 py-2 font-body text-xs font-semibold transition-colors hover:bg-muted disabled:opacity-40"
+          className="flex min-h-10 items-center gap-2 rounded-full border border-border bg-card px-4 py-2 font-body text-xs font-semibold transition-colors hover:bg-muted disabled:opacity-40"
         >
           <Sparkles className="w-3.5 h-3.5" />
           {aiLoading ? "Reviewing..." : "Find Highlights"}
@@ -210,7 +210,7 @@ const MomentsManager = ({ weddingId, moments, isLiveMode, onRefresh }: MomentsMa
       )}
 
       {moments.length === 0 && (
-        <div className="rounded-2xl border border-dashed border-black/15 bg-black/[0.02] py-12 text-center">
+        <div className="rounded-2xl border border-dashed border-border bg-black/[0.02] py-12 text-center">
           <MessageSquare className="w-8 h-8 mx-auto text-muted-foreground mb-3" strokeWidth={1} />
           <p className="font-body text-sm text-muted-foreground">No moments yet. They'll appear here when guests start posting.</p>
         </div>

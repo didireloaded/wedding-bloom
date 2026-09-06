@@ -94,7 +94,7 @@ const ActivityFeed = ({ rsvps, guestbookMessages, guestPhotos, checkins, moments
   };
 
   return (
-    <div className="overflow-hidden rounded-3xl border border-black/5 bg-white/80">
+    <div className="overflow-hidden rounded-3xl border border-border bg-card">
       <div className="p-4 border-b border-border flex items-center gap-2">
         <Activity className="w-4 h-4 text-wedding-gold" />
         <h3 className="font-body text-sm font-semibold">What's happening</h3>

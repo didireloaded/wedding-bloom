@@ -31,7 +31,7 @@ const WeddingTools = ({ weddingSlug }: WeddingToolsProps) => {
   };
 
   return (
-    <div className="rounded-[26px] border border-white/75 bg-white/88 p-5 shadow-sm">
+    <div className="rounded-[26px] border border-border bg-card p-5 shadow-sm">
       <div>
         <div className="flex items-center gap-2">
           <QrCode className="h-4 w-4" />
@@ -50,7 +50,7 @@ const WeddingTools = ({ weddingSlug }: WeddingToolsProps) => {
               Invitation QR
             </p>
             <div className="flex justify-center mb-3">
-              <div className="inline-block rounded-xl bg-white p-2">
+              <div className="inline-block rounded-xl bg-card p-2">
                 <QRCodeSVG id="invitation-qr" value={weddingUrl} size={92} level="H" />
               </div>
             </div>
@@ -68,7 +68,7 @@ const WeddingTools = ({ weddingSlug }: WeddingToolsProps) => {
               Venue Check-in QR
             </p>
             <div className="flex justify-center mb-3">
-              <div className="inline-block rounded-xl bg-white p-2">
+              <div className="inline-block rounded-xl bg-card p-2">
                 <QRCodeSVG id="checkin-qr" value={checkinUrl} size={92} level="H" />
               </div>
             </div>

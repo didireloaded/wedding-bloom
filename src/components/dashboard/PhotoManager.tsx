@@ -94,21 +94,21 @@ const PhotoManager = ({ weddingId, galleryImages, guestPhotos, onRefresh }: Phot
                   <div className="absolute right-2 top-2 flex items-center gap-2">
                     <button
                       onClick={() => approvePhoto(photo.id)}
-                      className="flex min-h-9 min-w-9 items-center justify-center rounded-full bg-white text-emerald-700 shadow"
+                      className="flex min-h-9 min-w-9 items-center justify-center rounded-full bg-card text-emerald-700 shadow"
                       aria-label="Approve photo"
                     >
                       <Check className="w-4 h-4" />
                     </button>
                     <button
                       onClick={() => deletePhoto(photo.id, "guest_photos")}
-                      className="flex min-h-9 min-w-9 items-center justify-center rounded-full bg-white text-destructive shadow"
+                      className="flex min-h-9 min-w-9 items-center justify-center rounded-full bg-card text-destructive shadow"
                       aria-label="Remove photo"
                     >
                       <X className="w-4 h-4" />
                     </button>
                   </div>
                   {photo.guest_name && (
-                    <div className="absolute bottom-0 left-0 right-0 bg-black/60 px-3 py-2 backdrop-blur-sm">
+                    <div className="absolute bottom-0 left-0 right-0 bg-muted px-3 py-2 backdrop-blur-sm">
                       <p className="truncate font-body text-[10px] font-medium text-white">{photo.guest_name}</p>
                     </div>
                   )}
@@ -129,7 +129,7 @@ const PhotoManager = ({ weddingId, galleryImages, guestPhotos, onRefresh }: Phot
                   <div className="absolute right-2 top-2">
                     <button
                       onClick={() => deletePhoto(img.id, "gallery")}
-                      className="flex min-h-9 min-w-9 items-center justify-center rounded-full bg-white text-destructive shadow"
+                      className="flex min-h-9 min-w-9 items-center justify-center rounded-full bg-card text-destructive shadow"
                       aria-label="Remove photo"
                     >
                       <X className="w-4 h-4" />
@@ -156,7 +156,7 @@ const PhotoManager = ({ weddingId, galleryImages, guestPhotos, onRefresh }: Phot
         )}
 
         {galleryImages.length === 0 && guestPhotos.length === 0 && (
-          <div className="rounded-2xl border border-dashed border-black/15 bg-black/[0.02] py-10 text-center">
+          <div className="rounded-2xl border border-dashed border-border bg-black/[0.02] py-10 text-center">
             <ImageIcon className="w-8 h-8 mx-auto text-muted-foreground/30 mb-2" strokeWidth={1} />
             <p className="font-body text-sm text-muted-foreground">No photos yet</p>
             <p className="font-body text-xs text-muted-foreground/70 mt-1">

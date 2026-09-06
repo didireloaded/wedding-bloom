@@ -154,54 +154,6 @@
     scrollbar-color: #3a3a3a transparent;
   }
 
-  .couple-app main section[class*="bg-white"],
-  .couple-app main article[class*="bg-white"],
-  .couple-app main details[class*="bg-white"],
-  .couple-app main div[class*="bg-white"],
-  .couple-app main button[class*="bg-white"] {
-    background: #1c1c1c !important;
-    border-color: rgba(255,255,255,.1) !important;
-    color: #f7f7f2;
-  }
-
-  .couple-app main input,
-  .couple-app main textarea,
-  .couple-app main select {
-    background: #242424;
-    border-color: rgba(255,255,255,.12) !important;
-    color: #f7f7f2;
-  }
-
-  .couple-app main input::placeholder,
-  .couple-app main textarea::placeholder {
-    color: rgba(255,255,255,.42);
-  }
-
-  .couple-app main .text-muted-foreground,
-  .couple-app main [class*="text-black/5"] {
-    color: rgba(255,255,255,.56) !important;
-  }
-
-  .couple-app main button[class*="bg-muted"],
-  .couple-app main div[class*="bg-muted"] {
-    background: #292929 !important;
-    color: #f7f7f2;
-  }
-
-  .couple-app main button[class*="bg-white"] [class*="text-black"],
-  .couple-app main section[class*="bg-white"] [class*="text-black"] {
-    color: #f7f7f2 !important;
-  }
-
-  .couple-app main .bg-foreground {
-    background: #ff6245 !important;
-    color: #fff !important;
-  }
-
-  .couple-app main details > summary::-webkit-details-marker {
-    display: none;
-  }
-
   .wedding-section {
     @apply px-5 py-14 md:px-8 md:py-20;
   }

@@ -80,9 +80,9 @@ const EditWeddingDetails = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
+      <DialogContent className="w-[calc(100%-24px)] max-w-lg max-h-[85dvh] overflow-y-auto rounded-3xl">
         <DialogHeader>
-          <DialogTitle className="font-display text-xl font-light">
+          <DialogTitle className="font-body text-xl font-semibold">
             Edit Wedding Details
           </DialogTitle>
           <DialogDescription className="font-body text-xs text-muted-foreground">
@@ -93,24 +93,26 @@ const EditWeddingDetails = ({
         <div className="space-y-4 mt-2">
           {fields.map((field) => (
             <div key={field.key}>
-              <label className="font-body text-[10px] tracking-[0.15em] uppercase text-muted-foreground block mb-1.5">
+              <label htmlFor={`wedding-${field.key}`} className="font-body text-xs text-muted-foreground block mb-1.5">
                 {field.label}
               </label>
               {field.type === "textarea" ? (
                 <textarea
+                  id={`wedding-${field.key}`}
                   value={(form as any)[field.key]}
                   onChange={(e) => handleChange(field.key, e.target.value)}
                   maxLength={2000}
                   rows={4}
-                  className="w-full border border-border bg-background px-3 py-2 font-body text-sm focus:outline-none focus:ring-1 focus:ring-foreground/20 resize-none"
+                  className="w-full rounded-xl border border-border bg-background px-3 py-2 font-body text-sm focus:outline-none focus:ring-1 focus:ring-primary resize-none"
                 />
               ) : (
                 <input
+                  id={`wedding-${field.key}`}
                   type={field.type}
                   value={(form as any)[field.key]}
                   onChange={(e) => handleChange(field.key, e.target.value)}
                   maxLength={200}
-                  className="w-full border border-border bg-background px-3 py-2 font-body text-sm focus:outline-none focus:ring-1 focus:ring-foreground/20 min-h-[40px]"
+                  className="w-full rounded-xl border border-border bg-background px-3 py-2 font-body text-sm focus:outline-none focus:ring-1 focus:ring-primary min-h-[44px]"
                 />
               )}
             </div>
@@ -121,14 +123,14 @@ const EditWeddingDetails = ({
           <button
             onClick={() => onOpenChange(false)}
             disabled={saving}
-            className="px-4 py-2 border border-border font-body text-xs tracking-[0.15em] uppercase hover:bg-muted transition-colors min-h-[40px]"
+            className="rounded-full px-4 py-2 border border-border font-body text-xs hover:bg-muted transition-colors min-h-[44px]"
           >
             Cancel
           </button>
           <button
             onClick={handleSave}
             disabled={saving}
-            className="px-5 py-2 bg-foreground text-background font-body text-xs tracking-[0.15em] uppercase hover:bg-foreground/90 transition-colors min-h-[40px] disabled:opacity-50"
+            className="rounded-full px-5 py-2 bg-primary text-primary-foreground font-body text-xs min-h-[44px] disabled:opacity-50"
           >
             {saving ? "Saving..." : "Save Changes"}
           </button>

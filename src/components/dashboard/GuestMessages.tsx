@@ -37,7 +37,7 @@ const GuestMessages = ({ weddingId, accessCode, messages, onRefresh }: GuestMess
   const approvedCount = messages.filter((m) => m.approved).length;
 
   return (
-    <div className="overflow-hidden rounded-3xl border border-black/5 bg-white/80">
+    <div className="overflow-hidden rounded-3xl border border-border bg-card">
       <div className="p-4 border-b border-border flex items-center justify-between flex-wrap gap-2">
         <div className="flex items-center gap-2">
           <BookOpen className="w-4 h-4 text-wedding-gold" />

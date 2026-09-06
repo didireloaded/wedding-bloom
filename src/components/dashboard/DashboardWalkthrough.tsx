@@ -109,7 +109,7 @@ const DashboardWalkthrough = ({ weddingId, show, onComplete }: DashboardWalkthro
   // Welcome modal (step === -1)
   if (step === -1) {
     return (
-      <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm">
+      <div className="fixed inset-0 z-[100] flex items-center justify-center bg-muted backdrop-blur-sm">
         <div className="bg-background border border-border max-w-md w-full mx-4 p-8 text-center space-y-6 animate-in fade-in zoom-in-95 duration-300">
           <div className="w-12 h-12 mx-auto rounded-full bg-primary/10 flex items-center justify-center">
             <Sparkles className="w-6 h-6 text-primary" />
@@ -150,7 +150,7 @@ const DashboardWalkthrough = ({ weddingId, show, onComplete }: DashboardWalkthro
   return (
     <div className="fixed inset-0 z-[100] pointer-events-none">
       {/* Overlay */}
-      <div className="absolute inset-0 bg-black/40 pointer-events-auto" onClick={complete} />
+      <div className="absolute inset-0 bg-muted pointer-events-auto" onClick={complete} />
 
       {/* Tooltip card */}
       <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[101] pointer-events-auto w-full max-w-lg mx-4">

@@ -3,9 +3,12 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { AlertCircle, CalendarDays, Check, Clock, Copy, ExternalLink, Globe2, Heart, Image, Loader2, MapPin, MessageCircle, Pencil, Plus, Send, ShieldCheck, Sparkles, Trash2, User, Users, Wand2, X } from "lucide-react";
 import { toast } from "sonner";
+import { Download } from 'lucide-react';
 
 // Dashboard Components
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
+import CoupleOverview from "@/components/dashboard/CoupleOverview";
+import CoupleProfile from "@/components/dashboard/CoupleProfile";
 import ActivityFeed from "@/components/dashboard/ActivityFeed";
 import PhotoManager from "@/components/dashboard/PhotoManager";
 import GuestMessages from "@/components/dashboard/GuestMessages";
@@ -95,11 +98,17 @@ const CoupleDashboard = () => {
   const [guestFilter, setGuestFilter] = useState<"all" | "confirmed" | "pending" | "declined" | "checked-in">("all");
   const [selectedGuest, setSelectedGuest] = useState<any | null>(null);
   const [publishing, setPublishing] = useState(false);
+  const [memoryView, setMemoryView] = useState('photos');
+  useEffect(() => {
+    const tab = searchParams.get('tab') || 'home';
+    setActiveTab(tab === 'website' ? 'profile' : tab);
+  }, [searchParams]);
 
   const changeTab = (tab: string) => {
     if (tab === "website") tab = "profile";
     setActiveTab(tab);
     const nextParams = new URLSearchParams(searchParams);
+    nextParams.delete('section');
     if (weddingSlug) nextParams.set("slug", weddingSlug);
     if (tab === "home") {
       nextParams.delete("tab");
@@ -419,7 +428,7 @@ const CoupleDashboard = () => {
       />
 
       {activeTab === "home" && (
-        <CoupleHome
+        <CoupleOverview
           wedding={wedding}
           progress={progress}
           completedTasks={completedTasks}
@@ -451,7 +460,7 @@ const CoupleDashboard = () => {
         {/* Welcome Greeting */}
         <div>
           <h2 className="font-body text-2xl font-semibold tracking-normal">
-            Guest center
+            Guests
           </h2>
           <p className="font-body text-sm text-muted-foreground mt-1">
             Track RSVPs, check-ins, guest messages, and follow-ups.
@@ -461,8 +470,8 @@ const CoupleDashboard = () => {
         <div id="dashboard-overview" className="grid grid-cols-2 gap-3">
           {[
             { label: "Confirmed", value: confirmed, icon: Check, tone: "bg-[#d9f06e]" },
-            { label: "Waiting", value: pending, icon: Clock, tone: "bg-white/85" },
-            { label: "Declined", value: declined, icon: X, tone: "bg-white/85" },
+            { label: "Waiting", value: pending, icon: Clock, tone: "bg-card" },
+            { label: "Declined", value: declined, icon: X, tone: "bg-card" },
             { label: "Arrived", value: checkins.length, icon: MapPin, tone: "bg-[#202020] text-white" },
           ].map((stat) => {
             const Icon = stat.icon;
@@ -472,7 +481,7 @@ const CoupleDashboard = () => {
 
         {/* Pending RSVP nudge */}
         {pending > 0 && (
-          <div className="flex items-center justify-between rounded-[22px] border border-white/70 bg-white/72 p-4 shadow-sm">
+          <div className="flex items-center justify-between rounded-[22px] border border-border bg-card p-4 shadow-sm">
             <div className="flex items-center gap-3">
               <Clock className="w-4 h-4 text-amber-500 shrink-0" />
               <p className="font-body text-sm">
@@ -489,15 +498,15 @@ const CoupleDashboard = () => {
           </div>
         )}
 
-        <section className="rounded-[24px] border border-white/70 bg-white/88 p-4 shadow-sm">
+        <section className="rounded-[24px] border border-border bg-card p-4 shadow-sm">
           <div className="flex items-center justify-between gap-3"><div><h3 className="font-body text-base font-semibold">Guest list</h3><p className="font-body text-xs text-muted-foreground mt-1">Search responses, check-ins, and dietary notes.</p></div><span className="font-body text-xs text-muted-foreground">{filteredGuests.length} shown</span></div>
-          <input value={guestSearch} onChange={(event) => setGuestSearch(event.target.value)} placeholder="Search guests..." className="mt-4 w-full rounded-full border border-black/10 bg-white px-4 py-3 font-body text-sm outline-none focus:border-black/30" />
-          <div className="mt-3 flex gap-2 overflow-x-auto pb-1">{(["all", "confirmed", "pending", "declined", "checked-in"] as const).map((filter) => <button key={filter} onClick={() => setGuestFilter(filter)} className={`whitespace-nowrap rounded-full px-3 py-2 font-body text-[10px] font-semibold uppercase tracking-[0.1em] ${guestFilter === filter ? "bg-[#202020] text-white" : "bg-black/5 text-muted-foreground"}`}>{filter.replace("-", " ")}</button>)}</div>
-          <div className="mt-3 divide-y divide-black/5">{filteredGuests.map((guest) => { const checkedIn = checkedInNames.has(String(guest.guest_name || "").trim().toLowerCase()); const status = checkedIn ? "Checked in" : guest.attending === true ? "Confirmed" : guest.attending === false ? "Declined" : "Pending"; return <button key={guest.id} onClick={() => setSelectedGuest(guest)} className="flex w-full items-center justify-between gap-3 py-3 text-left"><span className="flex min-w-0 items-center gap-3"><span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#f2eee9]"><User className="h-4 w-4" /></span><span className="min-w-0"><span className="block truncate font-body text-sm font-medium">{guest.guest_name || "Unnamed guest"}</span><span className="block truncate font-body text-xs text-muted-foreground">{guest.guest_count || 1} guest{guest.guest_count === 1 ? "" : "s"}{guest.dietary_preference ? ` · ${guest.dietary_preference}` : ""}</span></span></span><span className="rounded-full bg-black/5 px-2 py-1 font-body text-[9px] font-semibold uppercase tracking-[0.08em]">{status}</span></button>; })}</div>
+          <input value={guestSearch} onChange={(event) => setGuestSearch(event.target.value)} placeholder="Search guests..." className="mt-4 w-full rounded-full border border-border bg-card px-4 py-3 font-body text-sm outline-none focus:border-border" />
+          <div className="mt-3 flex gap-2 overflow-x-auto pb-1">{(["all", "confirmed", "pending", "declined", "checked-in"] as const).map((filter) => <button key={filter} onClick={() => setGuestFilter(filter)} className={`whitespace-nowrap rounded-full px-3 py-2 font-body text-[10px] font-semibold uppercase tracking-[0.1em] ${guestFilter === filter ? "bg-[#202020] text-white" : "bg-muted text-muted-foreground"}`}>{filter.replace("-", " ")}</button>)}</div>
+          <div className="mt-3 divide-y divide-border">{filteredGuests.map((guest) => { const checkedIn = checkedInNames.has(String(guest.guest_name || "").trim().toLowerCase()); const status = checkedIn ? "Checked in" : guest.attending === true ? "Confirmed" : guest.attending === false ? "Declined" : "Pending"; return <button key={guest.id} onClick={() => setSelectedGuest(guest)} className="flex w-full items-center justify-between gap-3 py-3 text-left"><span className="flex min-w-0 items-center gap-3"><span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-muted"><User className="h-4 w-4" /></span><span className="min-w-0"><span className="block truncate font-body text-sm font-medium">{guest.guest_name || "Unnamed guest"}</span><span className="block truncate font-body text-xs text-muted-foreground">{guest.guest_count || 1} guest{guest.guest_count === 1 ? "" : "s"}{guest.dietary_preference ? ` · ${guest.dietary_preference}` : ""}</span></span></span><span className="rounded-full bg-muted px-2 py-1 font-body text-[9px] font-semibold uppercase tracking-[0.08em]">{status}</span></button>; })}</div>
           {filteredGuests.length === 0 && <p className="py-6 text-center font-body text-sm text-muted-foreground">No guests match this view.</p>}
         </section>
 
-        {dietarySummary.length > 0 && <section className="rounded-[24px] border border-white/70 bg-white/88 p-4 shadow-sm"><h3 className="font-body text-base font-semibold">Dietary summary</h3><div className="mt-3 flex flex-wrap gap-2">{dietarySummary.map(({ label, count }) => <span key={label} className="rounded-full bg-[#f2eee9] px-3 py-2 font-body text-xs">{label} <strong>{count}</strong></span>)}</div></section>}
+        {dietarySummary.length > 0 && <section className="rounded-[24px] border border-border bg-card p-4 shadow-sm"><h3 className="font-body text-base font-semibold">Dietary summary</h3><div className="mt-3 flex flex-wrap gap-2">{dietarySummary.map(({ label, count }) => <span key={label} className="rounded-full bg-muted px-3 py-2 font-body text-xs">{label} <strong>{count}</strong></span>)}</div></section>}
 
         <ShareWeddingLink weddingSlug={weddingSlug || ""} />
 
@@ -527,26 +536,26 @@ const CoupleDashboard = () => {
 
       {activeTab === "moments" && (
         <div className="space-y-5">
-          <MemoryKeepsake wedding={wedding} gallery={galleryImages} photos={guestPhotos} messages={guestbookMessages} moments={moments} />
           <div>
             <h2 className="font-body text-2xl font-semibold tracking-normal">Memories</h2>
             <p className="font-body text-sm text-muted-foreground mt-1">
               Photos, guest moments, and the shared wall from your wedding link.
             </p>
           </div>
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-4 gap-2" role="tablist" aria-label="Memories views">
             {[
               ["Photos", galleryImages.length + guestPhotos.length],
               ["Moments", moments.length],
               ["Wall", guestbookMessages.length],
+              ["Keepsake", null],
             ].map(([label, value], index) => (
-              <div key={label as string} className={`rounded-2xl px-3 py-4 text-center ${index === 0 ? "bg-[#202020] text-white" : "bg-white/82 text-foreground shadow-sm"}`}>
-                <p className="font-body text-lg font-semibold leading-none">{value as number}</p>
+              <button role="tab" aria-selected={memoryView === String(label).toLowerCase()} onClick={() => setMemoryView(String(label).toLowerCase())} key={label as string} className={`rounded-2xl px-1 py-4 text-center ${memoryView === String(label).toLowerCase() ? "bg-primary text-primary-foreground" : "bg-card text-foreground"}`}>
+                <p className="font-body text-lg font-semibold leading-none">{value === null ? <Download className="mx-auto h-[18px] w-[18px]" /> : value as number}</p>
                 <p className="mt-1 font-body text-[10px]">{label as string}</p>
-              </div>
+              </button>
             ))}
           </div>
-          <section id="dashboard-photos" className="rounded-[26px] bg-white/88 p-4 shadow-sm border border-white/70">
+          {memoryView === 'photos' && <section id="dashboard-photos" className="py-2">
             <p className="mb-4 font-body text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">Photos</p>
             <PhotoManager
               weddingId={weddingId!}
@@ -554,8 +563,8 @@ const CoupleDashboard = () => {
               guestPhotos={guestPhotos}
               onRefresh={fetchData}
             />
-          </section>
-          <section className="rounded-[26px] bg-white/88 p-4 shadow-sm border border-white/70">
+          </section>}
+          {memoryView === 'moments' && <section className="py-2">
             <p className="mb-4 font-body text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">Moments</p>
             <MomentsManager
               weddingId={weddingId!}
@@ -563,8 +572,8 @@ const CoupleDashboard = () => {
               isLiveMode={wedding?.live_mode || false}
               onRefresh={fetchData}
             />
-          </section>
-          <section className="rounded-[26px] bg-white/88 p-4 shadow-sm border border-white/70">
+          </section>}
+          {memoryView === 'wall' && <section className="py-2">
             <p className="mb-4 font-body text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">Wall</p>
             <GuestMessages
               weddingId={weddingId!}
@@ -572,7 +581,8 @@ const CoupleDashboard = () => {
               messages={guestbookMessages}
               onRefresh={fetchData}
             />
-          </section>
+          </section>}
+          {memoryView === 'keepsake' && <MemoryKeepsake wedding={wedding} gallery={galleryImages} photos={guestPhotos} messages={guestbookMessages} moments={moments} />}
         </div>
       )}
 
@@ -584,50 +594,31 @@ const CoupleDashboard = () => {
         </div>
       )}
 
-      {activeTab === "profile" && (
-        <div className="space-y-5">
-          <ProfilePanel
-            wedding={wedding}
-            weddingSlug={weddingSlug || ""}
-            accessCode={accessCode}
-            confirmed={confirmed}
-            pending={pending}
-            totalPhotoUploads={totalPhotoUploads}
-            onEditDetails={() => setShowEditDetails(true)}
-            onTabChange={changeTab}
-          />
-          <details className="group rounded-[26px] border border-white/70 bg-white/88 p-4 shadow-sm">
-            <summary className="flex cursor-pointer list-none items-center justify-between font-body text-sm font-semibold">Publishing and guest link <Plus className="h-4 w-4 transition-transform group-open:rotate-45" /></summary>
-            <div className="mt-4 space-y-4"><WebsiteWorkspace wedding={wedding} weddingSlug={weddingSlug || ""} publishing={publishing} onPublish={togglePublished} onEditDetails={() => setShowEditDetails(true)} /><ShareWeddingLink weddingSlug={weddingSlug || ""} /></div>
-          </details>
-          <details className="group rounded-[26px] border border-white/70 bg-white/88 p-4 shadow-sm">
-            <summary className="flex cursor-pointer list-none items-center justify-between font-body text-sm font-semibold">Wedding tools and guest information <Plus className="h-4 w-4 transition-transform group-open:rotate-45" /></summary>
-            <div className="mt-4 space-y-4"><WeddingTools weddingSlug={weddingSlug || ""} /><GuestPracticalInfo key={weddingId} weddingId={weddingId!} editable /></div>
-          </details>
-          <details className="group rounded-[26px] border border-white/70 bg-white/88 p-4 shadow-sm">
-            <summary className="flex cursor-pointer list-none items-center justify-between font-body text-sm font-semibold">Budget and spending <Plus className="h-4 w-4 transition-transform group-open:rotate-45" /></summary>
-            <div className="mt-4"><BudgetTracker weddingId={weddingId!} coupleNames={wedding.couple_names} slug={weddingSlug || wedding.slug} /></div>
-          </details>
-          <SetupProgress wedding={wedding} eventsCount={events.length} hasSharedLink={wedding.published} />
-        </div>
-      )}
+      {activeTab === "profile" && <CoupleProfile
+        wedding={wedding} onEdit={() => setShowEditDetails(true)}
+        publishing={<><WebsiteWorkspace wedding={wedding} weddingSlug={weddingSlug || ""} publishing={publishing} onPublish={togglePublished} onEditDetails={() => setShowEditDetails(true)} /><ShareWeddingLink weddingSlug={weddingSlug || ""} /><WeddingTools weddingSlug={weddingSlug || ""} /></>}
+        information={<GuestPracticalInfo key={weddingId} weddingId={weddingId!} editable />}
+        budget={<BudgetTracker weddingId={weddingId!} coupleNames={wedding.couple_names} slug={weddingSlug || wedding.slug} />}
+        readiness={<SetupProgress wedding={wedding} eventsCount={events.length} hasSharedLink={wedding.published} />}
+      />}
 
 
       {selectedGuest && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/30 p-3" onClick={() => setSelectedGuest(null)}>
-          <div className="w-full max-w-[430px] rounded-[28px] bg-[#fbf8f4] p-5 shadow-2xl" onClick={(event) => event.stopPropagation()}>
-            <div className="flex items-start justify-between"><div><p className="font-body text-xs uppercase tracking-[0.16em] text-muted-foreground">Guest details</p><h3 className="mt-1 font-body text-2xl font-semibold">{selectedGuest.guest_name || "Unnamed guest"}</h3></div><button onClick={() => setSelectedGuest(null)} className="rounded-full bg-black/5 p-2" aria-label="Close guest details"><X className="h-4 w-4" /></button></div>
-            <div className="mt-5 grid grid-cols-2 gap-2"><div className="rounded-2xl bg-white p-3"><p className="font-body text-[10px] uppercase tracking-[0.12em] text-muted-foreground">Response</p><p className="mt-1 font-body text-sm">{selectedGuest.attending === true ? "Confirmed" : selectedGuest.attending === false ? "Declined" : "Pending"}</p></div><div className="rounded-2xl bg-white p-3"><p className="font-body text-[10px] uppercase tracking-[0.12em] text-muted-foreground">Party size</p><p className="mt-1 font-body text-sm">{selectedGuest.guest_count || 1}</p></div></div>
-            <div className="mt-3 space-y-2 rounded-2xl bg-white p-4 font-body text-sm"><p>{selectedGuest.email || "No email provided"}</p><p>{selectedGuest.phone || "No phone provided"}</p><p className="text-muted-foreground">Dietary: {selectedGuest.dietary_preference || "No preference noted"}</p></div>
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-muted p-3" onClick={() => setSelectedGuest(null)}>
+          <div className="w-full max-w-[430px] rounded-[28px] bg-muted p-5 shadow-2xl" onClick={(event) => event.stopPropagation()}>
+            <div className="flex items-start justify-between"><div><p className="font-body text-xs uppercase tracking-[0.16em] text-muted-foreground">Guest details</p><h3 className="mt-1 font-body text-2xl font-semibold">{selectedGuest.guest_name || "Unnamed guest"}</h3></div><button onClick={() => setSelectedGuest(null)} className="rounded-full bg-muted p-2" aria-label="Close guest details"><X className="h-4 w-4" /></button></div>
+            <div className="mt-5 grid grid-cols-2 gap-2"><div className="rounded-2xl bg-card p-3"><p className="font-body text-[10px] uppercase tracking-[0.12em] text-muted-foreground">Response</p><p className="mt-1 font-body text-sm">{selectedGuest.attending === true ? "Confirmed" : selectedGuest.attending === false ? "Declined" : "Pending"}</p></div><div className="rounded-2xl bg-card p-3"><p className="font-body text-[10px] uppercase tracking-[0.12em] text-muted-foreground">Party size</p><p className="mt-1 font-body text-sm">{selectedGuest.guest_count || 1}</p></div></div>
+            <div className="mt-3 space-y-2 rounded-2xl bg-card p-4 font-body text-sm"><p>{selectedGuest.email || "No email provided"}</p><p>{selectedGuest.phone || "No phone provided"}</p><p className="text-muted-foreground">Dietary: {selectedGuest.dietary_preference || "No preference noted"}</p></div>
             {selectedGuest.attending === null && <button onClick={() => { void sendPushReminder(selectedGuest.id); setSelectedGuest(null); }} className="mt-4 w-full rounded-full bg-[#202020] px-4 py-3 font-body text-xs font-semibold uppercase tracking-[0.12em] text-white"><Send className="mr-2 inline h-4 w-4" />Remind</button>}
           </div>
         </div>
       )}
 
       {!previewRequested && weddingId && (
-        <section className="mt-5">
+        <details className="fv-assistant-disclosure mt-5">
+          <summary>Ask about your wedding <MessageCircle size={18} /></summary>
           <AIChatAssistant weddingId={weddingId} />
-        </section>
+        </details>
       )}
 
       {/* Edit Wedding Details Modal */}
@@ -645,179 +636,6 @@ const CoupleDashboard = () => {
 
 export default CoupleDashboard;
 
-const getGreeting = () => {
-  const hour = new Date().getHours();
-  if (hour < 12) return "Good Morning";
-  if (hour < 18) return "Good Afternoon";
-  return "Good Evening";
-};
-
-const ProgressRing = ({ value }: { value: number }) => {
-  const radius = 40;
-  const circumference = 2 * Math.PI * radius;
-  const offset = circumference - (value / 100) * circumference;
-  return (
-    <div className="relative w-[104px] h-[104px] flex items-center justify-center">
-      <svg className="-rotate-90" width="104" height="104" viewBox="0 0 104 104">
-        <circle cx="52" cy="52" r={radius} fill="none" stroke="rgba(255,255,255,0.12)" strokeWidth="11" />
-        <circle cx="52" cy="52" r={radius} fill="none" stroke="#d9f06e" strokeWidth="11" strokeLinecap="round" strokeDasharray={circumference} strokeDashoffset={offset} />
-      </svg>
-      <div className="absolute inset-0 flex items-center justify-center font-body text-xl font-semibold text-white">{value}%</div>
-    </div>
-  );
-};
-
-function CoupleHome({ wedding, progress, completedTasks, totalTasks, confirmed, pending, events, rsvps, onTabChange, onEditDetails, phase }: any) {
-  const nextEvent = events[0];
-  const guestTotal = rsvps.reduce((sum: number, r: any) => sum + (r.guest_count || 1), 0);
-  const responseRate = rsvps.length ? Math.round((confirmed / rsvps.length) * 100) : 0;
-  const weddingDate = wedding.wedding_date ? new Date(wedding.wedding_date) : null;
-  const daysToGo = weddingDate
-    ? Math.ceil((weddingDate.getTime() - new Date().setHours(0, 0, 0, 0)) / 86400000)
-    : null;
-  const intelligenceCards = [
-    {
-      label: "Guest responses",
-      value: rsvps.length ? `${responseRate}%` : "Needs list",
-      detail: pending > 0 ? `${pending} RSVP${pending === 1 ? "" : "s"} need a reminder before planning gets tight.` : "All visible RSVPs are settled.",
-      icon: Users,
-      tab: "guests",
-      tone: pending > 0 ? "bg-amber-50 text-amber-700 border-amber-100" : "bg-emerald-50 text-emerald-700 border-emerald-100",
-    },
-    {
-      label: "Wedding page",
-      value: wedding.published ? "Live" : "Draft",
-      detail: wedding.published ? "Your guest link is ready to share." : "Publish when the page, venue, RSVP and gallery feel ready.",
-      icon: ExternalLink,
-      tab: "website",
-      tone: wedding.published ? "bg-blue-50 text-blue-700 border-blue-100" : "bg-rose-50 text-rose-700 border-rose-100",
-    },
-    {
-      label: "Schedule readiness",
-      value: `${events.length} event${events.length === 1 ? "" : "s"}`,
-      detail: nextEvent ? `${nextEvent.title} is the next visible event.` : "Add ceremony, reception and travel timing for guests.",
-      icon: CalendarDays,
-      tab: "calendar",
-      tone: "bg-violet-50 text-violet-700 border-violet-100",
-    },
-  ];
-  const nextMoves = [
-    { label: "Send RSVP reminder", detail: pending > 0 ? `${pending} people still pending` : "No pending RSVP reminders", tab: "guests", icon: Send, disabled: pending === 0 },
-    { label: "Polish guest website", detail: wedding.story ? "Story is in place" : "Add your story and details", tab: "website", icon: Wand2 },
-    { label: "Update wedding profile", detail: wedding.ceremony_venue ? wedding.ceremony_venue : "Venue details missing", tab: "profile", icon: MapPin },
-  ];
-
-  return (
-    <div className="space-y-5">
-      <section>
-        <h1 className="font-body text-[32px] leading-[1.04] font-normal tracking-[-0.02em] max-w-[285px]">
-          {phase === "wedding_day" || phase === "live" ? "It's Your Wedding Day" : "Your Wedding"}
-        </h1>
-        <p className="mt-3 max-w-[310px] font-body text-sm leading-6 text-black/55">
-          A calm read on what guests know, what still needs attention, and what ForeverVow recommends next.
-        </p>
-      </section>
-
-      <section className="rounded-[22px] bg-[#202020] text-background p-4 shadow-xl overflow-hidden relative">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_18%,rgba(255,255,255,0.13),transparent_28%)]" />
-        <div className="relative">
-        <p className="font-body text-sm font-semibold mb-4">Wedding Readiness</p>
-        <div className="flex items-center gap-4">
-          <ProgressRing value={progress} />
-          <div className="flex-1 space-y-3 border-l border-white/15 pl-5">
-            <div className="flex items-center gap-3">
-              <span className="w-6 h-6 rounded-lg border border-white/10 flex items-center justify-center"><CalendarDays className="w-3 h-3 text-white/60" /></span>
-              <div><p className="font-body text-sm font-semibold leading-none">{daysToGo !== null ? Math.max(daysToGo, 0) : "--"}</p><p className="font-body text-[10px] text-white/55 mt-1">Days to go</p></div>
-            </div>
-            <div className="flex items-center gap-3">
-              <span className="w-6 h-6 rounded-lg border border-white/10 flex items-center justify-center"><Check className="w-3 h-3 text-white/60" /></span>
-              <div><p className="font-body text-sm font-semibold leading-none">{completedTasks}/{totalTasks}</p><p className="font-body text-[10px] text-white/55 mt-1">Setup signals</p></div>
-            </div>
-            <div className="flex items-center gap-3">
-              <span className="w-6 h-6 rounded-lg border border-white/10 flex items-center justify-center"><Clock className="w-3 h-3 text-white/60" /></span>
-              <div><p className="font-body text-sm font-semibold leading-none">{pending}</p><p className="font-body text-[10px] text-white/55 mt-1">Pending RSVPs</p></div>
-            </div>
-          </div>
-        </div>
-        </div>
-      </section>
-
-      <section>
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="font-body text-lg font-semibold tracking-normal">Your overview</h2>
-          <button onClick={() => onTabChange("guests")} className="font-body text-xs text-muted-foreground">View Guests</button>
-        </div>
-        <div className="grid grid-cols-3 gap-2 mb-3">
-          <button className="min-w-0 rounded-full bg-[#d9f06e] px-2 py-3 font-body text-[11px] font-semibold text-foreground">{confirmed} Confirmed</button>
-          <button className="min-w-0 rounded-full bg-white/82 px-2 py-3 font-body text-[11px] font-semibold text-foreground shadow-sm">{pending} Pending</button>
-          <button className="min-w-0 rounded-full bg-white/82 px-2 py-3 font-body text-[11px] font-semibold text-foreground shadow-sm">{guestTotal} Guests</button>
-        </div>
-        <div className="space-y-3">
-          {intelligenceCards.map((card) => {
-            const Icon = card.icon;
-            return (
-            <button key={card.label} onClick={() => onTabChange(card.tab)} className="w-full rounded-[24px] bg-white p-4 text-left shadow-sm border border-white/70">
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <span className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 font-body text-[10px] font-semibold mb-4 ${card.tone}`}>
-                    <Icon className="h-3 w-3" /> {card.label}
-                  </span>
-                  <p className="font-body text-[22px] leading-none font-semibold">{card.value}</p>
-                  <p className="font-body text-xs text-muted-foreground mt-3 leading-5">{card.detail}</p>
-                </div>
-                <span className="w-9 h-9 rounded-full bg-muted flex items-center justify-center shrink-0">
-                  <ExternalLink className="w-4 h-4" />
-                </span>
-              </div>
-            </button>
-          )})}
-        </div>
-      </section>
-
-      <section className="rounded-[24px] bg-white/88 p-4 shadow-sm border border-white/70">
-        <div className="mb-4 flex items-center justify-between">
-          <h2 className="font-body text-lg font-semibold tracking-normal">Recommended Next</h2>
-          <Sparkles className="h-4 w-4 text-violet-500" />
-        </div>
-        <div className="space-y-2">
-          {nextMoves.map((move) => {
-            const Icon = move.icon;
-            return (
-              <button
-                key={move.label}
-                disabled={move.disabled}
-                onClick={() => move.disabled ? undefined : onTabChange(move.tab)}
-                className="flex w-full items-center gap-3 rounded-2xl bg-muted/50 px-4 py-3 text-left disabled:opacity-45"
-              >
-                <span className="flex h-9 w-9 items-center justify-center rounded-full bg-white">
-                  <Icon className="h-4 w-4" />
-                </span>
-                <span className="min-w-0">
-                  <span className="block font-body text-sm font-semibold">{move.label}</span>
-                  <span className="block font-body text-xs text-muted-foreground">{move.detail}</span>
-                </span>
-              </button>
-            );
-          })}
-        </div>
-      </section>
-
-      <section className="relative min-h-[170px] overflow-hidden rounded-[24px] bg-gradient-to-br from-[#343434] via-[#252525] to-[#171717] text-white shadow-xl">
-        {(wedding.cover_image || wedding.hero_image) && <img src={wedding.cover_image || wedding.hero_image} alt="" className="absolute inset-0 h-full w-full object-cover" />}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-        <div className="relative p-5">
-          <p className="font-body text-xs font-semibold text-white/70">Wedding status</p>
-          <h2 className="mt-14 font-body text-3xl font-semibold">{wedding.couple_names}</h2>
-          <div className="flex items-center gap-3 font-body text-xs text-white/80 mt-2">
-            <span>{confirmed} confirmed</span>
-            <span>{rsvps.length} invited</span>
-            {nextEvent && <span>{nextEvent.title}</span>}
-          </div>
-        </div>
-      </section>
-    </div>
-  );
-}
 
 function WebsiteWorkspace({ wedding, weddingSlug, publishing, onPublish, onEditDetails }: any) {
   const weddingUrl = `${window.location.origin}/wedding/${weddingSlug}`;
@@ -829,27 +647,27 @@ function WebsiteWorkspace({ wedding, weddingSlug, publishing, onPublish, onEditD
   return (
     <div className="space-y-4">
       <div>
-        <p className="font-body text-xs font-semibold text-black/50">GUEST WEBSITE</p>
+        <p className="font-body text-xs font-semibold text-muted-foreground">GUEST WEBSITE</p>
         <h1 className="mt-2 font-body text-[32px] font-semibold leading-tight">Your wedding, ready to share</h1>
-        <p className="mt-2 font-body text-sm leading-6 text-black/55">Preview the guest experience, finish the important details, and publish when it feels ready.</p>
+        <p className="mt-2 font-body text-sm leading-6 text-muted-foreground">Preview the guest experience, finish the important details, and publish when it feels ready.</p>
       </div>
 
       <section className="overflow-hidden rounded-[28px] bg-[#202020] text-white shadow-xl">
         <div className="relative h-52 bg-gradient-to-br from-[#3a3a3a] via-[#262626] to-[#171717]">
           {(wedding.cover_image || wedding.hero_image) && <img src={wedding.cover_image || wedding.hero_image} alt="" className="h-full w-full object-cover" />}
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/15 to-transparent" />
-          <span className={`absolute right-4 top-4 rounded-full px-3 py-2 font-body text-[10px] font-semibold ${wedding.published ? "bg-[#d9f06e] text-black" : "bg-white/90 text-black"}`}>{wedding.published ? "LIVE" : "DRAFT"}</span>
+          <span className={`absolute right-4 top-4 rounded-full px-3 py-2 font-body text-[10px] font-semibold ${wedding.published ? "bg-[#d9f06e] text-black" : "bg-card text-black"}`}>{wedding.published ? "LIVE" : "DRAFT"}</span>
           <div className="absolute inset-x-5 bottom-5"><p className="font-body text-2xl font-semibold">{wedding.couple_names}</p><p className="mt-1 truncate font-body text-xs text-white/65">/{weddingSlug}</p></div>
         </div>
         <div className="p-5">
-          <button disabled={publishing} onClick={onPublish} className={`flex h-13 w-full items-center justify-center gap-2 rounded-full px-5 py-4 font-body text-xs font-semibold disabled:opacity-60 ${wedding.published ? "border border-white/25 text-white" : "bg-white text-black"}`}>
+          <button disabled={publishing} onClick={onPublish} className={`flex h-13 w-full items-center justify-center gap-2 rounded-full px-5 py-4 font-body text-xs font-semibold disabled:opacity-60 ${wedding.published ? "border border-border text-white" : "bg-card text-black"}`}>
             {publishing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Globe2 className="h-4 w-4" />}
             {wedding.published ? "Make Wedding Private" : "Publish Wedding"}
           </button>
           <div className="mt-3 grid grid-cols-3 gap-2">
-            <a href={weddingUrl} target="_blank" rel="noreferrer" className="rounded-2xl bg-white/10 p-3 text-center font-body text-[10px]"><ExternalLink className="mx-auto mb-2 h-4 w-4" />Preview</a>
-            <button onClick={copyLink} className="rounded-2xl bg-white/10 p-3 text-center font-body text-[10px]"><Copy className="mx-auto mb-2 h-4 w-4" />Copy link</button>
-            <button onClick={onEditDetails} className="rounded-2xl bg-white/10 p-3 text-center font-body text-[10px]"><Sparkles className="mx-auto mb-2 h-4 w-4" />Edit details</button>
+            <a href={weddingUrl} target="_blank" rel="noreferrer" className="rounded-2xl bg-card p-3 text-center font-body text-[10px]"><ExternalLink className="mx-auto mb-2 h-4 w-4" />Preview</a>
+            <button onClick={copyLink} className="rounded-2xl bg-card p-3 text-center font-body text-[10px]"><Copy className="mx-auto mb-2 h-4 w-4" />Copy link</button>
+            <button onClick={onEditDetails} className="rounded-2xl bg-card p-3 text-center font-body text-[10px]"><Sparkles className="mx-auto mb-2 h-4 w-4" />Edit details</button>
           </div>
         </div>
       </section>
@@ -858,7 +676,9 @@ function WebsiteWorkspace({ wedding, weddingSlug, publishing, onPublish, onEditD
 }
 
 function PlannerSchedule({ wedding, events, onEditDetails, onRefresh }: any) {
-  const date = wedding.wedding_date ? new Date(wedding.wedding_date) : new Date();
+  const [selectedDate, setSelectedDate] = useState(wedding.wedding_date?.slice(0, 10) || new Date().toLocaleDateString('en-CA'));
+  const date = new Date(`${selectedDate}T12:00:00`);
+  const dateKey = (day: Date) => `${day.getFullYear()}-${String(day.getMonth() + 1).padStart(2, '0')}-${String(day.getDate()).padStart(2, '0')}`;
   const weekDays = Array.from({ length: 7 }, (_, index) => {
     const day = new Date(date);
     day.setDate(date.getDate() + index - 3);
@@ -867,6 +687,7 @@ function PlannerSchedule({ wedding, events, onEditDetails, onRefresh }: any) {
   const emptyEvent = { id: "", title: "", event_date: wedding.wedding_date || "", event_time: "", location: "", description: "" };
   const [editing, setEditing] = useState<any | null>(null);
   const [saving, setSaving] = useState(false);
+  const selectedEvents = events.filter((event: any) => (event.event_date || wedding.wedding_date || selectedDate).slice(0, 10) === selectedDate);
 
   const saveEvent = async () => {
     if (!editing?.title.trim()) return toast.error("Add an event title.");
@@ -902,135 +723,43 @@ function PlannerSchedule({ wedding, events, onEditDetails, onRefresh }: any) {
       <div className="flex items-center justify-between">
         <div>
           <p className="font-body text-sm font-semibold">{date.toLocaleDateString(undefined, { weekday: "short", month: "long", day: "numeric" })}</p>
-          <h1 className="font-body text-[32px] font-semibold leading-tight tracking-normal mt-1">Wedding Schedule</h1>
+          <h1 className="font-body text-[32px] font-semibold leading-tight tracking-normal mt-1">Upcoming</h1>
         </div>
-        <button onClick={() => setEditing(emptyEvent)} className="flex h-11 w-11 items-center justify-center rounded-full bg-[#202020] text-white" aria-label="Add event"><Plus className="h-4 w-4" /></button>
+        <button onClick={() => setEditing({ ...emptyEvent, event_date: selectedDate })} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground" aria-label="Add event"><Plus className="h-4 w-4" /></button>
       </div>
 
       <div className="grid grid-cols-7 gap-1.5" aria-label="Wedding week">
-        {weekDays.map((day, index) => <div key={day.toISOString()} className={`rounded-2xl px-1 py-3 text-center font-body ${index === 3 ? "bg-[#ff6245] text-white" : "border border-white/10 bg-[#242424] text-white/65"}`}><p className="text-[9px] font-medium">{day.toLocaleDateString(undefined, { weekday: "narrow" })}</p><p className="mt-2 text-sm font-semibold">{day.getDate()}</p></div>)}
+        {weekDays.map((day, index) => <button onClick={() => setSelectedDate(dateKey(day))} aria-pressed={index === 3} aria-label={day.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })} key={dateKey(day)} className={`rounded-full px-1 py-3 text-center font-body ${index === 3 ? "bg-[#ff6245] text-white" : "border border-border bg-[#242424] text-white/65"}`}><p className="text-[10px] font-medium">{day.toLocaleDateString(undefined, { weekday: "narrow" })}</p><p className="mt-2 text-sm font-semibold">{day.getDate()}</p></button>)}
       </div>
+      <input type="date" aria-label="Choose calendar date" value={selectedDate} onChange={e => { if (e.target.value) setSelectedDate(e.target.value); }} className="rounded-xl border border-border p-2 text-sm" />
 
       {editing && (
-        <section className="space-y-3 rounded-[24px] border border-black/5 bg-white p-4 shadow-sm">
+        <section className="space-y-3 rounded-[24px] border border-border bg-card p-4 shadow-sm">
           <div className="flex items-center justify-between"><h2 className="font-body text-sm font-semibold">{editing.id ? "Edit event" : "Add event"}</h2><button onClick={() => setEditing(null)} aria-label="Close event editor"><X className="h-4 w-4" /></button></div>
-          <input aria-label="Event title" value={editing.title} onChange={(e) => setEditing({ ...editing, title: e.target.value })} placeholder="Event title" className="min-h-11 w-full rounded-xl border border-black/10 px-3 font-body text-sm" />
-          <div className="grid grid-cols-2 gap-2"><input aria-label="Event date" type="date" value={editing.event_date || ""} onChange={(e) => setEditing({ ...editing, event_date: e.target.value })} className="min-h-11 min-w-0 rounded-xl border border-black/10 px-3 font-body text-xs" /><input aria-label="Event time" type="time" value={editing.event_time || ""} onChange={(e) => setEditing({ ...editing, event_time: e.target.value })} className="min-h-11 min-w-0 rounded-xl border border-black/10 px-3 font-body text-xs" /></div>
-          <input aria-label="Event location" value={editing.location || ""} onChange={(e) => setEditing({ ...editing, location: e.target.value })} placeholder="Location" className="min-h-11 w-full rounded-xl border border-black/10 px-3 font-body text-sm" />
-          <textarea aria-label="Event description" value={editing.description || ""} onChange={(e) => setEditing({ ...editing, description: e.target.value })} placeholder="Details" rows={3} className="w-full resize-none rounded-xl border border-black/10 p-3 font-body text-sm" />
+          <input aria-label="Event title" value={editing.title} onChange={(e) => setEditing({ ...editing, title: e.target.value })} placeholder="Event title" className="min-h-11 w-full rounded-xl border border-border px-3 font-body text-sm" />
+          <div className="grid grid-cols-2 gap-2"><input aria-label="Event date" type="date" value={editing.event_date || ""} onChange={(e) => setEditing({ ...editing, event_date: e.target.value })} className="min-h-11 min-w-0 rounded-xl border border-border px-3 font-body text-xs" /><input aria-label="Event time" type="time" value={editing.event_time || ""} onChange={(e) => setEditing({ ...editing, event_time: e.target.value })} className="min-h-11 min-w-0 rounded-xl border border-border px-3 font-body text-xs" /></div>
+          <input aria-label="Event location" value={editing.location || ""} onChange={(e) => setEditing({ ...editing, location: e.target.value })} placeholder="Location" className="min-h-11 w-full rounded-xl border border-border px-3 font-body text-sm" />
+          <textarea aria-label="Event description" value={editing.description || ""} onChange={(e) => setEditing({ ...editing, description: e.target.value })} placeholder="Details" rows={3} className="w-full resize-none rounded-xl border border-border p-3 font-body text-sm" />
           <button onClick={saveEvent} disabled={saving} className="min-h-11 w-full rounded-full bg-[#202020] px-4 font-body text-xs font-semibold text-white disabled:opacity-50">{saving ? "Saving..." : "Save event"}</button>
         </section>
       )}
 
       <div className="space-y-3">
-        {events.map((event: any) => (
+        {selectedEvents.map((event: any, index: number) => (
           <div key={event.id} className="grid grid-cols-[64px_1fr] gap-3">
             <div className="font-body text-xs text-muted-foreground pt-4">{event.event_time || "Time TBC"}</div>
-            <div className="rounded-[22px] bg-white p-4 shadow-sm border border-border">
+            <div className={`fv-calendar-event rounded-[22px] p-4 ${index % 2 ? 'fv-teal' : 'fv-lime'}`}>
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <h2 className="font-body text-sm font-semibold">{event.title}</h2>
                   <p className="font-body text-xs text-muted-foreground leading-5 mt-1">{event.location || event.description || "Details will appear here."}</p>
                 </div>
-                <div className="flex gap-1"><button onClick={() => setEditing({ ...event })} className="flex h-9 w-9 items-center justify-center rounded-full bg-[#202020] text-white" aria-label={`Edit ${event.title}`}><Pencil className="h-3.5 w-3.5" /></button><button onClick={() => removeEvent(event.id)} className="flex h-9 w-9 items-center justify-center rounded-full border border-black/10 text-destructive" aria-label={`Delete ${event.title}`}><Trash2 className="h-3.5 w-3.5" /></button></div>
+                <div className="flex gap-1"><button onClick={() => setEditing({ ...event })} className="flex h-9 w-9 items-center justify-center rounded-full bg-[#202020] text-white" aria-label={`Edit ${event.title}`}><Pencil className="h-3.5 w-3.5" /></button><button onClick={() => removeEvent(event.id)} className="flex h-9 w-9 items-center justify-center rounded-full border border-border text-destructive" aria-label={`Delete ${event.title}`}><Trash2 className="h-3.5 w-3.5" /></button></div>
               </div>
             </div>
           </div>
         ))}
-        {events.length === 0 && <div className="rounded-[22px] bg-white p-5 text-center shadow-sm"><CalendarDays className="mx-auto h-6 w-6 text-muted-foreground" /><h2 className="mt-3 font-body text-sm font-semibold">No wedding events yet</h2><p className="mt-1 font-body text-xs leading-5 text-muted-foreground">Add your ceremony and reception details to build the schedule.</p><button onClick={onEditDetails} className="mt-4 rounded-full bg-[#202020] px-4 py-2 font-body text-xs font-semibold text-white">Add details</button></div>}
-      </div>
-    </div>
-  );
-}
-
-
-function ProfilePanel({ wedding, weddingSlug, accessCode, confirmed, pending, totalPhotoUploads, onEditDetails, onTabChange }: any) {
-  const weddingUrl = `${window.location.origin}/wedding/${weddingSlug}`;
-  const coupleNames = String(wedding.couple_names || "Your Wedding").split("&").map((name) => name.trim());
-  const weddingDate = wedding.wedding_date
-    ? new Date(wedding.wedding_date).toLocaleDateString(undefined, { month: "long", day: "numeric", year: "numeric" })
-    : "Wedding date not set";
-  const copyLink = () => {
-    navigator.clipboard.writeText(weddingUrl);
-    toast.success("Wedding link copied.");
-  };
-
-  return (
-    <div className="space-y-4">
-      <div className="rounded-[30px] bg-white border border-white/80 overflow-hidden shadow-sm">
-        <div className="relative h-64 bg-gradient-to-br from-[#3a3a3a] via-[#262626] to-[#171717]">
-          {(wedding.cover_image || wedding.hero_image) && <img src={wedding.cover_image || wedding.hero_image} alt="" className="absolute inset-0 h-full w-full object-cover" />}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent" />
-          <div className="absolute right-4 top-4 rounded-full bg-white/90 px-3 py-2 font-body text-[10px] font-semibold uppercase tracking-[0.12em] text-black shadow-sm">
-            {wedding.published ? "Live" : "Draft"}
-          </div>
-          <div className="absolute left-5 right-5 bottom-5 text-white">
-            <div className="mb-4 flex -space-x-4">
-              {coupleNames.slice(0, 2).map((name, index) => (
-                <div key={name} className="flex h-20 w-20 items-center justify-center overflow-hidden rounded-full border-4 border-white bg-[#202020] shadow-lg">
-                  {index === 0 && (wedding.cover_image || wedding.hero_image) ? (
-                    <img src={wedding.cover_image || wedding.hero_image} alt="" className="h-full w-full object-cover" />
-                  ) : (
-                    <span className="font-body text-2xl font-semibold">{name.charAt(0) || "V"}</span>
-                  )}
-                </div>
-              ))}
-            </div>
-            <h1 className="font-body text-2xl font-semibold tracking-normal leading-tight">{wedding.couple_names}</h1>
-            <p className="font-body text-xs text-white/75 mt-1">Wedding profile · /{weddingSlug}</p>
-          </div>
-        </div>
-        <div className="p-5 space-y-5">
-          <div className="grid grid-cols-3 gap-2 text-center">
-            {[
-              ["Guests", confirmed],
-              ["Pending", pending],
-              ["Photos", totalPhotoUploads],
-            ].map(([label, value]) => (
-              <div key={label as string} className="rounded-2xl bg-muted/60 px-2 py-3">
-                <p className="font-body text-lg font-semibold leading-none">{value as number}</p>
-                <p className="font-body text-[10px] text-muted-foreground mt-1">{label as string}</p>
-              </div>
-            ))}
-          </div>
-
-          <button onClick={onEditDetails} className="w-full rounded-full bg-foreground text-background py-4 font-body text-xs tracking-[0.16em] uppercase">Edit Wedding Profile</button>
-
-          <NotificationPreferences weddingId={wedding.id} />
-
-          <div className="space-y-2">
-            {[
-              { label: weddingDate, icon: CalendarDays },
-              { label: wedding.ceremony_venue || "Ceremony venue not set", icon: MapPin },
-              { label: wedding.reception_venue || "Reception venue not set", icon: Heart },
-              { label: wedding.dress_code || "Dress code not set", icon: Sparkles },
-              { label: `Couple access code ${accessCode || wedding.access_code || "not set"}`, icon: ShieldCheck },
-            ].map((item) => {
-              const Icon = item.icon;
-              return (
-                <div key={item.label} className="flex items-center gap-3 rounded-2xl bg-muted/50 px-4 py-3">
-                  <Icon className="h-4 w-4 text-muted-foreground" />
-                  <span className="font-body text-sm">{item.label}</span>
-                </div>
-              );
-            })}
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <button onClick={copyLink} className="rounded-2xl bg-muted/60 p-4 text-left font-body text-xs">
-              <Copy className="w-4 h-4 mb-3" />Copy guest link
-            </button>
-            <a href={`/wedding/${weddingSlug}`} target="_blank" rel="noreferrer" className="rounded-2xl bg-muted/60 p-4 text-left font-body text-xs">
-              <ExternalLink className="w-4 h-4 mb-3" />Open guest site
-            </a>
-            <button onClick={() => onTabChange("moments")} className="rounded-2xl bg-muted/60 p-4 text-left font-body text-xs">
-              <Image className="w-4 h-4 mb-3" />Manage photos
-            </button>
-            <button onClick={() => onTabChange("guests")} className="rounded-2xl bg-muted/60 p-4 text-left font-body text-xs">
-              <MessageCircle className="w-4 h-4 mb-3" />Guest messages
-            </button>
-          </div>
-        </div>
+        {selectedEvents.length === 0 && <div className="rounded-[22px] bg-card p-5 text-center"><CalendarDays className="mx-auto h-6 w-6 text-muted-foreground" /><h2 className="mt-3 font-body text-sm font-semibold">Nothing planned for this day</h2><button onClick={() => setEditing({ ...emptyEvent, event_date: selectedDate })} className="mt-4 rounded-full bg-primary px-4 py-2 font-body text-xs font-semibold text-primary-foreground">Add event</button></div>}
       </div>
     </div>
   );

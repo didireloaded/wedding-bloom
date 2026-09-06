@@ -37,15 +37,15 @@ const ShareWeddingLink = ({ weddingSlug }: ShareWeddingLinkProps) => {
   };
 
   return (
-    <div id="share-wedding-section" className="rounded-[26px] border border-white/75 bg-white/88 p-5 shadow-sm">
-      <div className="flex items-start gap-4">
+    <div id="share-wedding-section" className="rounded-[26px] border border-border bg-card p-5 shadow-sm">
+      <div className="flex flex-col items-start gap-4 min-[400px]:flex-row">
         {/* QR Code */}
         <div className="shrink-0 rounded-2xl bg-white p-2 shadow-sm">
           <QRCodeSVG id="share-invitation-qr" value={weddingUrl} size={82} level="H" />
         </div>
 
         {/* Content */}
-        <div className="flex-1 space-y-3">
+        <div className="min-w-0 w-full flex-1 space-y-3">
           <div>
             <h2 className="font-body text-base font-semibold">Share with your guests</h2>
             <p className="font-body text-xs text-muted-foreground mt-1">
@@ -69,14 +69,14 @@ const ShareWeddingLink = ({ weddingSlug }: ShareWeddingLinkProps) => {
               href={`/wedding/${weddingSlug}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex min-h-[40px] items-center gap-2 rounded-full border border-black/10 px-4 py-2 font-body text-[10px] font-semibold"
+              className="inline-flex min-h-[40px] items-center gap-2 rounded-full border border-border px-4 py-2 font-body text-[10px] font-semibold"
             >
               <ExternalLink className="w-3.5 h-3.5" />
               Preview Wedding Page
             </a>
             <button
               onClick={downloadQR}
-              className="inline-flex min-h-[40px] items-center gap-2 rounded-full border border-black/10 px-4 py-2 font-body text-[10px] font-semibold"
+              className="inline-flex min-h-[40px] items-center gap-2 rounded-full border border-border px-4 py-2 font-body text-[10px] font-semibold"
             >
               <Download className="w-3.5 h-3.5" />
               Download QR Code

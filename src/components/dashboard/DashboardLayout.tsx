@@ -1,4 +1,6 @@
-import { ReactNode, useState } from "react";
+import { ReactNode, useState, useEffect, useRef } from "react";
+import { useLocation } from "react-router-dom";
+import './couple-theme.css';
 import { Bell, CalendarDays, Camera, Home, User, Users, X } from "lucide-react";
 
 interface DashboardLayoutProps {
@@ -39,7 +41,14 @@ const DashboardLayout = ({
   notifications = [],
 }: DashboardLayoutProps) => {
   const [showNotifications, setShowNotifications] = useState(false);
-  const firstName = coupleName.split("&")[0]?.trim() || "there";
+  const firstName = coupleName || "Your wedding";
+  const location = useLocation();
+  const scrollRef = useRef<HTMLElement>(null);
+  useEffect(() => {
+    document.body.classList.add('fv-couple-theme');
+    return () => document.body.classList.remove('fv-couple-theme');
+  }, []);
+  useEffect(() => { scrollRef.current?.scrollTo(0, 0); }, [location.search]);
   const tabs = [
     { id: "home", label: "Home", icon: Home },
     { id: "guests", label: "Guests", icon: Users },
@@ -90,7 +99,7 @@ const DashboardLayout = ({
           </div>
         </header>
 
-        <main className="min-h-0 overflow-y-auto overscroll-contain px-4 pb-4 pt-1 sm:px-5">
+        <main ref={scrollRef} className="min-h-0 overflow-y-auto overscroll-contain px-4 pb-4 pt-1 sm:px-5">
           {children}
         </main>
 
@@ -107,9 +116,10 @@ const DashboardLayout = ({
                     selected ? "bg-[#ff6245] text-white shadow-lg" : "text-white/60 hover:text-white"
                   }`}
                   aria-label={tab.label}
+                  aria-current={selected ? 'page' : undefined}
                 >
                   <Icon className="w-4 h-4" />
-                  <span className="max-w-full truncate font-body text-[8px] leading-none sm:text-[9px]">{tab.label}</span>
+                  <span className="font-body text-[9px] leading-none min-[360px]:text-[10px]">{tab.label}</span>
                 </button>
               );
             })}

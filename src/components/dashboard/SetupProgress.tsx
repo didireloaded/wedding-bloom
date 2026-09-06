@@ -20,7 +20,7 @@ const SetupProgress = ({ wedding, eventsCount, hasSharedLink }: SetupProgressPro
   const percent = Math.round((completed / steps.length) * 100);
 
   return (
-    <div className="rounded-[26px] border border-white/75 bg-white/88 p-5 shadow-sm">
+    <div className="rounded-[26px] border border-border bg-card p-5 shadow-sm">
       <div className="flex items-center justify-between mb-4">
         <h3 className="font-body text-base font-semibold">Before you share</h3>
         <span className="font-body text-xs text-muted-foreground">
