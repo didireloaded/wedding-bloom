@@ -22,7 +22,7 @@ export default function WeddingsShowcase() {
         {weddings.data?.map((wedding, index) => {
           const image = wedding.cover_image;
           return <Link key={wedding.id} to={"/wedding/" + wedding.slug} className="group relative min-h-[390px] overflow-hidden rounded-[28px] bg-[#202020]">
-            {image ? <img src={image} alt={wedding.couple_names + " wedding"} loading="lazy" className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]" /> : <div className={"absolute inset-0 " + (index % 2 ? "bg-[#22c4b5]" : "bg-[#b2dc6b]")} />}
+            {image ? <><img src={image} alt="" aria-hidden="true" loading="lazy" className="absolute -inset-5 h-[calc(100%+40px)] w-[calc(100%+40px)] object-cover blur-xl opacity-70" /><img src={image} alt={wedding.couple_names + " wedding"} loading="lazy" className="absolute inset-0 h-full w-full object-contain transition-transform duration-500 group-hover:scale-[1.02]" /></> : <div className={"absolute inset-0 " + (index % 2 ? "bg-[#22c4b5]" : "bg-[#b2dc6b]")} />}
             <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent" />
             <div className="absolute inset-x-0 bottom-0 p-5"><div className="flex items-end justify-between gap-4">
               <div><h2 className="text-2xl font-semibold">{wedding.couple_names}</h2>

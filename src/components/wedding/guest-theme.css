@@ -14,6 +14,12 @@
   color: #f7f7f2 !important;
 }
 .guest-invite { position: fixed; z-index: 100; inset: 0; display: grid; grid-template-rows: auto 1fr auto; min-height: 100dvh; overflow: hidden; padding: max(22px,env(safe-area-inset-top)) 20px max(22px,env(safe-area-inset-bottom)); background: #101010; color: #f7f7f2; }
+.guest-invite-media,.guest-invite-shade { position: absolute; inset: 0; }
+.guest-invite-media { background: #101010; }
+.guest-invite-backdrop { position: absolute; inset: -24px; width: calc(100% + 48px); height: calc(100% + 48px); object-fit: cover; filter: blur(24px); opacity: .66; }
+.guest-invite-photo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; object-position: center; }
+.guest-invite-shade { background: linear-gradient(180deg,#0009 0%,#0004 35%,#000c 100%); }
+.guest-invite > :not(.guest-invite-media):not(.guest-invite-shade) { position: relative; z-index: 1; }
 .guest-invite-top { display: flex; align-items: center; justify-content: space-between; gap: 16px; font: 12px/1.2 var(--font-body); }
 .guest-invite-top span { color: #8e8e8e; }
 .guest-invite > section { align-self: center; width: min(100%,560px); margin-inline: auto; }

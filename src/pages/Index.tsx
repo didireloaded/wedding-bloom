@@ -10,7 +10,7 @@ const Index = () => {
 
   return <main className="couple-app min-h-[100svh] bg-[#171717] text-white">
     <div className="relative mx-auto min-h-[100svh] max-w-[520px] overflow-hidden bg-black">
-      {featuredImage && <img src={featuredImage} alt={featured.couple_names + " on their wedding day"} className="absolute inset-0 h-full w-full object-cover" />}
+      {featuredImage && <><img src={featuredImage} alt="" aria-hidden="true" className="absolute -inset-6 h-[calc(100%+48px)] w-[calc(100%+48px)] object-cover blur-2xl opacity-70" /><img src={featuredImage} alt={featured.couple_names + " on their wedding day"} className="absolute inset-0 h-full w-full object-contain" /></>}
       {!featuredImage && <div className="absolute inset-0 bg-[linear-gradient(145deg,#222_0%,#111_48%,#193c38_100%)]" />}
       <div className="absolute inset-0 bg-black/40" />
       <div className="absolute inset-x-0 top-0 h-48 bg-gradient-to-b from-black/60 to-transparent" />

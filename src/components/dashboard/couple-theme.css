@@ -68,12 +68,12 @@
 .fv-event-preview strong { font-size: 16px; }
 .fv-empty-action { display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; padding: 20px; background: #232323; border-radius: 22px; font-size: 13px; }
 .fv-photo-link { border-radius: 24px; overflow: hidden; text-align: left; background: #232323; }
-.fv-photo-link img { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; }
+.fv-photo-link img { width: 100%; aspect-ratio: 16 / 9; object-fit: contain; background: #090909; }
 .fv-photo-link span { display: flex; align-items: center; gap: 10px; padding: 16px; }
 .fv-photo-link span svg:last-child { margin-left: auto; }
 .fv-profile>h1 { text-align: center; margin: 10px 0; }
 .fv-identity { display: flex; align-items: center; gap: 12px; padding: 10px 0 18px; }
-.fv-identity img,.fv-avatar { width: 54px; height: 54px; flex-shrink: 0; border-radius: 50%; object-fit: cover; }
+.fv-identity img,.fv-avatar { width: 54px; height: 54px; flex-shrink: 0; border-radius: 50%; object-fit: cover; object-position: center 22%; }
 .fv-avatar { display: grid; place-items: center; background: #f5a5b9; color: #242424; font-size: 23px; }
 .fv-identity>div { min-width: 0; flex: 1; }
 .fv-identity h2 { font-size: 18px; overflow-wrap: anywhere; }

@@ -194,6 +194,7 @@ const WeddingPage = () => {
           coupleNames={wedding.couple_names}
           date={weddingDate}
           venue={wedding.ceremony_venue}
+          coverImage={wedding.cover_image}
           onOpen={() => setInvitationOpen(true)}
         />
       )}

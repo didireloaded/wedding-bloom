@@ -648,7 +648,7 @@ function WebsiteWorkspace({ wedding, weddingSlug, publishing, onPublish, onEditD
 
       <section className="overflow-hidden rounded-[28px] bg-[#202020] text-white shadow-xl">
         <div className="relative h-52 bg-gradient-to-br from-[#3a3a3a] via-[#262626] to-[#171717]">
-          {(wedding.cover_image || wedding.hero_image) && <img src={wedding.cover_image || wedding.hero_image} alt="" className="h-full w-full object-cover" />}
+          {(wedding.cover_image || wedding.hero_image) && <img src={wedding.cover_image || wedding.hero_image} alt="Wedding preview" className="h-full w-full object-contain" />}
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/15 to-transparent" />
           <span className={`absolute right-4 top-4 rounded-full px-3 py-2 font-body text-[10px] font-semibold ${wedding.published ? "bg-[#d9f06e] text-black" : "bg-card text-black"}`}>{wedding.published ? "LIVE" : "DRAFT"}</span>
           <div className="absolute inset-x-5 bottom-5"><p className="font-body text-2xl font-semibold">{wedding.couple_names}</p><p className="mt-1 truncate font-body text-xs text-white/65">/{weddingSlug}</p></div>
