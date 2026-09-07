@@ -27,6 +27,7 @@ import GuestNotificationInbox from "@/components/wedding/GuestNotificationInbox"
 import { getGuestSessionToken } from "@/lib/guestSession";
 import { GuestWeddingRealtime } from "@/components/realtime/WeddingRealtime";
 import { ArrowLeft, Bell, BookOpen, Images, MessageCircle } from "lucide-react";
+import "@/components/wedding/guest-theme.css";
 
 const VenueSection = lazy(() => import("@/components/wedding/VenueSection"));
 const PhotoGallery = lazy(() => import("@/components/wedding/PhotoGallery"));
@@ -198,7 +199,7 @@ const WeddingPage = () => {
       )}
 
       <div
-        className="guest-app min-h-screen"
+        className="guest-app guest-modern min-h-screen"
         style={wedding.theme && typeof wedding.theme === 'object' && !Array.isArray(wedding.theme) ? {
           '--background': (wedding.theme as Record<string, string>).background,
           '--foreground': (wedding.theme as Record<string, string>).foreground,
@@ -402,7 +403,7 @@ const previewUpdates = [
 ];
 
 function MobileBack({ title, onBack }: { title: string; onBack: () => void }) {
-  return <header className="flex items-center gap-3 px-5 pb-2 pt-8"><button onClick={onBack} className="grid h-10 w-10 place-items-center rounded-full bg-black text-white" aria-label="Back to more"><ArrowLeft className="h-4 w-4" /></button><h1 className="font-body text-2xl font-semibold">{title}</h1></header>;
+  return <header className="guest-mobile-header"><button onClick={onBack} aria-label="Back to more"><ArrowLeft className="h-4 w-4" /></button><h1>{title}</h1></header>;
 }
 
 function GuestMore({ wedding, hasUpdates, onAction }: { wedding: any; hasUpdates: boolean; onAction: (tab: string) => void }) {
@@ -412,5 +413,5 @@ function GuestMore({ wedding, hasUpdates, onAction }: { wedding: any; hasUpdates
     { id: "photos", label: "Photos", detail: "Share and view wedding memories", icon: Images },
     hasUpdates && { id: "moments", label: "Wedding updates", detail: "The latest news from the celebration", icon: Bell },
   ].filter(Boolean) as { id: string; label: string; detail: string; icon: typeof Bell }[];
-  return <section className="mx-auto min-h-[calc(100dvh-96px)] max-w-xl px-5 pb-28 pt-10"><p className="font-body text-xs font-semibold text-muted-foreground">More from the wedding</p><h1 className="mt-2 font-body text-3xl font-semibold">{wedding.couple_names}</h1><div className="mt-6 space-y-3">{items.map((item) => { const Icon = item.icon; return <button key={item.id} onClick={() => onAction(item.id)} className="flex w-full items-center gap-4 rounded-[22px] bg-white p-4 text-left shadow-sm"><span className="grid h-11 w-11 place-items-center rounded-full bg-black text-white"><Icon className="h-4 w-4" /></span><span><span className="block font-body text-sm font-semibold">{item.label}</span><span className="mt-1 block font-body text-xs text-muted-foreground">{item.detail}</span></span></button>; })}</div><div className="mt-6 rounded-[22px] bg-black/[0.04] p-4"><p className="font-body text-sm font-semibold">Wedding details</p><p className="mt-2 font-body text-xs leading-5 text-muted-foreground">{wedding.wedding_date || "Date to be confirmed"}<br />{wedding.ceremony_venue || "Venue to be confirmed"}<br />{wedding.dress_code || "Dress code to be confirmed"}</p></div></section>;
+  return <section className="guest-more"><p className="guest-kicker">Explore</p><h1>{wedding.couple_names}</h1><div className="guest-more-grid">{items.map((item, index) => { const Icon = item.icon; return <button key={item.id} onClick={() => onAction(item.id)} className={`guest-more-card tone-${index % 4}`}><span className="guest-more-icon"><Icon className="h-5 w-5" /></span><span><strong>{item.label}</strong><small>{item.detail}</small></span></button>; })}</div><div className="guest-details-card"><p>Wedding details</p><span>{wedding.wedding_date || "Date to be confirmed"}</span><span>{wedding.ceremony_venue || "Venue to be confirmed"}</span><span>{wedding.dress_code || "Dress code to be confirmed"}</span></div></section>;
 }

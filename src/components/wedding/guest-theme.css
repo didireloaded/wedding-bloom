@@ -1,0 +1,100 @@
+.guest-modern {
+  --guest-bg: #101010;
+  --guest-panel: #1d1d1d;
+  --guest-panel-2: #272727;
+  --guest-line: #373737;
+  --guest-muted: #a5a5a5;
+  --guest-orange: #ff6245;
+  --guest-lime: #b2dc6b;
+  --guest-teal: #22c4b5;
+  min-height: 100dvh;
+  padding-bottom: calc(94px + env(safe-area-inset-bottom));
+  overflow-x: clip;
+  background: var(--guest-bg) !important;
+  color: #f7f7f2 !important;
+}
+.guest-invite { position: fixed; z-index: 100; inset: 0; display: grid; grid-template-rows: auto 1fr auto; min-height: 100dvh; overflow: hidden; padding: max(22px,env(safe-area-inset-top)) 20px max(22px,env(safe-area-inset-bottom)); background: #101010; color: #f7f7f2; }
+.guest-invite-top { display: flex; align-items: center; justify-content: space-between; gap: 16px; font: 12px/1.2 var(--font-body); }
+.guest-invite-top span { color: #8e8e8e; }
+.guest-invite > section { align-self: center; width: min(100%,560px); margin-inline: auto; }
+.guest-invite > section > p { color: #ff6245; font: 700 11px/1.2 var(--font-body); }
+.guest-invite h1 { max-width: 560px; margin-top: 9px; font: 750 clamp(44px,15vw,82px)/.93 var(--font-body); overflow-wrap: anywhere; }
+.guest-invite-details { display: grid; gap: 10px; margin-top: 30px; }
+.guest-invite-details span { display: flex; align-items: center; gap: 10px; color: #aaa; font: 12px/1.45 var(--font-body); }
+.guest-invite button { display: flex; width: min(100%,390px); min-height: 58px; margin-top: 36px; align-items: center; justify-content: space-between; padding: 8px 9px 8px 21px; border-radius: 30px; background: #b2dc6b; color: #17210c; font: 700 13px/1 var(--font-body); }
+.guest-invite button svg { box-sizing: content-box; padding: 10px; border-radius: 50%; background: #101010; color: white; }
+.guest-invite-accent { justify-self: end; display: grid; width: 116px; height: 116px; place-items: center; border-radius: 32px 32px 6px 32px; background: #22c4b5; color: #092c28; transform: rotate(-4deg); }
+.guest-invite-accent span { font: 750 22px/1 var(--font-body); transform: rotate(4deg); }
+
+.guest-modern :where(.text-muted-foreground) { color: var(--guest-muted) !important; }
+.guest-modern :where(.bg-wedding-champagne\/40,.bg-wedding-blush\/50,.bg-black\/\[0\.04\]) { background: transparent !important; }
+.guest-modern .wedding-section { width: min(100%, 720px); margin-inline: auto; padding: 28px 18px 112px; }
+.guest-modern .wedding-section > div { max-width: 100%; }
+.guest-modern .wedding-label,.guest-modern .guest-kicker { color: var(--guest-orange) !important; font-size: 11px; font-weight: 700; }
+.guest-modern .guest-mobile-header { display: flex; align-items: center; gap: 14px; max-width: 720px; margin-inline: auto; padding: 22px 18px 8px; }
+.guest-modern .guest-mobile-header button { display: grid; width: 42px; height: 42px; place-items: center; border: 1px solid var(--guest-line); background: var(--guest-panel); color: white; }
+.guest-modern .guest-mobile-header h1 { font-size: 22px; font-weight: 700; }
+.guest-modern .guest-home { width: min(100%, 620px); margin-inline: auto; padding: 34px 18px 18px; }
+.guest-modern .guest-home > h1 { margin-top: 6px; font-size: clamp(32px, 10vw, 46px); line-height: 1.02; font-weight: 750; overflow-wrap: anywhere; }
+.guest-modern .guest-timing { margin-top: 10px; color: var(--guest-muted); font-size: 13px; }
+.guest-modern .guest-hero-card { position: relative; margin-top: 27px; padding: 21px; overflow: hidden; border-radius: 28px; background: linear-gradient(145deg,#ff7a50,#ff5279 55%,#8aa5ff); color: white; }
+.guest-modern .guest-hero-card::after { content: ''; position: absolute; right: -50px; bottom: -70px; width: 150px; height: 150px; border-radius: 50%; background: #22c4b599; filter: blur(28px); pointer-events: none; }
+.guest-modern .guest-hero-card > * { position: relative; z-index: 1; }
+.guest-modern .guest-memory-card { background: linear-gradient(145deg,#22c4b5,#546fea); }
+.guest-modern .guest-quick-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px; margin-top: 12px; }
+.guest-modern .guest-quick-grid button { min-height: 118px; padding: 17px; text-align: left; border-radius: 24px !important; background: var(--guest-lime); color: #17210c; }
+.guest-modern .guest-quick-grid button:nth-child(2) { background: var(--guest-teal); color: #092c28; }
+.guest-modern .guest-quick-grid p { margin-top: 28px; font-size: 13px; font-weight: 700; }
+.guest-modern .guest-more { width: min(100%, 620px); min-height: calc(100dvh - 90px); margin-inline: auto; padding: 34px 18px 120px; }
+.guest-modern .guest-more > h1 { margin-top: 5px; font-size: clamp(27px, 8vw, 38px); font-weight: 700; overflow-wrap: anywhere; }
+.guest-modern .guest-more-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px; margin-top: 25px; }
+.guest-modern .guest-more-card { min-height: 154px; padding: 16px; text-align: left; color: #111; border-radius: 24px !important; }
+.guest-modern .guest-more-card.tone-0 { background: var(--guest-lime); }
+.guest-modern .guest-more-card.tone-1 { background: #c9d5ff; }
+.guest-modern .guest-more-card.tone-2 { background: var(--guest-teal); }
+.guest-modern .guest-more-card.tone-3 { background: #ff9d87; }
+.guest-modern .guest-more-icon { display: grid; width: 40px; height: 40px; place-items: center; border-radius: 50%; background: #ffffff70; }
+.guest-modern .guest-more-card strong,.guest-modern .guest-more-card small { display: block; }
+.guest-modern .guest-more-card strong { margin-top: 24px; font-size: 15px; }
+.guest-modern .guest-more-card small { margin-top: 5px; font-size: 10px; line-height: 1.45; opacity: .68; }
+.guest-modern .guest-details-card { display: grid; gap: 7px; margin-top: 12px; padding: 20px; border: 1px solid var(--guest-line); border-radius: 24px; background: var(--guest-panel); }
+.guest-modern .guest-details-card p { margin-bottom: 5px; font-weight: 700; }
+.guest-modern .guest-details-card span { color: var(--guest-muted); font-size: 12px; overflow-wrap: anywhere; }
+.guest-modern .guest-bottom-nav { position: fixed; z-index: 50; bottom: max(8px,env(safe-area-inset-bottom)); left: 50%; display: flex; width: min(calc(100% - 18px),460px); min-height: 70px; translate: -50% 0; align-items: center; justify-content: space-around; padding: 7px; border: 1px solid #414141; border-radius: 29px; background: #242424f2; box-shadow: 0 18px 48px #000b; backdrop-filter: blur(18px); }
+.guest-modern .guest-bottom-nav button { display: flex; min-width: 0; min-height: 54px; flex: 1; flex-direction: column; align-items: center; justify-content: center; gap: 3px; color: #979797; }
+.guest-modern .guest-bottom-nav button > span { display: grid; width: 34px; height: 31px; place-items: center; border-radius: 16px; }
+.guest-modern .guest-bottom-nav button[aria-current="page"] { color: white; }
+.guest-modern .guest-bottom-nav button[aria-current="page"] > span { background: var(--guest-orange); color: #161616; }
+.guest-modern .guest-bottom-nav small { max-width: 100%; overflow: hidden; font-size: 8px; text-overflow: ellipsis; text-transform: capitalize; }
+.guest-modern .guest-notification-prompt { display: flex; width: min(calc(100% - 36px),584px); margin: 0 auto 18px; gap: 12px; padding: 15px; border: 1px solid var(--guest-line); border-radius: 24px; background: var(--guest-panel); color: white; }
+.guest-modern .guest-notification-icon { display: grid; width: 38px; height: 38px; flex: 0 0 38px; place-items: center; border-radius: 50%; background: var(--guest-panel-2); }
+.guest-modern .guest-notification-prompt p { font-size: 12px; font-weight: 700; overflow-wrap: anywhere; }
+.guest-modern .guest-notification-prompt small { display: block; margin-top: 4px; color: var(--guest-muted); font-size: 10px; line-height: 1.45; }
+.guest-modern .guest-notification-prompt .guest-notification-enable { min-height: 38px; margin-top: 11px; padding: 0 15px; background: var(--guest-lime); color: #17210c; font-size: 10px; font-weight: 700; }
+.guest-modern .wedding-section article,
+.guest-modern .wedding-section form,
+.guest-modern .wedding-section [class*="bg-white"],
+.guest-modern #guestbook [class*="bg-white"],
+.guest-modern #memories [class*="bg-white"] { border: 1px solid var(--guest-line) !important; background: var(--guest-panel) !important; color: #f7f7f2 !important; box-shadow: none !important; }
+.guest-modern .wedding-section input,
+.guest-modern .wedding-section textarea,
+.guest-modern .wedding-section select { border-color: var(--guest-line) !important; background: var(--guest-panel-2) !important; color: white !important; }
+.guest-modern .wedding-section button[class*="bg-foreground"],
+.guest-modern .wedding-section a[class*="bg-foreground"],
+.guest-modern .wedding-section a[class*="bg-black"] { background: var(--guest-orange) !important; color: #171717 !important; }
+.guest-modern .wedding-section h2 { font-size: clamp(25px, 7vw, 34px); font-weight: 700; }
+.guest-modern .wedding-section h3 { font-weight: 700; }
+
+@media (min-width: 768px) {
+  .guest-modern { padding-bottom: 0; }
+  .guest-modern .hidden.md\:block { display: none !important; }
+  .guest-modern > .md\:hidden { display: block !important; }
+  .guest-modern .wedding-section { padding: 70px 28px; }
+  .guest-modern .guest-bottom-nav { bottom: 18px; }
+}
+
+@media (max-width: 360px) {
+  .guest-modern .guest-more-grid { grid-template-columns: 1fr; }
+  .guest-modern .guest-more-card { min-height: 118px; }
+  .guest-modern .guest-more-card strong { margin-top: 14px; }
+}
