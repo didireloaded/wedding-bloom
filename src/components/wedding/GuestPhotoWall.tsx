@@ -89,16 +89,16 @@ const GuestPhotoWall = ({ weddingId }: GuestPhotoWallProps) => {
 
   return (
     <section className="wedding-section bg-wedding-blush/30">
-      <div className="max-w-5xl mx-auto">
+      <div>
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-center mb-8"
+          className="guest-section-heading"
         >
-          <p className="wedding-label mb-4">MEMORIES</p>
-          <h2 className="wedding-heading">Share a Memory</h2>
-          <p className="font-body text-xs sm:text-sm text-muted-foreground font-light mt-3 max-w-md mx-auto">
+          <p className="guest-kicker">Memories</p>
+          <h2>Share a memory</h2>
+          <p>
             Take a photo from your phone or upload one from your gallery. It will appear here after approval.
           </p>
         </motion.div>
@@ -108,7 +108,7 @@ const GuestPhotoWall = ({ weddingId }: GuestPhotoWallProps) => {
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="max-w-lg mx-auto mb-16 space-y-5"
+          className="guest-form-panel mx-auto mb-10 max-w-lg space-y-5"
         >
           <input
             value={guestName}

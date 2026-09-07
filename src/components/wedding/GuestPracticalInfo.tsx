@@ -45,11 +45,11 @@ export default function GuestPracticalInfo({ weddingId, dressCode, editable = fa
   </section>;
   const details = query.data;
   if (!dressCode && !details && !query.error) return null;
-  return <section className="mx-auto max-w-xl space-y-3 px-5 py-6 font-body">
-    <h2 className="text-xl font-semibold">Before you arrive</h2>
+  return <section className="guest-practical mx-auto max-w-xl space-y-3 px-5 py-6 font-body">
+    <div className="guest-section-heading"><p className="guest-kicker">Helpful details</p><h2>Before you arrive</h2></div>
     {query.error && <p role="alert" className="text-sm text-muted-foreground">Guest details are unavailable. <button onClick={() => void query.refetch()} className="underline">Retry</button></p>}
-    {dressCode && <article className="rounded-3xl bg-white p-4"><h3 className="flex items-center gap-2 text-sm font-semibold"><Shirt className="h-4 w-4" />Dress code</h3><p className="mt-2 whitespace-pre-wrap break-words text-sm">{dressCode}</p></article>}
-    {fields.filter(field => details?.[field.key]).map(field => <details key={field.key} className="rounded-3xl bg-white p-4"><summary className="cursor-pointer text-sm font-semibold">{field.label}</summary><p className="mt-3 whitespace-pre-wrap break-words text-sm leading-6">{details?.[field.key]}</p></details>)}
-    {(details?.contact_name || details?.contact_email || details?.contact_phone) && <article className="rounded-3xl bg-white p-4"><h3 className="text-sm font-semibold">Need a hand?</h3><p className="mt-2 text-sm">{details.contact_name}</p>{details.contact_email && <a className="mt-2 flex min-h-11 items-center gap-2 break-all text-sm underline" href={`mailto:${encodeURIComponent(details.contact_email)}`}><Mail className="h-4 w-4 shrink-0" />{details.contact_email}</a>}{details.contact_phone && <a className="flex min-h-11 items-center gap-2 text-sm underline" href={`tel:${details.contact_phone.replace(/[^+\d]/g,'')}`}><Phone className="h-4 w-4" />{details.contact_phone}</a>}</article>}
+    {dressCode && <article className="guest-practical-card guest-practical-feature"><h3 className="flex items-center gap-2 text-sm font-semibold"><Shirt className="h-4 w-4" />Dress code</h3><p className="mt-2 whitespace-pre-wrap break-words text-sm">{dressCode}</p></article>}
+    {fields.filter(field => details?.[field.key]).map(field => <details key={field.key} className="guest-practical-card"><summary className="cursor-pointer text-sm font-semibold">{field.label}</summary><p className="mt-3 whitespace-pre-wrap break-words text-sm leading-6">{details?.[field.key]}</p></details>)}
+    {(details?.contact_name || details?.contact_email || details?.contact_phone) && <article className="guest-practical-card"><h3 className="text-sm font-semibold">Need a hand?</h3><p className="mt-2 text-sm">{details.contact_name}</p>{details.contact_email && <a className="mt-2 flex min-h-11 items-center gap-2 break-all text-sm underline" href={`mailto:${encodeURIComponent(details.contact_email)}`}><Mail className="h-4 w-4 shrink-0" />{details.contact_email}</a>}{details.contact_phone && <a className="flex min-h-11 items-center gap-2 text-sm underline" href={`tel:${details.contact_phone.replace(/[^+\d]/g,'')}`}><Phone className="h-4 w-4" />{details.contact_phone}</a>}</article>}
   </section>;
 }

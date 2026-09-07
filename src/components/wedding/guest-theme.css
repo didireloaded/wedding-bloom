@@ -35,6 +35,10 @@
 .guest-modern :where(.text-muted-foreground) { color: var(--guest-muted) !important; }
 .guest-modern :where(.bg-wedding-champagne\/40,.bg-wedding-blush\/50,.bg-black\/\[0\.04\]) { background: transparent !important; }
 .guest-modern .wedding-section { width: min(100%, 720px); margin-inline: auto; padding: 28px 18px 112px; }
+.guest-modern :where(#guestbook,#rsvp,.guest-updates,.guest-schedule),
+.guest-modern .wedding-section.bg-wedding-blush\/30,
+.guest-modern .wedding-section.bg-wedding-champagne\/30,
+.guest-modern .wedding-section.bg-wedding-champagne { background: transparent !important; }
 .guest-modern .wedding-section > div { max-width: 100%; }
 .guest-modern .wedding-label,.guest-modern .guest-kicker { color: var(--guest-orange) !important; font-size: 11px; font-weight: 700; }
 .guest-modern .guest-mobile-header { display: flex; align-items: center; gap: 14px; max-width: 720px; margin-inline: auto; padding: 22px 18px 8px; }
@@ -85,11 +89,46 @@
 .guest-modern .wedding-section input,
 .guest-modern .wedding-section textarea,
 .guest-modern .wedding-section select { border-color: var(--guest-line) !important; background: var(--guest-panel-2) !important; color: white !important; }
+.guest-modern .wedding-section :where(input,textarea)::placeholder { color: #868682 !important; opacity: 1; }
 .guest-modern .wedding-section button[class*="bg-foreground"],
 .guest-modern .wedding-section a[class*="bg-foreground"],
 .guest-modern .wedding-section a[class*="bg-black"] { background: var(--guest-orange) !important; color: #171717 !important; }
 .guest-modern .wedding-section h2 { font-size: clamp(25px, 7vw, 34px); font-weight: 700; }
 .guest-modern .wedding-section h3 { font-weight: 700; }
+.guest-modern .guest-section-heading { margin-bottom: 24px; text-align: left; }
+.guest-modern .guest-section-heading h2 { margin-top: 6px; font: 750 clamp(26px,8vw,38px)/1.05 var(--font-body); letter-spacing: 0; }
+.guest-modern .guest-section-heading > p:last-child:not(.guest-kicker) { max-width: 520px; margin-top: 9px; color: var(--guest-muted); font-size: 12px; line-height: 1.55; }
+.guest-modern .guest-practical { padding-bottom: 112px; color: #f7f7f2; }
+.guest-modern .guest-practical-card { overflow: hidden; padding: 17px; border: 1px solid var(--guest-line); border-radius: 22px; background: var(--guest-panel); color: #f7f7f2; }
+.guest-modern .guest-practical-card summary { color: #f7f7f2; }
+.guest-modern .guest-practical-card p,.guest-modern .guest-practical-card a { color: #c9c9c5; }
+.guest-modern .guest-practical-feature { border: 0; background: var(--guest-lime); color: #17210c; }
+.guest-modern .guest-practical-feature p { color: #263417; }
+.guest-modern .guest-event-list { display: grid; gap: 11px; }
+.guest-modern .guest-event-card { min-height: 140px; padding: 18px; border: 0 !important; border-radius: 25px; color: #101010 !important; }
+.guest-modern .guest-event-card.tone-0 { background: var(--guest-lime) !important; }
+.guest-modern .guest-event-card.tone-1 { background: var(--guest-teal) !important; }
+.guest-modern .guest-event-card.tone-2 { background: #c9d5ff !important; }
+.guest-modern .guest-event-card h3 { margin-top: 24px; font-size: 19px; }
+.guest-modern .guest-event-card p,.guest-modern .guest-event-card span { color: #26302a !important; }
+.guest-modern .guest-message-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px; margin-bottom: 24px; }
+.guest-modern .guest-message-card { break-inside: avoid; min-height: 160px; padding: 17px; border: 0 !important; border-radius: 23px; background: #c9d5ff !important; color: #171717 !important; }
+.guest-modern .guest-message-card:nth-child(3n+2) { background: var(--guest-lime) !important; }
+.guest-modern .guest-message-card:nth-child(3n) { background: #ff9d87 !important; }
+.guest-modern .guest-message-card .text-muted-foreground { color: #333 !important; }
+.guest-modern .guest-form-panel { padding: 20px; border: 1px solid var(--guest-line) !important; border-radius: 25px; background: var(--guest-panel) !important; }
+.guest-modern .guest-form-panel label[class*="border-dashed"] { border-color: #4a4a4a !important; background: var(--guest-panel-2); }
+.guest-modern .guest-update-card { display: flex; min-height: 126px; align-items: flex-start; gap: 13px; padding: 18px; border: 0 !important; border-radius: 24px; color: #101010 !important; }
+.guest-modern .guest-update-card.tone-0 { background: var(--guest-teal) !important; }
+.guest-modern .guest-update-card.tone-1 { background: #c9d5ff !important; }
+.guest-modern .guest-update-card.tone-2 { background: #ff9d87 !important; }
+.guest-modern .guest-update-card .wedding-label,.guest-modern .guest-update-card svg { color: #25302e !important; }
+.guest-modern .guest-inbox-toggle,.guest-modern .guest-inbox-item { border: 1px solid var(--guest-line); border-radius: 22px; background: var(--guest-panel); color: #f7f7f2; box-shadow: none; }
+.guest-modern .guest-inbox-toggle > span:nth-last-of-type(1) { background: var(--guest-lime); color: #17210c; }
+.guest-modern .guest-inbox-item:hover { background: var(--guest-panel-2); }
+.guest-modern #rsvp form { padding: 20px !important; border-radius: 25px !important; }
+.guest-modern #rsvp button,.guest-modern #rsvp a { border-radius: 999px; }
+.guest-modern #rsvp img { object-fit: contain !important; background: var(--guest-panel); }
 
 @media (min-width: 768px) {
   .guest-modern { padding-bottom: 0; }
@@ -97,10 +136,12 @@
   .guest-modern > .md\:hidden { display: block !important; }
   .guest-modern .wedding-section { padding: 70px 28px; }
   .guest-modern .guest-bottom-nav { bottom: 18px; }
+  .guest-modern .guest-practical { padding: 58px 28px 110px; }
 }
 
 @media (max-width: 360px) {
   .guest-modern .guest-more-grid { grid-template-columns: 1fr; }
   .guest-modern .guest-more-card { min-height: 118px; }
   .guest-modern .guest-more-card strong { margin-top: 14px; }
+  .guest-modern .guest-message-grid { grid-template-columns: 1fr; }
 }

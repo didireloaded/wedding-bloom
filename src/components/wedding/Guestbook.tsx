@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Heart, Upload, MessageCircle } from "lucide-react";
+import { Upload, MessageCircle } from "lucide-react";
 
 interface GuestbookProps {
   weddingId: string;
@@ -95,15 +95,15 @@ const Guestbook = ({ weddingId, coupleNames }: GuestbookProps) => {
 
   return (
     <section id="guestbook" className="wedding-section bg-wedding-champagne/30">
-      <div className="max-w-4xl mx-auto">
+      <div>
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-center mb-16"
+          className="guest-section-heading"
         >
-          <p className="wedding-label mb-4">GUESTBOOK</p>
-          <h2 className="font-display text-3xl sm:text-4xl font-light italic">Leave a Message for the Couple</h2>
+          <p className="guest-kicker">Guestbook</p>
+          <h2>Leave a message</h2>
           {coupleNames && (
             <p className="font-body text-xs text-muted-foreground mt-4">
               Write something that {coupleNames} will treasure forever.
@@ -113,7 +113,7 @@ const Guestbook = ({ weddingId, coupleNames }: GuestbookProps) => {
 
         {/* Message Wall — masonry */}
         {messages.length > 0 && (
-          <div className="columns-1 sm:columns-2 gap-4 space-y-4 mb-16">
+          <div className="guest-message-grid">
             {messages.map((msg, i) => (
               <motion.div
                 key={msg.id}
@@ -121,22 +121,20 @@ const Guestbook = ({ weddingId, coupleNames }: GuestbookProps) => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.05, duration: 0.6 }}
-                className="break-inside-avoid border border-border/40 bg-wedding-champagne/10 p-6"
+                className="guest-message-card"
               >
-                <p className="font-display text-base sm:text-lg font-light italic leading-relaxed">
-                  "{msg.message}"
-                </p>
+                <p className="text-sm leading-relaxed">{msg.message}</p>
                 <div className="flex items-center gap-3 mt-3">
                   {msg.photo_url && (
                     <img
                       src={msg.photo_url}
                       alt={`From ${msg.guest_name}`}
-                      className="w-[60px] h-[60px] object-cover shrink-0"
+                      className="h-[52px] w-[52px] shrink-0 rounded-full object-cover"
                       loading="lazy"
                     />
                   )}
                   <div>
-                    <p className="font-body text-[10px] tracking-[0.25em] uppercase text-muted-foreground">
+                    <p className="font-body text-xs font-semibold">
                       {msg.guest_name}
                     </p>
                     <p className="font-body text-[9px] tracking-wider text-muted-foreground/60 mt-0.5">
@@ -166,10 +164,10 @@ const Guestbook = ({ weddingId, coupleNames }: GuestbookProps) => {
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="max-w-lg mx-auto bg-background/80 backdrop-blur-sm border border-border/40 p-8 sm:p-10 space-y-6 shadow-lg shadow-foreground/3"
+            className="guest-form-panel mx-auto max-w-lg space-y-6"
           >
             <div>
-              <label className="wedding-label block mb-3">YOUR NAME</label>
+              <label className="block mb-3 text-xs font-semibold">Your name</label>
               <input
                 type="text"
                 required
@@ -182,7 +180,7 @@ const Guestbook = ({ weddingId, coupleNames }: GuestbookProps) => {
             </div>
 
             <div>
-              <label className="wedding-label block mb-3">YOUR MESSAGE</label>
+              <label className="block mb-3 text-xs font-semibold">Your message</label>
               <textarea
                 required
                 maxLength={1000}
@@ -196,7 +194,7 @@ const Guestbook = ({ weddingId, coupleNames }: GuestbookProps) => {
             </div>
 
             <div>
-              <label className="wedding-label block mb-3">ATTACH A PHOTO (OPTIONAL)</label>
+              <label className="block mb-3 text-xs font-semibold">Attach a photo (optional)</label>
               <label className="inline-flex items-center gap-2 px-5 py-3 border border-foreground/15 cursor-pointer font-body text-[10px] tracking-[0.2em] uppercase hover:border-foreground/30 transition-colors min-h-[44px]">
                 <Upload className="w-3.5 h-3.5" />
                 {photo ? photo.name.slice(0, 20) : "CHOOSE PHOTO"}
@@ -212,9 +210,9 @@ const Guestbook = ({ weddingId, coupleNames }: GuestbookProps) => {
             <button
               type="submit"
               disabled={submitting}
-              className="w-full py-5 bg-foreground text-background font-body text-[10px] sm:text-xs tracking-[0.3em] uppercase hover:bg-foreground/90 transition-all duration-300 min-h-[56px] disabled:opacity-50 shadow-lg shadow-foreground/10"
+              className="w-full min-h-[56px] rounded-full bg-foreground px-5 py-4 font-body text-xs font-semibold text-background transition-opacity hover:opacity-90 disabled:opacity-50"
             >
-              {submitting ? "SENDING..." : "SEND YOUR WISHES"}
+              {submitting ? "Sending..." : "Send your wishes"}
             </button>
           </motion.form>
         )}

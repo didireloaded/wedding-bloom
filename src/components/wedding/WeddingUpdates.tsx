@@ -7,16 +7,17 @@ interface WeddingUpdatesProps {
 
 const WeddingUpdates = ({ updates }: WeddingUpdatesProps) => {
   return (
-    <section className="wedding-section bg-wedding-champagne">
-      <div className="max-w-3xl mx-auto">
+    <section className="wedding-section guest-updates">
+      <div>
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-center mb-12"
+          className="guest-section-heading"
         >
-          <p className="wedding-label mb-4">ANNOUNCEMENTS</p>
-          <h2 className="wedding-heading">Updates</h2>
+          <p className="guest-kicker">Announcements</p>
+          <h2>Updates</h2>
+          <p>Important notes from the couple will appear here.</p>
         </motion.div>
 
         <div className="space-y-4">
@@ -27,7 +28,7 @@ const WeddingUpdates = ({ updates }: WeddingUpdatesProps) => {
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.1 }}
-              className="flex items-start gap-4 p-6 bg-background/50 border border-border"
+              className={`guest-update-card tone-${i % 3}`}
             >
               <Bell className="w-5 h-5 text-wedding-gold shrink-0 mt-0.5" strokeWidth={1.5} />
               <div>
