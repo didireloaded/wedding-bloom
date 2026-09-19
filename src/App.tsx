@@ -8,6 +8,7 @@ import { HelmetProvider } from "react-helmet-async";
 import { AuthProvider } from "@/hooks/useAuth";
 
 const Index = lazy(() => import("./pages/Index"));
+const Explore = lazy(() => import("./pages/Explore"));
 const WeddingsShowcase = lazy(() => import("./pages/WeddingsShowcase"));
 const WeddingPage = lazy(() => import("./pages/WeddingPage"));
 const WeddingCheckin = lazy(() => import("./pages/WeddingCheckin"));
@@ -39,6 +40,7 @@ const App = () => (
             >
               <Routes>
                 <Route path="/" element={<Index />} />
+                <Route path="/explore" element={<Explore />} />
                 <Route path="/weddings" element={<WeddingsShowcase />} />
                 <Route path="/wedding/:slug" element={<WeddingPage />} />
                 <Route path="/wedding/:slug/checkin" element={<WeddingCheckin />} />

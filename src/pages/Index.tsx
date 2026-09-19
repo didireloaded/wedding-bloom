@@ -26,7 +26,7 @@ const Index = () => {
           <Link to="/couple-login" className="mt-7 flex h-14 w-full items-center justify-between rounded-full bg-white px-5 text-sm font-semibold text-black">Get started<span className="grid h-9 w-9 place-items-center rounded-full bg-black text-white"><ArrowRight className="h-4 w-4" /></span></Link>
           <div className="mt-3 grid grid-cols-2 gap-3">
             <Link to="/couple-login" className="flex min-h-12 items-center justify-center rounded-full border border-white/25 bg-white/10 px-4 text-xs font-semibold backdrop-blur">Sign in</Link>
-            <Link to="/weddings" className="flex min-h-12 items-center justify-center gap-2 rounded-full border border-white/25 bg-white/10 px-4 text-xs font-semibold backdrop-blur"><Images className="h-4 w-4" />View weddings</Link>
+            <Link to="/explore" className="flex min-h-12 items-center justify-center gap-2 rounded-full border border-white/25 bg-white/10 px-4 text-xs font-semibold backdrop-blur"><Images className="h-4 w-4" />Explore a demo</Link>
           </div>
         </motion.div>
       </div>
