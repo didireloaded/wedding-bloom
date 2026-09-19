@@ -10,13 +10,20 @@ export const useWeddingData = (slug: string | undefined) => {
     queryKey: ["wedding", slug],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("weddings")
+        .from("wedding_public_profiles")
         .select("*")
         .eq("slug", slug!)
         .eq("published", true)
         .maybeSingle();
       if (error) throw error;
-      return data;
+      if (!data) return null;
+      return {
+        ...data,
+        id: data.wedding_id,
+        cover_image: data.cover_image_path,
+        story_image: data.story_image_path,
+        rsvp_image: data.rsvp_image_path,
+      };
     },
     enabled: !!slug,
     staleTime: 5 * 60 * 1000, // 5 minutes

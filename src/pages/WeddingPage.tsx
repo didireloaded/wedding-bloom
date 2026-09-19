@@ -3,7 +3,6 @@ import { useParams, useSearchParams } from "react-router-dom";
 import { useWeddingData } from "@/hooks/useWeddingData";
 import { weddingSchedule } from "@/lib/weddingSchedule";
 import { useLazySection } from "@/hooks/useLazySection";
-import { supabase } from "@/integrations/supabase/client";
 import { generateICS } from "@/lib/calendarUtils";
 import SectionErrorBoundary from "@/components/SectionErrorBoundary";
 import WeddingNav from "@/components/wedding/WeddingNav";
@@ -74,26 +73,9 @@ const WeddingPage = () => {
   const gallery = isPreview ? previewGallery : weddingData.gallery;
   const updates = isPreview ? previewUpdates : weddingData.updates;
   const loading = isPreview ? false : weddingData.loading;
-  const [unpublishedWedding, setUnpublishedWedding] = useState<any>(null);
   const requestedView = searchParams.get("view") || "home";
   const [guestTab, setGuestTab] = useState(GUEST_VIEWS.has(requestedView) ? requestedView : "home");
   useEffect(() => { setGuestTab(GUEST_VIEWS.has(requestedView) ? requestedView : 'home'); }, [requestedView]);
-
-  useEffect(() => {
-    const checkUnpublished = async () => {
-      if (!isPreview && !loading && !wedding && slug) {
-        const { data } = await supabase
-          .from("weddings")
-          .select("id, couple_names, published")
-          .eq("slug", slug)
-          .single();
-        if (data && !data.published) {
-          setUnpublishedWedding(data);
-        }
-      }
-    };
-    checkUnpublished();
-  }, [isPreview, loading, wedding, slug]);
 
   useEffect(() => {
     if (loading || !wedding || !window.location.hash) return;
@@ -115,19 +97,6 @@ const WeddingPage = () => {
   }
 
   if (!wedding) {
-    if (unpublishedWedding) {
-      return (
-        <div className="guest-app min-h-screen flex items-center justify-center bg-background px-6">
-          <div className="text-center max-w-md">
-            <h1 className="mb-4 font-body text-3xl font-semibold sm:text-4xl">Not yet published</h1>
-            <p className="font-body text-sm text-muted-foreground leading-relaxed">
-              The wedding page for <strong>{unpublishedWedding.couple_names}</strong> hasn't been published yet.
-              Publish it from the Admin Dashboard to make it live.
-            </p>
-          </div>
-        </div>
-      );
-    }
     return (
       <div className="guest-app min-h-screen flex items-center justify-center bg-background px-6">
         <div className="text-center">

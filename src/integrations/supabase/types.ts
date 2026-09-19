@@ -1662,6 +1662,7 @@ export type Database = {
           cover_image_path: string | null
           created_at: string
           dress_code: string | null
+          live_mode: boolean
           partner_one_name: string | null
           partner_two_name: string | null
           published: boolean
@@ -1670,12 +1671,14 @@ export type Database = {
           reception_venue: string | null
           rsvp_deadline: string | null
           rsvp_image_path: string | null
+          slug: string | null
           story: string | null
           story_image_path: string | null
           theme: Json
           updated_at: string
           wedding_date: string | null
           wedding_id: string
+          wedding_style: string | null
         }
         Insert: {
           ceremony_address?: string | null
@@ -1685,6 +1688,7 @@ export type Database = {
           cover_image_path?: string | null
           created_at?: string
           dress_code?: string | null
+          live_mode?: boolean
           partner_one_name?: string | null
           partner_two_name?: string | null
           published?: boolean
@@ -1693,12 +1697,14 @@ export type Database = {
           reception_venue?: string | null
           rsvp_deadline?: string | null
           rsvp_image_path?: string | null
+          slug?: string | null
           story?: string | null
           story_image_path?: string | null
           theme?: Json
           updated_at?: string
           wedding_date?: string | null
           wedding_id: string
+          wedding_style?: string | null
         }
         Update: {
           ceremony_address?: string | null
@@ -1708,6 +1714,7 @@ export type Database = {
           cover_image_path?: string | null
           created_at?: string
           dress_code?: string | null
+          live_mode?: boolean
           partner_one_name?: string | null
           partner_two_name?: string | null
           published?: boolean
@@ -1716,12 +1723,14 @@ export type Database = {
           reception_venue?: string | null
           rsvp_deadline?: string | null
           rsvp_image_path?: string | null
+          slug?: string | null
           story?: string | null
           story_image_path?: string | null
           theme?: Json
           updated_at?: string
           wedding_date?: string | null
           wedding_id?: string
+          wedding_style?: string | null
         }
         Relationships: [
           {

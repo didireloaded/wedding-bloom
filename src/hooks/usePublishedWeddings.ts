@@ -22,12 +22,19 @@ export function usePublishedWeddings() {
     staleTime: 5 * 60 * 1000,
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("weddings")
-        .select("id, slug, couple_names, wedding_date, ceremony_venue, cover_image")
+        .from("wedding_public_profiles")
+        .select("wedding_id, slug, couple_names, wedding_date, ceremony_venue, cover_image_path")
         .eq("published", true)
         .order("wedding_date", { ascending: false });
       if (error) throw error;
-      return (data || []) as PublishedWedding[];
+      return (data || []).map((wedding) => ({
+        id: wedding.wedding_id,
+        slug: wedding.slug!,
+        couple_names: wedding.couple_names,
+        wedding_date: wedding.wedding_date,
+        ceremony_venue: wedding.ceremony_venue,
+        cover_image: wedding.cover_image_path,
+      })) as PublishedWedding[];
     },
   });
 }
