@@ -72,6 +72,11 @@ No frontend or UI changes in this batch; no frontend deployment required.
   regression allowed two then denied the third request. No paid generation was used
   for verification. Provider billing ceilings and abuse monitoring remain operational
   configuration work; successful real provider responses need an authenticated test.
+- Standalone CSV mapping and wedding-theme analysis are now admin-only, share the
+  atomic 30-request/hour quota, reject oversized inputs, cap outputs, and time out
+  provider calls after 25 seconds. Live unsigned probes return 401 before any paid
+  request. The obsolete create-guest-session and guestbook-moderate functions were
+  also confirmed absent from the live function inventory.
 - Closed-app push/device tests and actual reminder receipt; never send real guest tests
   without specific authorization.
 - Push registration now accepts POST only, validates wedding IDs and encryption keys,

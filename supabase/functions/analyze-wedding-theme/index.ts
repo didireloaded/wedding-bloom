@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { aiJson, authorizeAdminAi } from "../_shared/admin-ai-security.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -8,9 +9,18 @@ const corsHeaders = {
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+  if (req.method !== "POST") return aiJson({ error: "Method not allowed" }, 405, corsHeaders);
 
   try {
     const { venue, dress_code, story, location, existing_themes } = await req.json();
+    const authorization = await authorizeAdminAi(req, "analyze_wedding_theme", corsHeaders);
+    if (authorization.error) return authorization.error;
+    const fields = [venue, dress_code, story, location];
+    if (fields.some(value => value != null && (typeof value !== "string" || value.length > 10_000))
+      || !Array.isArray(existing_themes) || existing_themes.length > 50
+      || existing_themes.some(theme => !theme || typeof theme !== "object" || typeof theme.name !== "string" || theme.name.length > 120)) {
+      return aiJson({ error: "Wedding theme input is invalid" }, 400, corsHeaders);
+    }
     const GOOGLE_AI_STUDIO_API_KEY = Deno.env.get("GOOGLE_AI_STUDIO_API_KEY");
     if (!GOOGLE_AI_STUDIO_API_KEY) throw new Error("GOOGLE_AI_STUDIO_API_KEY is not configured");
 
@@ -50,7 +60,9 @@ If generating a new theme return:
       body: JSON.stringify({
         model: "gemini-3-flash-preview",
         messages: [{ role: "user", content: prompt }],
+        max_tokens: 1_200,
       }),
+      signal: AbortSignal.timeout(25_000),
     });
 
     if (!response.ok) {
@@ -74,7 +86,7 @@ If generating a new theme return:
 
     const jsonMatch = content.match(/\{[\s\S]*\}/);
     if (!jsonMatch) {
-      return new Response(JSON.stringify({ error: "AI could not determine theme", raw: content }), {
+      return new Response(JSON.stringify({ error: "AI could not determine theme" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }

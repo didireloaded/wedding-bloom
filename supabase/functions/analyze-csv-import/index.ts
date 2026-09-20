@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { aiJson, authorizeAdminAi } from "../_shared/admin-ai-security.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -8,9 +9,18 @@ const corsHeaders = {
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+  if (req.method !== "POST") return aiJson({ error: "Method not allowed" }, 405, corsHeaders);
 
   try {
     const { columns, type, data } = await req.json();
+    const authorization = await authorizeAdminAi(req, "analyze_csv_import", corsHeaders);
+    if (authorization.error) return authorization.error;
+    if (type === "format_story") {
+      if (typeof data !== "string" || data.trim().length < 1 || data.length > 10_000) return aiJson({ error: "Story is invalid" }, 400, corsHeaders);
+    } else if (!Array.isArray(columns) || columns.length < 1 || columns.length > 100
+      || columns.some(column => typeof column !== "string" || column.length < 1 || column.length > 200)) {
+      return aiJson({ error: "CSV columns are invalid" }, 400, corsHeaders);
+    }
     const GOOGLE_AI_STUDIO_API_KEY = Deno.env.get("GOOGLE_AI_STUDIO_API_KEY");
     if (!GOOGLE_AI_STUDIO_API_KEY) throw new Error("GOOGLE_AI_STUDIO_API_KEY is not configured");
 
@@ -75,7 +85,9 @@ If a field has no match, omit it from the output.`;
       body: JSON.stringify({
         model: "gemini-3-flash-preview",
         messages: [{ role: "user", content: prompt }],
+        max_tokens: 1_200,
       }),
+      signal: AbortSignal.timeout(25_000),
     });
 
     if (!response.ok) {
@@ -108,7 +120,7 @@ If a field has no match, omit it from the output.`;
     // Parse the JSON mapping from AI response
     const jsonMatch = content.match(/\{[\s\S]*\}/);
     if (!jsonMatch) {
-      return new Response(JSON.stringify({ error: "AI could not parse columns", raw: content }), {
+      return new Response(JSON.stringify({ error: "AI could not parse columns" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
