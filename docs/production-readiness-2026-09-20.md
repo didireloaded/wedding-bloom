@@ -57,8 +57,10 @@ No frontend or UI changes in this batch; no frontend deployment required.
 
 ## Next work / not verified
 
-- Verify complete signed uploads on a test wedding. Upload quotas, orphan cleanup and
-  retry idempotency remain open. Guestbook/moment posting now requires an RSVP session;
+- Verify complete signed uploads on a test wedding. Guest photo registration now limits
+  each RSVP session to 20 stored photos/hour and 100 total; completion verifies JPEG
+  bytes and is idempotent by a live unique storage-path constraint. Scheduled cleanup
+  for abandoned signed uploads remains open. Guestbook/moment posting requires an RSVP session;
   already-open older clients must refresh to use the new submission flow.
 - Arrival device acceptance, frontend fallback messaging and real venue QR workflow.
 - AI endpoint hardening applied and deployed: only RSVP interpretation and public
