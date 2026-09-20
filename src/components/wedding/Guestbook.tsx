@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Upload, MessageCircle } from "lucide-react";
 import { submitGuestContent } from "@/lib/guestContent";
+import GuestPrivacyNote from "./GuestPrivacyNote";
 
 interface GuestbookProps {
   weddingId: string;
@@ -179,6 +180,7 @@ const Guestbook = ({ weddingId, coupleNames }: GuestbookProps) => {
             >
               {submitting ? "Sending..." : "Send your wishes"}
             </button>
+            <GuestPrivacyNote media />
           </motion.form>
         )}
       </div>

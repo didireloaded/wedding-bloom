@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Camera } from "lucide-react";
 import { getGuestSessionToken } from "@/lib/guestSession";
+import GuestPrivacyNote from "./GuestPrivacyNote";
 
 const optimizeImage = (file: File): Promise<Blob> => new Promise((resolve, reject) => {
   const image = new Image();
@@ -130,6 +131,7 @@ const GuestPhotoWall = ({ weddingId }: GuestPhotoWallProps) => {
             <p className="font-body text-xs text-muted-foreground">Camera opens on mobile · Gallery upload also works</p>
             <input type="file" accept="image/*" capture="environment" multiple onChange={handleUpload} disabled={uploading} className="sr-only" />
           </label>
+          <GuestPrivacyNote media />
         </motion.div>
 
         {/* Photo grid */}

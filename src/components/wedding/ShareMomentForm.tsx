@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { Camera, X } from "lucide-react";
 import { submitGuestContent } from "@/lib/guestContent";
 import { toast } from "sonner";
+import GuestPrivacyNote from "./GuestPrivacyNote";
 
 interface ShareMomentFormProps {
   weddingId: string;
@@ -104,6 +105,7 @@ const ShareMomentForm = ({ weddingId, isLiveMode, onPosted }: ShareMomentFormPro
           Your post will appear after approval by the couple.
         </p>
       )}
+      <div className="mt-4"><GuestPrivacyNote media /></div>
     </motion.div>
   );
 };

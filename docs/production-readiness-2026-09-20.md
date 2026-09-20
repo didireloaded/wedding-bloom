@@ -82,7 +82,11 @@ No frontend or UI changes in this batch; no frontend deployment required.
   and returning 200, but there are currently no registered devices or queued deliveries;
   closed-app delivery still requires a consenting physical-device acceptance test.
 - Onboarding/admin recovery acceptance; receipt upload/scanning, budget PDF,
-  automatic keepsakes, mobile/calendar acceptance, monitoring/offline/privacy/staging.
+  automatic keepsakes, mobile/calendar acceptance, monitoring/offline and staging.
+- Guest privacy notice implemented at RSVP, guestbook, moment, and photo collection
+  points, with a dedicated plain-language page covering use, moderation, browser
+  sessions, and correction/removal requests. Formal operator contact details,
+  retention periods, and jurisdiction-specific legal review still require owner input.
 - Optional seating/site plans, vendors, guest languages and digests require scope review.
 
 The older companion-progress document is historical, not the current completion list.

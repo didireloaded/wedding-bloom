@@ -20,6 +20,7 @@ const CoupleLogin = lazy(() => import("./pages/CoupleLogin"));
 const CoupleDashboard = lazy(() => import("./pages/CoupleDashboard"));
 const OnboardingWizard = lazy(() => import("./components/couple/OnboardingWizard"));
 const NotFound = lazy(() => import("./pages/NotFound"));
+const Privacy = lazy(() => import("./pages/Privacy"));
 
 const queryClient = new QueryClient();
 
@@ -51,6 +52,7 @@ const App = () => (
                 <Route path="/couple-login" element={<CoupleLogin />} />
                 <Route path="/couple-dashboard" element={<CoupleDashboard />} />
                 <Route path="/couple-onboarding" element={<OnboardingWizard />} />
+                <Route path="/privacy" element={<Privacy />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </Suspense>

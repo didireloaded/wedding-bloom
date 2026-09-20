@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Heart, Sparkles, MessageSquare, CalendarPlus } from "lucide-react";
 import { generateICS } from "@/lib/calendarUtils";
 import { getGuestSessionToken, saveGuestSessionToken } from "@/lib/guestSession";
+import GuestPrivacyNote from "./GuestPrivacyNote";
 
 interface RSVPSectionProps {
   previousResponse?: GuestResponse;
@@ -412,6 +413,7 @@ const RSVPSection = ({ weddingId, weddingDate, ceremonyTime, venue, coupleNames,
             >
               {submitting ? "SENDING..." : "SEND RSVP"}
             </button>
+            <GuestPrivacyNote />
           </motion.form>
         )}
       </div>
