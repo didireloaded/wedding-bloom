@@ -22,7 +22,6 @@ const SmartArrivalCheckin = ({
   venueLongitude,
   checkinRadiusMeters = 180,
 }: SmartArrivalCheckinProps) => {
-  const [guestName, setGuestName] = useState("");
   const [checkingLocation, setCheckingLocation] = useState(false);
   const [nearVenue, setNearVenue] = useState<boolean | null>(null);
   const [verificationToken, setVerificationToken] = useState<string | null>(null);
@@ -30,8 +29,8 @@ const SmartArrivalCheckin = ({
 
   const requestLocation = () => {
     if (!navigator.geolocation) {
-      toast.info("Location is not available in this browser. You can still check in manually.");
-      setNearVenue(true);
+      toast.info("Location check-in is not available in this browser. Please ask the wedding team for help.");
+      setNearVenue(null);
       return;
     }
 
@@ -44,13 +43,13 @@ const SmartArrivalCheckin = ({
           if (error || !data) throw error || new Error("Verification failed");
           setNearVenue(Boolean(data.verified));
           setVerificationToken(data.verification_token || null);
-          toast[data.verified ? "success" : "info"](data.verified ? "Looks like you have arrived." : data.qr_fallback ? "We could not confirm your location. Use the venue QR instead." : "You do not seem to be at the venue yet.");
-        }).catch(() => { setNearVenue(null); toast.info("We could not verify your location. Use the venue QR instead."); }).finally(() => setCheckingLocation(false));
+          toast[data.verified ? "success" : "info"](data.verified ? "Looks like you have arrived." : "We could not confirm that you are at the venue. Please try again or ask the wedding team for help.");
+        }).catch(() => { setNearVenue(null); toast.info("We could not verify your location. Please try again or ask the wedding team for help."); }).finally(() => setCheckingLocation(false));
       },
       () => {
         setNearVenue(null);
         setCheckingLocation(false);
-        toast.info("Location was not shared. You can still confirm arrival manually.");
+        toast.info("Location was not shared, so arrival could not be verified.");
       },
       { enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 }
     );
@@ -63,7 +62,7 @@ const SmartArrivalCheckin = ({
     if (error || !data?.checked_in) { toast.error("We could not save your check-in. Please try again."); return; }
 
     setCheckedIn(true);
-    toast.success(`Welcome, ${guestName.trim()}.`);
+    toast.success("Welcome. Your arrival is confirmed.");
   };
 
   if (checkedIn) {
@@ -96,13 +95,6 @@ const SmartArrivalCheckin = ({
           </div>
         </div>
 
-        <input
-          value={guestName}
-          onChange={(event) => setGuestName(event.target.value)}
-          placeholder="Your full name"
-          className="mb-4 w-full border border-border bg-muted/20 px-4 py-4 font-body text-sm outline-none transition-colors focus:border-wedding-gold"
-        />
-
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <button
             onClick={requestLocation}
@@ -114,7 +106,7 @@ const SmartArrivalCheckin = ({
           </button>
           <button
             onClick={checkIn}
-            disabled={nearVenue === false}
+            disabled={nearVenue !== true || !verificationToken}
             className="inline-flex min-h-[52px] items-center justify-center gap-3 bg-foreground px-5 py-4 font-body text-[10px] uppercase tracking-[0.2em] text-background transition-colors hover:bg-foreground/85 disabled:opacity-50"
           >
             I'm Here

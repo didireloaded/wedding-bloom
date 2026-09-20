@@ -7,7 +7,6 @@ interface WeddingToolsProps {
 
 const WeddingTools = ({ weddingSlug }: WeddingToolsProps) => {
   const weddingUrl = `${window.location.origin}/wedding/${weddingSlug}`;
-  const checkinUrl = `${window.location.origin}/wedding/${weddingSlug}/checkin`;
 
   const downloadQR = (elementId: string, filename: string) => {
     const svg = document.getElementById(elementId);
@@ -38,12 +37,12 @@ const WeddingTools = ({ weddingSlug }: WeddingToolsProps) => {
           <h3 className="font-body text-base font-semibold">Printable QR codes</h3>
         </div>
         <p className="font-body text-xs text-muted-foreground mt-1">
-          Share your wedding page with guests, or print the QR codes for your venue.
+          Share or print the invitation QR for your guests.
         </p>
       </div>
 
       <div className="mt-4">
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 gap-3">
           {/* Invitation QR */}
           <div className="rounded-2xl bg-black/[0.04] p-3 text-center">
             <p className="mb-3 font-body text-[10px] font-semibold text-muted-foreground">
@@ -56,24 +55,6 @@ const WeddingTools = ({ weddingSlug }: WeddingToolsProps) => {
             </div>
             <button
               onClick={() => downloadQR("invitation-qr", `${weddingSlug}-invitation`)}
-              className="inline-flex min-h-[36px] items-center gap-2 rounded-full bg-foreground px-3 py-2 font-body text-[10px] font-semibold text-background"
-            >
-              <Download className="w-3 h-3" /> Download
-            </button>
-          </div>
-
-          {/* Check-in QR */}
-          <div className="rounded-2xl bg-black/[0.04] p-3 text-center">
-            <p className="mb-3 font-body text-[10px] font-semibold text-muted-foreground">
-              Venue Check-in QR
-            </p>
-            <div className="flex justify-center mb-3">
-              <div className="inline-block rounded-xl bg-card p-2">
-                <QRCodeSVG id="checkin-qr" value={checkinUrl} size={92} level="H" />
-              </div>
-            </div>
-            <button
-              onClick={() => downloadQR("checkin-qr", `${weddingSlug}-checkin`)}
               className="inline-flex min-h-[36px] items-center gap-2 rounded-full bg-foreground px-3 py-2 font-body text-[10px] font-semibold text-background"
             >
               <Download className="w-3 h-3" /> Download

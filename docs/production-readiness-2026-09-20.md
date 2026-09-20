@@ -49,8 +49,9 @@ No frontend or UI changes in this batch; no frontend deployment required.
 - 33 tests pass. Rollback-only synthetic database tests verified invalid sessions/tokens,
   idempotent retry, distinct same-name parties and one notification per arrival.
 - Physical-device location testing remains open. Browser GPS can be spoofed and is
-  convenience verification, not strong physical identity proof. QR fallback and the
-  frontend's misleading manual-fallback copy still need completion; do not claim QR works.
+  convenience verification, not strong physical identity proof. The misleading manual
+  fallback and non-verifying venue QR were removed from the UI. A real cryptographically
+  verified venue QR remains future work; do not claim QR check-in works.
 - Latest capacity checkpoint: 16% five-hour remaining, 33% weekly remaining.
   Do not start a batch that cannot safely finish above the user's 10% stop threshold.
 
