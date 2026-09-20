@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Camera, X } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { submitGuestContent } from "@/lib/guestContent";
 import { toast } from "sonner";
 
 interface ShareMomentFormProps {
@@ -26,37 +26,8 @@ const ShareMomentForm = ({ weddingId, isLiveMode, onPosted }: ShareMomentFormPro
     setUploading(true);
 
     try {
-      let photoUrl: string | null = null;
-
-      if (photo) {
-        const ext = photo.name.split(".").pop();
-        const path = `${weddingId}/moments/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
-        const { error: uploadError } = await supabase.storage
-          .from("wedding-assets")
-          .upload(path, photo, { contentType: photo.type });
-
-        if (uploadError) throw uploadError;
-
-        const { data: urlData } = supabase.storage
-          .from("wedding-assets")
-          .getPublicUrl(path);
-        photoUrl = urlData.publicUrl;
-      }
-
-      const { data, error } = await supabase
-        .from("wedding_moments")
-        .insert({
-          wedding_id: weddingId,
-          guest_name: name.trim(),
-          message: message.trim() || null,
-          photo_url: photoUrl,
-        } as any)
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      if (isLiveMode && data) {
+      const data = await submitGuestContent(weddingId, 'moment', name, message, photo);
+      if (data.approved) {
         onPosted(data);
       } else {
         toast.success("Your moment has been submitted for approval");
@@ -67,7 +38,7 @@ const ShareMomentForm = ({ weddingId, isLiveMode, onPosted }: ShareMomentFormPro
       setPhoto(null);
     } catch (err) {
       console.error(err);
-      toast.error("Failed to post moment. Please try again.");
+      toast.error(err instanceof Error ? err.message : "Failed to post moment. Please try again.");
     } finally {
       setUploading(false);
     }
@@ -83,6 +54,7 @@ const ShareMomentForm = ({ weddingId, isLiveMode, onPosted }: ShareMomentFormPro
       <p className="wedding-label mb-6">SHARE A MOMENT</p>
 
       <input
+        maxLength={100}
         value={name}
         onChange={(e) => setName(e.target.value)}
         placeholder="Your name"
@@ -90,6 +62,7 @@ const ShareMomentForm = ({ weddingId, isLiveMode, onPosted }: ShareMomentFormPro
       />
 
       <textarea
+        maxLength={1000}
         value={message}
         onChange={(e) => setMessage(e.target.value)}
         placeholder="Write something for everyone to see..."

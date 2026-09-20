@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Upload, MessageCircle } from "lucide-react";
+import { submitGuestContent } from "@/lib/guestContent";
 
 interface GuestbookProps {
   weddingId: string;
@@ -42,51 +43,15 @@ const Guestbook = ({ weddingId, coupleNames }: GuestbookProps) => {
     }
 
     setSubmitting(true);
-    let photoUrl: string | null = null;
-
-    if (photo) {
-      const ext = photo.name.split(".").pop();
-      const path = `${weddingId}/guestbook/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
-      const { error } = await supabase.storage.from("wedding-assets").upload(path, photo);
-      if (!error) {
-        const { data: { publicUrl } } = supabase.storage.from("wedding-assets").getPublicUrl(path);
-        photoUrl = publicUrl;
-      }
-    }
-
-    let autoApprove = false;
     try {
-      const moderationRes = await supabase.functions.invoke("ai-wedding", {
-        body: { type: "moderate_guestbook", guestName: form.name.trim(), message: form.message.trim() },
-      });
-      if (moderationRes.data?.result?.approved && moderationRes.data?.result?.confidence > 0.8) {
-        autoApprove = true;
-      }
-    } catch {
-      // If moderation fails, default to manual approval
-    }
-
-    const { error } = await supabase.from("guestbook").insert({
-      wedding_id: weddingId,
-      guest_name: form.name.trim().slice(0, 100),
-      message: form.message.trim().slice(0, 1000),
-      photo_url: photoUrl,
-      approved: autoApprove,
-    } as any);
-
-    if (error) {
-      toast.error("Something went wrong. Please try again.");
+      await submitGuestContent(weddingId, 'guestbook', form.name, form.message, photo);
+      toast.success("Thank you! Your message will appear after review.");
+      setSubmitted(true);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Something went wrong. Please try again.");
+    } finally {
       setSubmitting(false);
-      return;
     }
-
-    toast.success(autoApprove
-      ? "Thank you! Your message has been posted."
-      : "Thank you! Your message will appear after review."
-    );
-    setSubmitted(true);
-    setSubmitting(false);
-    if (autoApprove) fetchMessages();
   };
 
   const couplePlaceholder = coupleNames

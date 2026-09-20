@@ -23,11 +23,21 @@ and wait according to the automation instructions. This is not a completion clai
 Regression SQL: supabase/tests/public_boundary_regression.sql.
 No frontend or UI changes in this batch; no frontend deployment required.
 
+## Guest content follow-up
+
+- Guestbook and moment forms now submit through submit-guest-content with an RSVP
+  session; photos use signed uploads tied to the wedding and session. The endpoint
+  checks publication, stored size and JPEG signature, and constructs its own URL.
+- Guestbook no longer claims AI approval or silently discards an upload error.
+- New endpoint deployed; malformed input returns 400 and invalid session returns 401.
+- App TypeScript check and 31 tests pass; production build passes with the existing
+  large-chunk warning. Authenticated physical-device upload acceptance remains open.
+- Closing legacy policies is staged for AFTER compatible frontend deployment.
+
 ## Next work / not verified
 
-- Guestbook frontend still attempts client-side AI approval and may show an inaccurate
-  posted-success message on the old deployment; database now keeps the entry pending.
-- Guestbook and moment uploads still require signed upload conversion.
+- Confirm frontend publication and legacy-policy closure; verify complete signed uploads
+  on a test wedding. Upload quotas, orphan cleanup and retry idempotency remain open.
 - Secure arrival/check-in deployment and authorized/unauthorized end-to-end tests.
 - AI authorization across all actions, quotas, timeouts and wedding-scoped context.
 - Closed-app push/device tests and actual reminder receipt; never send real guest tests
