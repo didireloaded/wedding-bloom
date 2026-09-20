@@ -60,7 +60,17 @@ No frontend or UI changes in this batch; no frontend deployment required.
   retry idempotency remain open. Guestbook/moment posting now requires an RSVP session;
   already-open older clients must refresh to use the new submission flow.
 - Arrival device acceptance, frontend fallback messaging and real venue QR workflow.
-- AI authorization across all actions, quotas, timeouts and wedding-scoped context.
+- AI endpoint hardening applied and deployed: only RSVP interpretation and public
+  wedding chat remain unsigned; dashboard/admin flags and all planning/report/theme/
+  moderation actions require a valid account. Public requests are limited to 20 per
+  action/hour per network-browser identity; signed-in requests to 60. Atomic quota
+  storage is service-role-only. Payloads, questions and history are bounded, provider
+  calls time out after 25 seconds, and outputs are capped. Private chat and daily
+  reports retain wedding membership/admin checks; public chat uses published wedding
+  context only. Live checks returned 401/400/405 before provider calls, and the quota
+  regression allowed two then denied the third request. No paid generation was used
+  for verification. Provider billing ceilings and abuse monitoring remain operational
+  configuration work; successful real provider responses need an authenticated test.
 - Closed-app push/device tests and actual reminder receipt; never send real guest tests
   without specific authorization.
 - Onboarding/admin recovery acceptance; receipt upload/scanning, budget PDF,

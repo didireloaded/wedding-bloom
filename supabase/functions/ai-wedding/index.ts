@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.98.0";
 import { reportContext } from '../_shared/report-context.ts';
+import { PUBLIC_AI_ACTIONS, sha256, validateAiPayload } from '../_shared/ai-security.ts';
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -58,7 +59,23 @@ serve(async (req) => {
     const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
     if (!OPENAI_API_KEY) throw new Error("OPENAI_API_KEY is not configured");
 
+    if (req.method !== "POST") return new Response(JSON.stringify({ error: "Method not allowed" }), { status: 405, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     const { type, ...params } = await req.json();
+    const validationError = validateAiPayload(type, params);
+    if (validationError) return new Response(JSON.stringify({ error: validationError }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+
+    const serviceDb = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+    const token = req.headers.get("Authorization")?.replace(/^Bearer\s+/i, "") || "";
+    const { data: authData } = token ? await serviceDb.auth.getUser(token) : { data: { user: null } };
+    const user = authData.user;
+    const requiresAccount = !PUBLIC_AI_ACTIONS.has(type) || params.isDashboard === true || params.isAdmin === true;
+    if (requiresAccount && !user) return new Response(JSON.stringify({ error: "Sign in required" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    const networkIdentity = req.headers.get("cf-connecting-ip") || req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+    const subjectHash = await sha256(user ? `user:${user.id}` : `public:${networkIdentity}:${req.headers.get("user-agent") || "unknown"}`);
+    const limit = user ? 60 : 20;
+    const { data: quotaAllowed, error: quotaError } = await serviceDb.rpc("consume_ai_quota", { p_subject_hash: subjectHash, p_action: type, p_limit: limit });
+    if (quotaError) return new Response(JSON.stringify({ error: "Assistant quota unavailable" }), { status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    if (!quotaAllowed) return new Response(JSON.stringify({ error: "Too many assistant requests. Please try again after the hour." }), { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
     let messages: { role: string; content: string }[] = [];
     let tools: any[] | undefined;
@@ -225,8 +242,6 @@ Always call the suggest_seating tool.`,
         const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
         const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
         const sb = createClient(supabaseUrl, supabaseKey);
-        const token = req.headers.get("Authorization")?.replace(/^Bearer\s+/i, "") || "";
-        const { data: authData } = token ? await sb.auth.getUser(token) : { data: { user: null } };
         const userId = authData.user?.id;
 
         const isAdminUser = async () => {
@@ -921,6 +936,7 @@ Return a list of moment IDs to highlight. Always call the suggest_highlights too
     const body: any = {
       model: "gpt-4.1-mini",
       messages,
+      max_tokens: 1200,
     };
     if (tools) body.tools = tools;
     if (tool_choice) body.tool_choice = tool_choice;
@@ -935,6 +951,7 @@ Return a list of moment IDs to highlight. Always call the suggest_highlights too
           "Content-Type": "application/json",
         },
         body: JSON.stringify(body),
+        signal: AbortSignal.timeout(25_000),
       });
 
       if (!response.ok) {
@@ -959,6 +976,7 @@ Return a list of moment IDs to highlight. Always call the suggest_highlights too
         "Content-Type": "application/json",
       },
       body: JSON.stringify(body),
+      signal: AbortSignal.timeout(25_000),
     });
 
     if (!response.ok) {
