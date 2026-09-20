@@ -37,12 +37,29 @@ No frontend or UI changes in this batch; no frontend deployment required.
   succeed, storage listing remains empty, and direct inserts fail with insufficient
   privilege in rollback-only tests. Members now have explicit moment moderation rights.
 
+## Arrival follow-up
+
+- Applied atomic_guest_checkin and deployed guest-checkin / verify-guest-arrival.
+- Check-in uses RSVP identity, not guest name. Session and RSVP row locks serialize
+  retries; arrival, token consumption and notification queue insertion are atomic.
+- Requires confirmed RSVP, published wedding, enabled geolocation check-in, configured
+  opening/closing window (when supplied), and unexpired verification token.
+- RPC execution restricted to service_role. Live unauthorized endpoint returns 401;
+  missing location returns 400. Invalid coordinate ranges/accuracy are rejected.
+- 33 tests pass. Rollback-only synthetic database tests verified invalid sessions/tokens,
+  idempotent retry, distinct same-name parties and one notification per arrival.
+- Physical-device location testing remains open. Browser GPS can be spoofed and is
+  convenience verification, not strong physical identity proof. QR fallback and the
+  frontend's misleading manual-fallback copy still need completion; do not claim QR works.
+- Latest capacity checkpoint: 16% five-hour remaining, 33% weekly remaining.
+  Do not start a batch that cannot safely finish above the user's 10% stop threshold.
+
 ## Next work / not verified
 
 - Verify complete signed uploads on a test wedding. Upload quotas, orphan cleanup and
   retry idempotency remain open. Guestbook/moment posting now requires an RSVP session;
   already-open older clients must refresh to use the new submission flow.
-- Secure arrival/check-in deployment and authorized/unauthorized end-to-end tests.
+- Arrival device acceptance, frontend fallback messaging and real venue QR workflow.
 - AI authorization across all actions, quotas, timeouts and wedding-scoped context.
 - Closed-app push/device tests and actual reminder receipt; never send real guest tests
   without specific authorization.
