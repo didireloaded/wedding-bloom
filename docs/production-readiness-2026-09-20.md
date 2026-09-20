@@ -32,12 +32,16 @@ No frontend or UI changes in this batch; no frontend deployment required.
 - New endpoint deployed; malformed input returns 400 and invalid session returns 401.
 - App TypeScript check and 31 tests pass; production build passes with the existing
   large-chunk warning. Authenticated physical-device upload acceptance remains open.
-- Closing legacy policies is staged for AFTER compatible frontend deployment.
+- Frontend version 28 published successfully, then legacy direct guestbook/moment
+  INSERT and guest storage-upload policies removed. Anonymous moment/guestbook reads
+  succeed, storage listing remains empty, and direct inserts fail with insufficient
+  privilege in rollback-only tests. Members now have explicit moment moderation rights.
 
 ## Next work / not verified
 
-- Confirm frontend publication and legacy-policy closure; verify complete signed uploads
-  on a test wedding. Upload quotas, orphan cleanup and retry idempotency remain open.
+- Verify complete signed uploads on a test wedding. Upload quotas, orphan cleanup and
+  retry idempotency remain open. Guestbook/moment posting now requires an RSVP session;
+  already-open older clients must refresh to use the new submission flow.
 - Secure arrival/check-in deployment and authorized/unauthorized end-to-end tests.
 - AI authorization across all actions, quotas, timeouts and wedding-scoped context.
 - Closed-app push/device tests and actual reminder receipt; never send real guest tests
