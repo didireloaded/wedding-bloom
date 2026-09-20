@@ -94,6 +94,8 @@ No frontend or UI changes in this batch; no frontend deployment required.
   during verification; hosted redirect allowlisting and delivery still need an owner test.
 - Global offline and reconnect status is implemented with safe-area positioning.
   Individual failed writes still require the user to retry; no offline write queue is claimed.
+- Production bundle splitting separates React, Supabase, animation, charts, UI primitives,
+  and export tooling so guest routes do not inherit one monolithic application chunk.
 - Onboarding acceptance; receipt upload/scanning, budget PDF,
   automatic keepsakes, mobile/calendar acceptance, monitoring and staging.
 - Guest privacy notice implemented at RSVP, guestbook, moment, and photo collection
