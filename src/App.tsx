@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
 import { AuthProvider } from "@/hooks/useAuth";
+import NetworkStatus from "@/components/NetworkStatus";
 
 const Index = lazy(() => import("./pages/Index"));
 const Explore = lazy(() => import("./pages/Explore"));
@@ -31,6 +32,7 @@ const App = () => (
         <TooltipProvider>
           <Toaster />
           <Sonner />
+          <NetworkStatus />
           <BrowserRouter>
             <Suspense
               fallback={
