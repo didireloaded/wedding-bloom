@@ -17,6 +17,7 @@ END $$;
 SET LOCAL ROLE anon;
 SELECT count(*) FROM public.events;
 SELECT count(*) FROM public.guestbook;
+SELECT count(*) FROM public.wedding_guest_details;
 DO $$
 BEGIN
   IF EXISTS (SELECT 1 FROM storage.objects) THEN

@@ -73,6 +73,13 @@ No frontend or UI changes in this batch; no frontend deployment required.
   configuration work; successful real provider responses need an authenticated test.
 - Closed-app push/device tests and actual reminder receipt; never send real guest tests
   without specific authorization.
+- Push registration now accepts POST only, validates wedding IDs and encryption keys,
+  and restricts endpoints to known Apple, Google, Mozilla and Windows Web Push hosts.
+  The deployed endpoint returns 405 for GET and 400 for an arbitrary HTTPS endpoint
+  before any session lookup. A fresh VAPID keypair is configured in Supabase and the
+  matching public key is deployed to Sites version 29. The notification cron is active
+  and returning 200, but there are currently no registered devices or queued deliveries;
+  closed-app delivery still requires a consenting physical-device acceptance test.
 - Onboarding/admin recovery acceptance; receipt upload/scanning, budget PDF,
   automatic keepsakes, mobile/calendar acceptance, monitoring/offline/privacy/staging.
 - Optional seating/site plans, vendors, guest languages and digests require scope review.
