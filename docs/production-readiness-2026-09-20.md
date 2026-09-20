@@ -81,7 +81,11 @@ No frontend or UI changes in this batch; no frontend deployment required.
   matching public key is deployed to Sites version 29. The notification cron is active
   and returning 200, but there are currently no registered devices or queued deliveries;
   closed-app delivery still requires a consenting physical-device acceptance test.
-- Onboarding/admin recovery acceptance; receipt upload/scanning, budget PDF,
+- Admin bootstrap closed after confirming one existing admin; authenticated clients can
+  no longer claim the role. Owner and couple sign-in now share the recovery route and
+  suppress repeat reset requests in the current page session. No recovery email was sent
+  during verification; hosted redirect allowlisting and delivery still need an owner test.
+- Onboarding acceptance; receipt upload/scanning, budget PDF,
   automatic keepsakes, mobile/calendar acceptance, monitoring/offline and staging.
 - Guest privacy notice implemented at RSVP, guestbook, moment, and photo collection
   points, with a dedicated plain-language page covering use, moderation, browser

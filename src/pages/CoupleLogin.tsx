@@ -15,9 +15,22 @@ const CoupleLogin = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [resetSent, setResetSent] = useState(false);
   const [mode, setMode] = useState<"signin" | "signup">("signup");
   const navigate = useNavigate();
   const { signIn, signUp } = useAuth();
+
+  const requestReset = async () => {
+    if (!email.trim()) { toast.error("Enter your email address first."); return; }
+    setSubmitting(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    setSubmitting(false);
+    if (error) { toast.error(error.message); return; }
+    setResetSent(true);
+    toast.success("If this email has an account, a reset link will arrive shortly.");
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -81,7 +94,7 @@ const CoupleLogin = () => {
               className="min-h-12 w-full rounded-2xl border border-black/10 bg-[#f6f6f6] px-4 py-3 text-left font-body text-sm outline-none focus:border-black/30"
             />
           </div>
-          <div><label className="mb-2 block text-left font-body text-xs font-semibold">Password</label><input type="password" required value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Your password" className="min-h-12 w-full rounded-2xl border border-black/10 bg-[#f6f6f6] px-4 py-3 text-left font-body text-sm outline-none focus:border-black/30" /></div>
+          <div><label className="mb-2 block text-left font-body text-xs font-semibold">Password</label><input type="password" required minLength={8} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Your password" className="min-h-12 w-full rounded-2xl border border-black/10 bg-[#f6f6f6] px-4 py-3 text-left font-body text-sm outline-none focus:border-black/30" /></div>
 
           <button
             type="submit"
@@ -91,6 +104,7 @@ const CoupleLogin = () => {
             {submitting ? "PLEASE WAIT..." : mode === "signup" ? "CREATE ACCOUNT" : "SIGN IN"}
           </button>
         </form>
+        {mode === "signin" && <button type="button" disabled={submitting || resetSent} onClick={requestReset} className="mt-4 font-body text-xs text-muted-foreground underline underline-offset-4 disabled:opacity-50">{resetSent ? "Reset email requested" : "Forgot password?"}</button>}
         <button type="button" onClick={() => setMode(mode === "signup" ? "signin" : "signup")} className="mt-6 font-body text-xs text-muted-foreground underline underline-offset-4">
           {mode === "signup" ? "Already have an account? Sign in" : "New to ForeverVow? Create an account"}
         </button>
