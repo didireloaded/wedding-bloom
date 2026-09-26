@@ -1,9 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { motion } from "framer-motion";
-import { Plus, LogOut, Calendar, MapPin, Users, Clock } from "lucide-react";
+import { Plus, LogOut, Calendar, MapPin, Users, Clock, Search, ArrowUpRight, SlidersHorizontal, ChevronDown } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import CSVImporter from "@/components/admin/CSVImporter";
@@ -16,7 +16,6 @@ interface Wedding {
   wedding_date: string | null;
   ceremony_venue: string | null;
   published: boolean;
-  access_code: string;
   rsvp_confirmed?: number;
   rsvp_pending?: number;
 }
@@ -29,6 +28,9 @@ const AdminDashboard = () => {
   const [showCreate, setShowCreate] = useState(false);
   const [newCouple, setNewCouple] = useState("");
   const [newSlug, setNewSlug] = useState("");
+  const [search, setSearch] = useState("");
+  const [status, setStatus] = useState<"all" | "live" | "draft">("all");
+  const [sort, setSort] = useState<"recent" | "date">("recent");
 
   useEffect(() => {
     if (!loading && (!user || !isAdmin)) {
@@ -45,7 +47,7 @@ const AdminDashboard = () => {
 
     const { data: weddingsData, error } = await supabase
       .from("weddings")
-      .select("id, couple_names, slug, wedding_date, ceremony_venue, published, access_code")
+      .select("id, couple_names, slug, wedding_date, ceremony_venue, published")
       .order("created_at", { ascending: false });
 
     if (error) {
@@ -137,6 +139,20 @@ const AdminDashboard = () => {
     }
   };
 
+  const liveCount = weddings.filter((wedding) => wedding.published).length;
+  const upcomingCount = weddings.filter((wedding) => wedding.wedding_date && new Date(`${wedding.wedding_date}T23:59:59`).getTime() >= Date.now()).length;
+  const visibleWeddings = useMemo(() => {
+    const query = search.trim().toLowerCase();
+    const matches = weddings.filter((wedding) =>
+      (status === "all" || wedding.published === (status === "live")) &&
+      (!query || `${wedding.couple_names} ${wedding.slug} ${wedding.ceremony_venue || ""}`.toLowerCase().includes(query))
+    );
+    if (sort === "date") matches.sort((left, right) =>
+      (left.wedding_date || "9999-12-31").localeCompare(right.wedding_date || "9999-12-31")
+    );
+    return matches;
+  }, [weddings, search, status, sort]);
+
   if (loading || loadingData) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -149,12 +165,13 @@ const AdminDashboard = () => {
     <div className="admin-app min-h-screen bg-[#f1f1f1]">
       <nav className="sticky top-0 z-20 flex items-center justify-between border-b border-black/5 bg-white/90 px-4 py-3 backdrop-blur-xl sm:px-6">
         <div><p className="font-body text-[10px] font-semibold text-black/45">ForeverVow</p><h1 className="font-body text-xl font-semibold">Weddings</h1></div>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 sm:gap-4">
           <button
             onClick={() => setShowCreate(true)}
-            className="flex min-h-11 items-center gap-2 rounded-full bg-foreground px-4 py-2 font-body text-xs font-semibold text-background transition-colors hover:bg-foreground/90"
+            aria-label="Create wedding"
+            className="flex min-h-11 min-w-11 items-center justify-center gap-2 rounded-full bg-foreground px-3 py-2 font-body text-xs font-semibold text-background transition-colors hover:bg-foreground/90 sm:px-4"
           >
-            <Plus className="w-4 h-4" /> New Wedding
+            <Plus className="w-4 h-4" /> <span className="hidden sm:inline">New Wedding</span>
           </button>
           <button onClick={signOut} className="grid h-11 w-11 place-items-center rounded-full bg-black/5 text-muted-foreground hover:text-foreground" title="Sign out">
             <LogOut className="w-5 h-5" />
@@ -162,7 +179,16 @@ const AdminDashboard = () => {
         </div>
       </nav>
 
-      <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-10">
+      <main className="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-10">
+        <div className="mb-8 flex flex-wrap items-end justify-between gap-5">
+          <div>
+            <p className="font-body text-xs font-medium text-black/50">Your weddings</p>
+            <h2 className="mt-1 font-body text-2xl font-semibold text-black sm:text-3xl">Every celebration, in one place.</h2>
+            <p className="mt-2 font-body text-sm text-black/55">
+              {weddings.length} total <span aria-hidden="true">·</span> {liveCount} published <span aria-hidden="true">·</span> {upcomingCount} upcoming
+            </p>
+          </div>
+        </div>
         {showCreate && (
           <motion.form
             onSubmit={createWedding}
@@ -201,76 +227,70 @@ const AdminDashboard = () => {
           </motion.form>
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {weddings.map((w, i) => (
-            <motion.div
-              key={w.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.05 }}
-              onClick={() => navigate(`/admin/wedding/${w.id}`)}
-              className="group cursor-pointer rounded-[24px] border border-white/80 bg-white p-6 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
-            >
-              <div className="flex items-start justify-between mb-4">
-                <h3 className="font-body text-xl font-semibold transition-colors">
-                  {w.couple_names}
-                </h3>
-                <span className={`rounded-full px-3 py-1 font-body text-[10px] font-semibold ${w.published ? "bg-[#d9f06e] text-black" : "bg-muted text-muted-foreground"}`}>
-                  {w.published ? "LIVE" : "DRAFT"}
-                </span>
+        <section aria-label="Wedding list">
+          <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex gap-1 rounded-full bg-white p-1 self-start" aria-label="Filter weddings">
+              {(["all", "live", "draft"] as const).map((option) => (
+                <button key={option} type="button" onClick={() => setStatus(option)} aria-pressed={status === option} className={`min-h-9 rounded-full px-4 font-body text-xs font-semibold capitalize ${status === option ? "bg-black text-white" : "text-black/55 hover:text-black"}`}>
+                  {option === "live" ? "Published" : option === "draft" ? "Drafts" : "All"}
+                </button>
+              ))}
+            </div>
+            <div className="flex min-w-0 flex-1 gap-2 sm:max-w-md">
+              <label className="flex min-w-0 flex-1 items-center gap-2 rounded-full border border-black/10 bg-white px-4">
+                <Search className="h-4 w-4 shrink-0 text-black/45" />
+                <span className="sr-only">Search weddings</span>
+                <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search weddings" className="min-h-11 w-full bg-transparent font-body text-sm outline-none placeholder:text-black/40" />
+              </label>
+              <label className="flex shrink-0 items-center gap-1 rounded-full border border-black/10 bg-white px-3 text-black/60" title="Sort weddings">
+                <SlidersHorizontal className="h-4 w-4" />
+                <span className="sr-only">Sort weddings</span>
+                <select value={sort} onChange={(event) => setSort(event.target.value as "recent" | "date")} className="min-h-11 max-w-[7rem] bg-transparent font-body text-xs outline-none">
+                  <option value="recent">Recent</option>
+                  <option value="date">Wedding date</option>
+                </select>
+              </label>
+            </div>
+          </div>
+
+          <div className="overflow-hidden rounded-2xl border border-black/5 bg-white">
+            {visibleWeddings.map((w) => (
+              <div key={w.id} className="flex flex-col gap-4 border-b border-black/5 p-4 last:border-b-0 sm:flex-row sm:items-center sm:justify-between sm:px-5">
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h3 className="truncate font-body text-base font-semibold text-black">{w.couple_names}</h3>
+                    <span className={`rounded-full px-2.5 py-1 font-body text-[10px] font-semibold ${w.published ? "bg-[#d9f06e] text-black" : "bg-black/5 text-black/55"}`}>
+                      {w.published ? "PUBLISHED" : "DRAFT"}
+                    </span>
+                  </div>
+                  <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 font-body text-xs text-black/55">
+                    <span className="inline-flex items-center gap-1.5"><Calendar className="h-3.5 w-3.5" />{w.wedding_date ? format(new Date(`${w.wedding_date}T12:00:00`), "dd MMM yyyy") : "Date not set"}</span>
+                    {w.ceremony_venue && <span className="inline-flex items-center gap-1.5"><MapPin className="h-3.5 w-3.5" />{w.ceremony_venue}</span>}
+                    <span className="inline-flex items-center gap-1.5"><Users className="h-3.5 w-3.5" />{w.rsvp_confirmed} confirmed</span>
+                    {(w.rsvp_pending || 0) > 0 && <span className="inline-flex items-center gap-1.5"><Clock className="h-3.5 w-3.5" />{w.rsvp_pending} undecided</span>}
+                  </div>
+                </div>
+                <div className="flex shrink-0 gap-2">
+                  {w.published && <a href={`/wedding/${w.slug}`} target="_blank" rel="noreferrer" className="inline-flex min-h-10 items-center gap-1 rounded-full border border-black/10 px-4 font-body text-xs font-semibold text-black hover:bg-black/5">View <ArrowUpRight className="h-3.5 w-3.5" /></a>}
+                  <button onClick={() => navigate(`/admin/wedding/${w.id}`)} className="inline-flex min-h-10 items-center rounded-full bg-black px-5 font-body text-xs font-semibold text-white hover:bg-black/80">Open wedding</button>
+                </div>
               </div>
-
-              {w.wedding_date && (
-                <p className="flex items-center gap-2 text-muted-foreground font-body text-xs mb-2">
-                  <Calendar className="w-3.5 h-3.5" />
-                  {format(new Date(w.wedding_date), "dd MMMM yyyy")}
-                </p>
-              )}
-              {w.ceremony_venue && (
-                <p className="flex items-center gap-2 text-muted-foreground font-body text-xs mb-4">
-                  <MapPin className="w-3.5 h-3.5" />
-                  {w.ceremony_venue}
-                </p>
-              )}
-
-              <div className="flex gap-4 pt-4 border-t border-border">
-                <span className="flex items-center gap-1.5 font-body text-xs text-muted-foreground">
-                  <Users className="w-3.5 h-3.5" /> {w.rsvp_confirmed} confirmed
-                </span>
-                <span className="flex items-center gap-1.5 font-body text-xs text-muted-foreground">
-                  <Clock className="w-3.5 h-3.5" /> {w.rsvp_pending} pending
-                </span>
-              </div>
-            </motion.div>
-          ))}
-        </div>
-
-        {weddings.length === 0 && (
-          <div className="rounded-[28px] bg-white py-20 text-center shadow-sm">
-            <p className="mb-4 font-body text-xl font-semibold text-muted-foreground">No weddings yet</p>
-            <button
-              onClick={() => setShowCreate(true)}
-              className="rounded-full bg-foreground px-8 py-3 font-body text-xs font-semibold text-background"
-            >
-              CREATE YOUR FIRST WEDDING
-            </button>
+            ))}
+            {visibleWeddings.length === 0 && <p className="px-5 py-12 text-center font-body text-sm text-black/55">{weddings.length ? "No weddings match this view." : "No weddings yet. Add the first one to begin."}</p>}
           </div>
-        )}
-
-        {/* AI Assistant for Admin */}
-        {user && isAdmin && weddings.length > 0 && (
-          <div className="mt-10">
-            <AIChatAssistant isAdmin={true} />
-          </div>
-        )}
-
-        {/* AI CSV Import Section */}
-        {user && (
-          <div className="mt-10">
-            <CSVImporter adminUserId={user.id} onComplete={fetchWeddings} />
-          </div>
-        )}
-      </div>
+        </section>
+        {user && isAdmin && <section className="mt-8 border-t border-black/10 pt-6" aria-label="More wedding tools">
+          <h2 className="mb-3 font-body text-base font-semibold text-black">More wedding tools</h2>
+          <details className="border-b border-black/10 py-3">
+            <summary className="flex cursor-pointer list-none items-center justify-between font-body text-sm font-medium text-black">Import weddings <ChevronDown className="h-4 w-4" /></summary>
+            <div className="pt-4"><CSVImporter adminUserId={user.id} onComplete={fetchWeddings} /></div>
+          </details>
+          {weddings.length > 0 && <details className="border-b border-black/10 py-3">
+            <summary className="flex cursor-pointer list-none items-center justify-between font-body text-sm font-medium text-black">Ask about a wedding <ChevronDown className="h-4 w-4" /></summary>
+            <div className="pt-4"><AIChatAssistant isAdmin={true} /></div>
+          </details>}
+        </section>}
+      </main>
     </div>
   );
 };
