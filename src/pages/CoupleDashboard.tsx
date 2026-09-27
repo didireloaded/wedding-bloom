@@ -87,6 +87,12 @@ const previewEvents = [
   { id: "event-3", title: "Reception", event_time: "6:00 PM", location: "Willow Estate Hall", sort_order: 3 },
 ];
 
+const normalizeTab = (tab: string | null) => {
+  if (tab === 'website') return 'profile';
+  if (tab === 'memories') return 'moments';
+  return tab && ['home', 'guests', 'calendar', 'moments', 'updates', 'profile'].includes(tab) ? tab : 'home';
+};
+
 const CoupleDashboard = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
@@ -107,7 +113,7 @@ const CoupleDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [showTour, setShowTour] = useState(false);
   const [showEditDetails, setShowEditDetails] = useState(false);
-  const [activeTab, setActiveTab] = useState(searchParams.get("tab") === "website" ? "profile" : searchParams.get("tab") || "home");
+  const [activeTab, setActiveTab] = useState(() => normalizeTab(searchParams.get('tab')));
   const [guestSearch, setGuestSearch] = useState("");
   const [guestFilter, setGuestFilter] = useState<"all" | "confirmed" | "pending" | "declined" | "checked-in">("all");
   const [selectedGuest, setSelectedGuest] = useState<RsvpRow | null>(null);
@@ -116,12 +122,11 @@ const CoupleDashboard = () => {
   const [updatesView, setUpdatesView] = useState<'share' | 'activity' | 'report'>('share');
   const [guestView, setGuestView] = useState<'responses' | 'seating'>('responses');
   useEffect(() => {
-    const tab = searchParams.get('tab') || 'home';
-    setActiveTab(tab === 'website' ? 'profile' : tab);
+    setActiveTab(normalizeTab(searchParams.get('tab')));
   }, [searchParams]);
 
   const changeTab = (tab: string) => {
-    if (tab === "website") tab = "profile";
+    tab = normalizeTab(tab);
     setActiveTab(tab);
     const nextParams = new URLSearchParams(searchParams);
     nextParams.delete('section');
