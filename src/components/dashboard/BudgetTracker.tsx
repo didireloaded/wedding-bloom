@@ -13,6 +13,8 @@ const categoryStyles = [
   { color: '#9ca3af', icon: ReceiptText },
 ];
 const money = (value: number, currency: string) => new Intl.NumberFormat(undefined, { style: 'currency', currency, maximumFractionDigits: 2 }).format(value);
+const receiptBucket = 'wedding-receipts';
+const receiptTypes: Record<string, string> = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp', 'application/pdf': 'pdf' };
 
 async function createBudgetReportPdf(coupleNames: string, planned: number, currency: string, entries: BudgetEntry[]) {
   const { PDFDocument } = await import('pdf-lib');
@@ -131,6 +133,7 @@ export default function BudgetTracker({ weddingId, coupleNames, slug }: { weddin
   const [editingBudget, setEditingBudget] = useState(false);
   const [busy, setBusy] = useState(false);
   const [exporting, setExporting] = useState(false);
+  const [uploadingReceipt, setUploadingReceipt] = useState<string | null>(null);
   const preview = weddingId === 'preview-wedding';
   const [planned, setPlanned] = useState(preview ? '100000' : '');
   const [form, setForm] = useState({ title: '', category: 'Venue', amount: '', spent_on: new Date().toISOString().slice(0, 10), notes: '' });
@@ -149,7 +152,47 @@ export default function BudgetTracker({ weddingId, coupleNames, slug }: { weddin
 
   const saveBudget = async () => { if (preview) return toast.info('Open your wedding workspace to save a budget.'); const amount = Number(planned); if (!Number.isFinite(amount) || amount < 0) return toast.error('Enter a valid budget.'); setBusy(true); const { error } = await supabase.from('wedding_budgets').upsert({ wedding_id: weddingId, planned_amount: amount, currency: data.currency }); setBusy(false); if (error) return toast.error('Budget could not be saved.'); toast.success('Budget updated.'); setEditingBudget(false); await q.refetch(); };
   const addEntry = async (event: React.FormEvent) => { event.preventDefault(); if (preview) return toast.info('Open your wedding workspace to add expenses.'); const amount = Number(form.amount); if (!form.title.trim() || !Number.isFinite(amount) || amount <= 0) return toast.error('Add a title and a positive amount.'); setBusy(true); const { error } = await supabase.from('wedding_budget_entries').insert({ wedding_id: weddingId, ...form, title: form.title.trim(), amount }); setBusy(false); if (error) return toast.error('Expense could not be added.'); setForm({ title: '', category: 'Venue', amount: '', spent_on: new Date().toISOString().slice(0, 10), notes: '' }); setAdding(false); await q.refetch(); };
-  const remove = async (entry: BudgetEntry) => { if (!window.confirm(`Remove ${entry.title} from your budget?`)) return; const { error } = await supabase.from('wedding_budget_entries').delete().eq('id', entry.id).eq('wedding_id', weddingId); if (error) return toast.error('Expense could not be removed.'); await q.refetch(); };
+  const uploadReceipt = async (entry: BudgetEntry, file: File) => {
+    if (preview) return toast.info('Open your wedding workspace to attach a receipt.');
+    const extension = receiptTypes[file.type];
+    if (!extension || !file.size || file.size > 8 * 1024 * 1024) return toast.error('Use a JPG, PNG, WebP, or PDF under 8 MB.');
+    const path = `${weddingId}/${entry.id}/${crypto.randomUUID()}.${extension}`;
+    setUploadingReceipt(entry.id);
+    const { error: uploadError } = await supabase.storage.from(receiptBucket).upload(path, file, { contentType: file.type, upsert: false });
+    if (uploadError) { setUploadingReceipt(null); return toast.error('Receipt could not be uploaded.'); }
+    const { error: saveError } = await supabase.from('wedding_budget_entries').update({ receipt_url: path }).eq('id', entry.id).eq('wedding_id', weddingId);
+    if (saveError) {
+      await supabase.storage.from(receiptBucket).remove([path]);
+      setUploadingReceipt(null);
+      return toast.error('Receipt could not be attached.');
+    }
+    if (entry.receipt_url) {
+      const { error: cleanupError } = await supabase.storage.from(receiptBucket).remove([entry.receipt_url]);
+      if (cleanupError) toast.warning('Old receipt could not be removed. Contact support if this persists.');
+    }
+    setUploadingReceipt(null);
+    toast.success('Receipt attached.');
+    await q.refetch();
+  };
+  const viewReceipt = async (entry: BudgetEntry) => {
+    if (!entry.receipt_url) return;
+    const tab = window.open('about:blank', '_blank');
+    if (!tab) return toast.error('Allow pop-ups to view the receipt.');
+    tab.opener = null;
+    const { data: signed, error } = await supabase.storage.from(receiptBucket).createSignedUrl(entry.receipt_url, 60);
+    if (error || !signed?.signedUrl) { tab.close(); return toast.error('Receipt could not be opened.'); }
+    tab.location.href = signed.signedUrl;
+  };
+  const remove = async (entry: BudgetEntry) => {
+    if (!window.confirm(`Remove ${entry.title} from your budget?`)) return;
+    const { error } = await supabase.from('wedding_budget_entries').delete().eq('id', entry.id).eq('wedding_id', weddingId);
+    if (error) return toast.error('Expense could not be removed. Please retry.');
+    if (entry.receipt_url) {
+      const { error: receiptError } = await supabase.storage.from(receiptBucket).remove([entry.receipt_url]);
+      if (receiptError) toast.warning('Expense removed, but receipt cleanup failed. Contact support if this persists.');
+    }
+    await q.refetch();
+  };
   const download = async () => {
     setExporting(true);
     try {
@@ -190,7 +233,7 @@ export default function BudgetTracker({ weddingId, coupleNames, slug }: { weddin
     </section>
 
     <section className="fv-budget-section"><div className="fv-budget-section-title"><h2>Recent expenses</h2><span>{data.entries.length} total</span></div>
-      {data.entries.length ? <ul className="fv-expense-list">{data.entries.map(entry => { const style = categoryStyles[categories.indexOf(entry.category)] || categoryStyles[6]; const Icon = style.icon; return <li key={entry.id}><span className="fv-expense-icon" style={{ background: style.color }}><Icon size={18} /></span><div><strong>{entry.title}</strong><small>{entry.category} · {new Date(`${entry.spent_on}T12:00:00`).toLocaleDateString(undefined, { day: 'numeric', month: 'short' })}</small></div><b>-{money(Number(entry.amount), data.currency)}</b><button aria-label={`Remove ${entry.title}`} onClick={() => void remove(entry)}><Trash2 size={16} /></button></li>;})}</ul> : <p className="fv-budget-no-expenses">No expenses recorded yet.</p>}
+      {data.entries.length ? <ul className="fv-expense-list">{data.entries.map(entry => { const style = categoryStyles[categories.indexOf(entry.category)] || categoryStyles[6]; const Icon = style.icon; return <li key={entry.id}><span className="fv-expense-icon" style={{ background: style.color }}><Icon size={18} /></span><div><strong>{entry.title}</strong><small>{entry.category} · {new Date(`${entry.spent_on}T12:00:00`).toLocaleDateString(undefined, { day: 'numeric', month: 'short' })}</small></div><b>-{money(Number(entry.amount), data.currency)}</b><div className="fv-expense-actions">{entry.receipt_url && <button type="button" aria-label={`View receipt for ${entry.title}`} title="View receipt" onClick={() => void viewReceipt(entry)}><ReceiptText size={16} /></button>}<label className="fv-expense-upload" title={entry.receipt_url ? 'Replace receipt' : 'Attach receipt'} aria-label={`${entry.receipt_url ? 'Replace' : 'Attach'} receipt for ${entry.title}`}><Camera size={16} /><input type="file" accept="image/jpeg,image/png,image/webp,application/pdf" disabled={preview || uploadingReceipt === entry.id} onChange={event => { const file = event.target.files?.[0]; if (file) void uploadReceipt(entry, file); event.target.value = ''; }} /></label><button type="button" aria-label={`Remove ${entry.title}`} onClick={() => void remove(entry)}><Trash2 size={16} /></button></div></li>;})}</ul> : <p className="fv-budget-no-expenses">No expenses recorded yet.</p>}
     </section>
   </section>;
 }
