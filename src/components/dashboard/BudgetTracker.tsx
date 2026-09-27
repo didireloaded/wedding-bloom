@@ -158,30 +158,44 @@ export default function BudgetTracker({ weddingId, coupleNames, slug }: { weddin
     if (!extension || !file.size || file.size > 8 * 1024 * 1024) return toast.error('Use a JPG, PNG, WebP, or PDF under 8 MB.');
     const path = `${weddingId}/${entry.id}/${crypto.randomUUID()}.${extension}`;
     setUploadingReceipt(entry.id);
-    const { error: uploadError } = await supabase.storage.from(receiptBucket).upload(path, file, { contentType: file.type, upsert: false });
-    if (uploadError) { setUploadingReceipt(null); return toast.error('Receipt could not be uploaded.'); }
-    const { error: saveError } = await supabase.from('wedding_budget_entries').update({ receipt_url: path }).eq('id', entry.id).eq('wedding_id', weddingId);
-    if (saveError) {
-      await supabase.storage.from(receiptBucket).remove([path]);
+    let uploaded = false;
+    let saved = false;
+    try {
+      const { error: uploadError } = await supabase.storage.from(receiptBucket).upload(path, file, { contentType: file.type, upsert: false });
+      if (uploadError) return toast.error('Receipt could not be uploaded.');
+      uploaded = true;
+      const { data: savedEntry, error: saveError } = await supabase.from('wedding_budget_entries').update({ receipt_url: path }).eq('id', entry.id).eq('wedding_id', weddingId).select('id').maybeSingle();
+      if (saveError || !savedEntry) {
+        await supabase.storage.from(receiptBucket).remove([path]);
+        return toast.error('Receipt could not be attached.');
+      }
+      saved = true;
+      if (entry.receipt_url) {
+        const { error: cleanupError } = await supabase.storage.from(receiptBucket).remove([entry.receipt_url]);
+        if (cleanupError) toast.warning('Old receipt could not be removed. Contact support if this persists.');
+      }
+      toast.success('Receipt attached.');
+      await q.refetch();
+    } catch {
+      if (uploaded && !saved) await supabase.storage.from(receiptBucket).remove([path]);
+      toast.error('Receipt upload failed. Please retry.');
+    } finally {
       setUploadingReceipt(null);
-      return toast.error('Receipt could not be attached.');
     }
-    if (entry.receipt_url) {
-      const { error: cleanupError } = await supabase.storage.from(receiptBucket).remove([entry.receipt_url]);
-      if (cleanupError) toast.warning('Old receipt could not be removed. Contact support if this persists.');
-    }
-    setUploadingReceipt(null);
-    toast.success('Receipt attached.');
-    await q.refetch();
   };
   const viewReceipt = async (entry: BudgetEntry) => {
     if (!entry.receipt_url) return;
     const tab = window.open('about:blank', '_blank');
     if (!tab) return toast.error('Allow pop-ups to view the receipt.');
     tab.opener = null;
-    const { data: signed, error } = await supabase.storage.from(receiptBucket).createSignedUrl(entry.receipt_url, 60);
-    if (error || !signed?.signedUrl) { tab.close(); return toast.error('Receipt could not be opened.'); }
-    tab.location.href = signed.signedUrl;
+    try {
+      const { data: signed, error } = await supabase.storage.from(receiptBucket).createSignedUrl(entry.receipt_url, 60);
+      if (error || !signed?.signedUrl) throw error || new Error('Signed URL unavailable');
+      tab.location.href = signed.signedUrl;
+    } catch {
+      tab.close();
+      toast.error('Receipt could not be opened.');
+    }
   };
   const remove = async (entry: BudgetEntry) => {
     if (!window.confirm(`Remove ${entry.title} from your budget?`)) return;
@@ -233,7 +247,7 @@ export default function BudgetTracker({ weddingId, coupleNames, slug }: { weddin
     </section>
 
     <section className="fv-budget-section"><div className="fv-budget-section-title"><h2>Recent expenses</h2><span>{data.entries.length} total</span></div>
-      {data.entries.length ? <ul className="fv-expense-list">{data.entries.map(entry => { const style = categoryStyles[categories.indexOf(entry.category)] || categoryStyles[6]; const Icon = style.icon; return <li key={entry.id}><span className="fv-expense-icon" style={{ background: style.color }}><Icon size={18} /></span><div><strong>{entry.title}</strong><small>{entry.category} · {new Date(`${entry.spent_on}T12:00:00`).toLocaleDateString(undefined, { day: 'numeric', month: 'short' })}</small></div><b>-{money(Number(entry.amount), data.currency)}</b><div className="fv-expense-actions">{entry.receipt_url && <button type="button" aria-label={`View receipt for ${entry.title}`} title="View receipt" onClick={() => void viewReceipt(entry)}><ReceiptText size={16} /></button>}<label className="fv-expense-upload" title={entry.receipt_url ? 'Replace receipt' : 'Attach receipt'} aria-label={`${entry.receipt_url ? 'Replace' : 'Attach'} receipt for ${entry.title}`}><Camera size={16} /><input type="file" accept="image/jpeg,image/png,image/webp,application/pdf" disabled={preview || uploadingReceipt === entry.id} onChange={event => { const file = event.target.files?.[0]; if (file) void uploadReceipt(entry, file); event.target.value = ''; }} /></label><button type="button" aria-label={`Remove ${entry.title}`} onClick={() => void remove(entry)}><Trash2 size={16} /></button></div></li>;})}</ul> : <p className="fv-budget-no-expenses">No expenses recorded yet.</p>}
+      {data.entries.length ? <ul className="fv-expense-list">{data.entries.map(entry => { const style = categoryStyles[categories.indexOf(entry.category)] || categoryStyles[6]; const Icon = style.icon; return <li key={entry.id}><span className="fv-expense-icon" style={{ background: style.color }}><Icon size={18} /></span><div><strong>{entry.title}</strong><small>{entry.category} · {new Date(`${entry.spent_on}T12:00:00`).toLocaleDateString(undefined, { day: 'numeric', month: 'short' })}</small></div><b>-{money(Number(entry.amount), data.currency)}</b><div className="fv-expense-actions">{entry.receipt_url && <button type="button" aria-label={`View receipt for ${entry.title}`} title="View receipt" onClick={() => void viewReceipt(entry)}><ReceiptText size={16} /></button>}<label className="fv-expense-upload" title={entry.receipt_url ? 'Replace receipt' : 'Attach receipt'} aria-label={`${entry.receipt_url ? 'Replace' : 'Attach'} receipt for ${entry.title}`}><Camera size={16} /><input type="file" accept="image/jpeg,image/png,image/webp,application/pdf" disabled={preview || Boolean(uploadingReceipt)} onChange={event => { const file = event.target.files?.[0]; if (file) void uploadReceipt(entry, file); event.target.value = ''; }} /></label><button type="button" disabled={uploadingReceipt === entry.id} aria-label={`Remove ${entry.title}`} onClick={() => void remove(entry)}><Trash2 size={16} /></button></div></li>;})}</ul> : <p className="fv-budget-no-expenses">No expenses recorded yet.</p>}
     </section>
   </section>;
 }
