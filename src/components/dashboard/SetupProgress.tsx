@@ -1,8 +1,9 @@
 import { Check, Circle } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
+import type { Database } from "@/integrations/supabase/types";
 
 interface SetupProgressProps {
-  wedding: any;
+  wedding: Pick<Database["public"]["Tables"]["weddings"]["Row"], "couple_names" | "wedding_date" | "ceremony_venue" | "theme_id" | "theme" | "published"> | null;
   eventsCount: number;
   hasSharedLink: boolean;
 }

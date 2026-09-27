@@ -1,6 +1,18 @@
 import { CalendarDays, CheckCircle, Images, MapPin, MessageCircle } from "lucide-react";
+import type { Database } from "@/integrations/supabase/types";
+import type { WeddingPhase } from "@/lib/weddingPhase";
 
-export default function GuestHome({ wedding, phase, guestState, response, onAction }: any) {
+type Wedding = Pick<Database["public"]["Tables"]["weddings"]["Row"], "wedding_date" | "ceremony_time" | "ceremony_venue" | "couple_names">;
+type Response = Pick<Database["public"]["Tables"]["rsvps"]["Row"], "guest_name" | "guest_count">;
+
+export default function GuestHome({ wedding, phase, guestState, response, hasSeat = false, onAction }: {
+  wedding: Wedding;
+  phase: WeddingPhase;
+  guestState: string;
+  response?: Response | null;
+  hasSeat?: boolean;
+  onAction: (tab: string) => void;
+}) {
   const date = wedding.wedding_date ? new Date(wedding.wedding_date) : null;
   const days = date ? Math.max(0, Math.ceil((date.getTime() - new Date().setHours(0, 0, 0, 0)) / 86400000)) : null;
   const attending = guestState === "rsvp_confirmed" || guestState === "checked_in";
@@ -50,9 +62,9 @@ export default function GuestHome({ wedding, phase, guestState, response, onActi
         {guestState === 'rsvp_pending' && <p className="mt-2 text-sm text-white/80">Your response is saved as not sure. You can update it when you know.</p>}
         <div className="mt-5 grid grid-cols-2 gap-2">
           <button onClick={() => onAction(isWeddingDay && attending && guestState !== 'checked_in' ? "checkin" : attending ? "schedule" : "rsvp")} className="rounded-full bg-white px-3 py-3 font-body text-xs font-semibold text-black">{isWeddingDay && attending && guestState !== 'checked_in' ? "Check in" : attending ? "View schedule" : response ? "Update response" : "RSVP"}</button>
-          <button onClick={() => onAction(isWeddingDay ? "schedule" : "venue")} className="rounded-full border border-white/30 px-3 py-3 font-body text-xs">{isWeddingDay ? "View schedule" : "Get directions"}</button>
+          <button onClick={() => onAction(attending && hasSeat ? "seat" : isWeddingDay ? "schedule" : "venue")} className="rounded-full border border-white/30 px-3 py-3 font-body text-xs">{attending && hasSeat ? "Find my table" : isWeddingDay ? "View schedule" : "Get directions"}</button>
         </div>
-        {response && !isWeddingDay && <button onClick={() => onAction('rsvp')} className="mt-3 min-h-11 text-sm underline underline-offset-4">Change my response</button>}
+        {response && !attending && !isWeddingDay && <button onClick={() => onAction('rsvp')} className="mt-3 min-h-11 text-sm underline underline-offset-4">Change my response</button>}
       </div>
       <div className="guest-quick-grid">
         <button onClick={() => onAction("schedule")}><CalendarDays className="h-5 w-5" /><p>Schedule</p></button>

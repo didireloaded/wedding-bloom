@@ -1,4 +1,7 @@
 import { CalendarDays, ChevronDown, Clock, MapPin, Pencil, Trash2 } from 'lucide-react';
+import type { Database } from '@/integrations/supabase/types';
+
+type CalendarEvent = Database['public']['Tables']['events']['Row'];
 
 export function timeMinutes(value: string | null) {
   const match = value?.trim().match(/^(\d{1,2}):(\d{2})(?::\d{2})?\s*(AM|PM)?$/i);
@@ -8,7 +11,7 @@ export function timeMinutes(value: string | null) {
   return hour * 60 + Number(match[2]);
 }
 
-export default function CalendarTimeline({ events, onEdit, onDelete }: { events: any[]; onEdit: (event: any) => void; onDelete: (id: string) => void }) {
+export default function CalendarTimeline({ events, onEdit, onDelete }: { events: CalendarEvent[]; onEdit: (event: CalendarEvent) => void; onDelete: (id: string) => void }) {
   const sorted = [...events].sort((a, b) => timeMinutes(a.event_time) - timeMinutes(b.event_time));
   return <div className="fv-timeline">{sorted.map((event, index) => <div className="fv-timeline-row" key={event.id}>
     <div className="fv-timeline-time"><time>{event.event_time || 'Time TBC'}</time><span /></div>

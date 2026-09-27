@@ -1,10 +1,12 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Camera } from "lucide-react";
 import { getGuestSessionToken } from "@/lib/guestSession";
 import GuestPrivacyNote from "./GuestPrivacyNote";
+import GuestRsvpPrompt from "./GuestRsvpPrompt";
+import type { Database } from "@/integrations/supabase/types";
 
 const optimizeImage = (file: File): Promise<Blob> => new Promise((resolve, reject) => {
   const image = new Image();
@@ -23,14 +25,26 @@ const optimizeImage = (file: File): Promise<Blob> => new Promise((resolve, rejec
 
 interface GuestPhotoWallProps {
   weddingId: string;
+  canPost: boolean;
+  onRsvp: () => void;
 }
 
-const GuestPhotoWall = ({ weddingId }: GuestPhotoWallProps) => {
-  const [photos, setPhotos] = useState<any[]>([]);
+const GuestPhotoWall = ({ weddingId, canPost, onRsvp }: GuestPhotoWallProps) => {
+  const [photos, setPhotos] = useState<Database["public"]["Tables"]["guest_photos"]["Row"][]>([]);
   const [uploading, setUploading] = useState(false);
   const [guestName, setGuestName] = useState(() => localStorage.getItem(`forevervow-guest-name-${weddingId}`) || "");
   const [caption, setCaption] = useState("");
   const [uploadProgress, setUploadProgress] = useState("");
+
+  const fetchPhotos = useCallback(async () => {
+    const { data } = await supabase
+      .from("guest_photos")
+      .select("*")
+      .eq("wedding_id", weddingId)
+      .eq("approved", true)
+      .order("created_at", { ascending: false });
+    if (data) setPhotos(data);
+  }, [weddingId]);
 
   useEffect(() => {
     fetchPhotos();
@@ -41,17 +55,7 @@ const GuestPhotoWall = ({ weddingId }: GuestPhotoWallProps) => {
       )
       .subscribe();
     return () => { supabase.removeChannel(channel); };
-  }, [weddingId]);
-
-  const fetchPhotos = async () => {
-    const { data } = await supabase
-      .from("guest_photos")
-      .select("*")
-      .eq("wedding_id", weddingId)
-      .eq("approved", true)
-      .order("created_at", { ascending: false });
-    if (data) setPhotos(data);
-  };
+  }, [weddingId, fetchPhotos]);
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -105,7 +109,7 @@ const GuestPhotoWall = ({ weddingId }: GuestPhotoWallProps) => {
         </motion.div>
 
         {/* Upload area — first, prominent */}
-        <motion.div
+        {canPost ? <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
@@ -132,7 +136,7 @@ const GuestPhotoWall = ({ weddingId }: GuestPhotoWallProps) => {
             <input type="file" accept="image/*" capture="environment" multiple onChange={handleUpload} disabled={uploading} className="sr-only" />
           </label>
           <GuestPrivacyNote media />
-        </motion.div>
+        </motion.div> : <GuestRsvpPrompt onRsvp={onRsvp} />}
 
         {/* Photo grid */}
         {photos.length > 0 && (

@@ -4,9 +4,10 @@ import { Menu, X } from "lucide-react";
 
 interface WeddingNavProps {
   coupleNames?: string;
+  hasResponded?: boolean;
 }
 
-const WeddingNav = ({ coupleNames = "J&A" }: WeddingNavProps) => {
+const WeddingNav = ({ coupleNames = "J&A", hasResponded = false }: WeddingNavProps) => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const links = ["Our Story", "Events", "Venue", "Live Feed", "Guestbook", "Gallery"];
@@ -52,7 +53,7 @@ const WeddingNav = ({ coupleNames = "J&A" }: WeddingNavProps) => {
         </div>
 
         <div className="flex items-center gap-4">
-          <a
+          {!hasResponded && <a
             href="#rsvp"
             className={`hidden sm:inline-flex items-center font-body text-[10px] tracking-[0.25em] uppercase transition-all duration-300 px-5 py-2 border ${
               scrolled 
@@ -61,7 +62,7 @@ const WeddingNav = ({ coupleNames = "J&A" }: WeddingNavProps) => {
             }`}
           >
             RSVP
-          </a>
+          </a>}
           <button
             onClick={() => setMobileOpen(!mobileOpen)}
             className={`md:hidden p-2 transition-colors ${scrolled ? "text-foreground" : "text-primary-foreground"}`}
@@ -89,13 +90,13 @@ const WeddingNav = ({ coupleNames = "J&A" }: WeddingNavProps) => {
                 {link}
               </a>
             ))}
-            <a
+            {!hasResponded && <a
               href="#rsvp"
               onClick={() => setMobileOpen(false)}
               className="block w-full text-center py-4 mt-4 bg-foreground text-background font-body text-xs tracking-[0.25em] uppercase"
             >
               RSVP NOW
-            </a>
+            </a>}
           </div>
         </motion.div>
       )}

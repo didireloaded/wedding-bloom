@@ -5,7 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
-import { AuthProvider } from "@/hooks/useAuth";
+import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import NetworkStatus from "@/components/NetworkStatus";
 
 const Index = lazy(() => import("./pages/Index"));
@@ -24,6 +24,11 @@ const NotFound = lazy(() => import("./pages/NotFound"));
 const Privacy = lazy(() => import("./pages/Privacy"));
 
 const queryClient = new QueryClient();
+
+const AccountScopedCoupleDashboard = () => {
+  const { user } = useAuth();
+  return <CoupleDashboard key={user?.id ?? "anonymous"} />;
+};
 
 const App = () => (
   <HelmetProvider>
@@ -52,7 +57,7 @@ const App = () => (
                 <Route path="/admin" element={<AdminDashboard />} />
                 <Route path="/admin/wedding/:id" element={<AdminWeddingEditor />} />
                 <Route path="/couple-login" element={<CoupleLogin />} />
-                <Route path="/couple-dashboard" element={<CoupleDashboard />} />
+                <Route path="/couple-dashboard" element={<AccountScopedCoupleDashboard />} />
                 <Route path="/couple-onboarding" element={<OnboardingWizard />} />
                 <Route path="/privacy" element={<Privacy />} />
                 <Route path="*" element={<NotFound />} />

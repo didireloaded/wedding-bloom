@@ -51,7 +51,7 @@ const ReactionButton = ({
     setBurst(true);
     setTimeout(() => setBurst(false), 800);
     localStorage.setItem(key, "1");
-    await supabase.from("moment_reactions").insert({ moment_id: momentId, reaction_type: type } as any);
+    await supabase.from("moment_reactions").insert({ moment_id: momentId, reaction_type: type });
   };
 
   return (

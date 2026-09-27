@@ -1,28 +1,28 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Upload, MessageCircle } from "lucide-react";
 import { submitGuestContent } from "@/lib/guestContent";
 import GuestPrivacyNote from "./GuestPrivacyNote";
+import GuestRsvpPrompt from "./GuestRsvpPrompt";
+import type { Database } from "@/integrations/supabase/types";
 
 interface GuestbookProps {
   weddingId: string;
   coupleNames?: string;
+  canPost: boolean;
+  onRsvp: () => void;
 }
 
-const Guestbook = ({ weddingId, coupleNames }: GuestbookProps) => {
-  const [messages, setMessages] = useState<any[]>([]);
+const Guestbook = ({ weddingId, coupleNames, canPost, onRsvp }: GuestbookProps) => {
+  const [messages, setMessages] = useState<Database["public"]["Tables"]["guestbook"]["Row"][]>([]);
   const [form, setForm] = useState({ name: "", message: "" });
   const [photo, setPhoto] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
-  useEffect(() => {
-    fetchMessages();
-  }, [weddingId]);
-
-  const fetchMessages = async () => {
+  const fetchMessages = useCallback(async () => {
     const { data } = await supabase
       .from("guestbook")
       .select("*")
@@ -30,7 +30,11 @@ const Guestbook = ({ weddingId, coupleNames }: GuestbookProps) => {
       .eq("approved", true)
       .order("created_at", { ascending: false });
     if (data) setMessages(data);
-  };
+  }, [weddingId]);
+
+  useEffect(() => {
+    void fetchMessages();
+  }, [fetchMessages]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -114,7 +118,9 @@ const Guestbook = ({ weddingId, coupleNames }: GuestbookProps) => {
         )}
 
         {/* Form */}
-        {submitted ? (
+        {!canPost ? (
+          <GuestRsvpPrompt onRsvp={onRsvp} />
+        ) : submitted ? (
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}

@@ -3,16 +3,19 @@ import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import { BookOpen, Check, EyeOff, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import type { Database } from "@/integrations/supabase/types";
+
+type Filter = "all" | "pending" | "approved";
 
 interface GuestMessagesProps {
   weddingId: string;
   accessCode: string;
-  messages: any[];
+  messages: Database["public"]["Tables"]["guestbook"]["Row"][];
   onRefresh: () => void;
 }
 
 const GuestMessages = ({ weddingId, accessCode, messages, onRefresh }: GuestMessagesProps) => {
-  const [filter, setFilter] = useState<"all" | "pending" | "approved">("all");
+  const [filter, setFilter] = useState<Filter>("all");
 
   const moderateMessage = async (messageId: string, action: "approve" | "hide" | "delete") => {
     const query = action === "delete"
@@ -44,14 +47,14 @@ const GuestMessages = ({ weddingId, accessCode, messages, onRefresh }: GuestMess
           <h3 className="font-body text-sm font-semibold">What guests are saying</h3>
         </div>
         <div className="flex items-center gap-1">
-          {[
+          {([
             { key: "all", label: `All (${messages.length})` },
             { key: "pending", label: `Pending (${pendingCount})` },
             { key: "approved", label: `Approved (${approvedCount})` },
-          ].map((f) => (
+          ] as { key: Filter; label: string }[]).map((f) => (
             <button
               key={f.key}
-              onClick={() => setFilter(f.key as any)}
+              onClick={() => setFilter(f.key)}
               className={`rounded-full px-3 py-2 font-body text-xs transition-colors min-h-10 ${
                 filter === f.key
                   ? "bg-foreground text-background"

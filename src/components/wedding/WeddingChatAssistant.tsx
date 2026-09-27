@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { MessageCircle, X, Send, Sparkles } from "lucide-react";
+import { MessageCircle, X, Send } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 
 interface ChatMessage {
@@ -10,14 +10,16 @@ interface ChatMessage {
 
 interface WeddingChatAssistantProps {
   weddingId: string;
-  weddingData: any;
-  events?: any[];
-  gallery?: any[];
-  updates?: any[];
+  weddingData?: unknown;
+  events?: unknown[];
+  gallery?: unknown[];
+  updates?: unknown[];
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  showMobileLauncher: boolean;
 }
 
-const WeddingChatAssistant = ({ weddingId }: WeddingChatAssistantProps) => {
-  const [open, setOpen] = useState(false);
+const WeddingChatAssistant = ({ weddingId, open, onOpenChange, showMobileLauncher }: WeddingChatAssistantProps) => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -102,9 +104,9 @@ const WeddingChatAssistant = ({ weddingId }: WeddingChatAssistantProps) => {
     <>
       {/* Floating button */}
       <motion.button
-        onClick={() => setOpen(!open)}
+        onClick={() => onOpenChange(!open)}
         aria-label={open ? "Close wedding assistant" : "Open wedding assistant"}
-        className="fixed bottom-24 right-4 z-50 w-14 h-14 rounded-full bg-foreground text-background flex items-center justify-center shadow-lg hover:scale-105 transition-transform md:bottom-6 md:right-6"
+        className={`fixed bottom-24 right-4 z-50 w-14 h-14 rounded-full bg-foreground text-background items-center justify-center shadow-lg hover:scale-105 transition-transform md:bottom-6 md:right-6 ${showMobileLauncher || open ? "flex" : "hidden md:flex"}`}
         whileTap={{ scale: 0.95 }}
       >
         {open ? <X className="w-5 h-5" /> : <MessageCircle className="w-5 h-5" />}
@@ -117,23 +119,23 @@ const WeddingChatAssistant = ({ weddingId }: WeddingChatAssistantProps) => {
             initial={{ opacity: 0, y: 20, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
-            className="fixed bottom-40 right-4 z-50 flex max-h-[65vh] w-[calc(100vw-2rem)] flex-col overflow-hidden rounded-[24px] border border-border bg-background shadow-2xl sm:right-6 sm:w-96 md:bottom-24"
+            className="fixed bottom-40 right-4 z-50 flex max-h-[65vh] w-[calc(100vw-2rem)] flex-col overflow-hidden rounded-[24px] border border-white/15 bg-[#1d1d1d] text-white shadow-2xl sm:right-6 sm:w-96 md:bottom-24"
           >
             {/* Header */}
-            <div className="p-4 border-b border-border flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-wedding-gold" />
-              <h3 className="font-display text-lg font-light">Wedding Assistant</h3>
+            <div className="p-4 border-b border-white/15 flex items-center gap-2">
+              <MessageCircle className="w-4 h-4 text-[#ff6245]" />
+              <h3 className="font-body text-base font-semibold">Wedding assistant</h3>
             </div>
 
             {/* Messages */}
             <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-3 min-h-[200px] max-h-[50vh]">
               {messages.length === 0 && (
                 <div className="text-center py-8">
-                  <Sparkles className="w-8 h-8 mx-auto text-muted-foreground mb-3" strokeWidth={1} />
-                  <p className="font-body text-sm text-muted-foreground">Ask me anything about the wedding!</p>
+                  <MessageCircle className="w-8 h-8 mx-auto text-[#ff6245] mb-3" strokeWidth={1} />
+                  <p className="font-body text-sm text-white/75">Ask me anything about the wedding!</p>
                   <div className="mt-4 space-y-2">
                     {["What time is the ceremony?", "Where is the venue?", "Is there parking?"].map((q) => (
-                      <button key={q} onClick={() => { setInput(q); }} className="block w-full text-left px-3 py-2 border border-border/50 font-body text-xs text-muted-foreground hover:bg-muted/30 transition-colors">
+                      <button key={q} onClick={() => { setInput(q); }} className="block w-full rounded-xl border border-white/15 bg-white/5 px-3 py-2 text-left font-body text-xs text-white/80 transition-colors hover:bg-white/10">
                         {q}
                       </button>
                     ))}
@@ -142,9 +144,9 @@ const WeddingChatAssistant = ({ weddingId }: WeddingChatAssistantProps) => {
               )}
               {messages.map((m, i) => (
                 <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
-                  <div className={`max-w-[80%] rounded-2xl px-4 py-2 ${m.role === "user" ? "bg-foreground text-background" : "bg-muted"}`}>
+                  <div className={`max-w-[80%] rounded-2xl px-4 py-2 ${m.role === "user" ? "bg-[#ff6245] text-black" : "bg-white/10 text-white"}`}>
                     {m.role === "assistant" ? (
-                      <div className="font-body text-sm prose prose-sm max-w-none">
+                      <div className="font-body text-sm prose prose-sm prose-invert max-w-none">
                         <ReactMarkdown>{m.content}</ReactMarkdown>
                       </div>
                     ) : (
@@ -155,11 +157,11 @@ const WeddingChatAssistant = ({ weddingId }: WeddingChatAssistantProps) => {
               ))}
               {loading && messages[messages.length - 1]?.role !== "assistant" && (
                 <div className="flex justify-start">
-                  <div className="bg-muted px-4 py-3">
+                  <div className="rounded-2xl bg-white/10 px-4 py-3">
                     <div className="flex gap-1">
-                      <span className="w-2 h-2 rounded-full bg-muted-foreground/40 animate-bounce" style={{ animationDelay: "0ms" }} />
-                      <span className="w-2 h-2 rounded-full bg-muted-foreground/40 animate-bounce" style={{ animationDelay: "150ms" }} />
-                      <span className="w-2 h-2 rounded-full bg-muted-foreground/40 animate-bounce" style={{ animationDelay: "300ms" }} />
+                      <span className="w-2 h-2 rounded-full bg-white/50 animate-bounce" style={{ animationDelay: "0ms" }} />
+                      <span className="w-2 h-2 rounded-full bg-white/50 animate-bounce" style={{ animationDelay: "150ms" }} />
+                      <span className="w-2 h-2 rounded-full bg-white/50 animate-bounce" style={{ animationDelay: "300ms" }} />
                     </div>
                   </div>
                 </div>
@@ -167,15 +169,15 @@ const WeddingChatAssistant = ({ weddingId }: WeddingChatAssistantProps) => {
             </div>
 
             {/* Input */}
-            <div className="p-3 border-t border-border flex gap-2">
+            <div className="p-3 border-t border-white/15 flex gap-2">
               <input
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && sendMessage()}
                 placeholder="Ask a question..."
-                className="flex-1 bg-transparent border border-foreground/20 px-3 py-2 font-body text-sm focus:outline-none focus:border-foreground min-h-[44px]"
+                className="min-h-[44px] min-w-0 flex-1 rounded-xl border border-white/20 bg-white/5 px-3 py-2 font-body text-sm text-white placeholder:text-white/50 focus:border-[#ff6245] focus:outline-none"
               />
-              <button onClick={sendMessage} disabled={loading || !input.trim()} className="p-2 bg-foreground text-background min-w-[44px] min-h-[44px] flex items-center justify-center disabled:opacity-30">
+              <button onClick={sendMessage} disabled={loading || !input.trim()} aria-label="Send message" className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-xl bg-[#ff6245] p-2 text-black disabled:opacity-30">
                 <Send className="w-4 h-4" />
               </button>
             </div>

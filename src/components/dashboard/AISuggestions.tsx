@@ -1,20 +1,23 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { motion } from "framer-motion";
+import type { LucideIcon } from "lucide-react";
 import { Lightbulb, Mail, Camera, MapPin, AlertCircle, CheckCircle, RefreshCw } from "lucide-react";
+
+type Suggestion = { icon?: string; priority?: string; title?: string; description?: string };
 
 interface AISuggestionsProps {
   weddingId: string;
   weddingData: {
-    wedding: any;
-    rsvps: any[];
-    guestbookMessages: any[];
-    checkins: any[];
-    guestPhotos: any[];
+    wedding: Record<string, unknown>;
+    rsvps: Record<string, unknown>[];
+    guestbookMessages: Record<string, unknown>[];
+    checkins: Record<string, unknown>[];
+    guestPhotos: Record<string, unknown>[];
   };
 }
 
-const iconMap: Record<string, any> = {
+const iconMap: Record<string, LucideIcon> = {
   mail: Mail,
   camera: Camera,
   map: MapPin,
@@ -24,13 +27,13 @@ const iconMap: Record<string, any> = {
 };
 
 const AISuggestions = ({ weddingId, weddingData }: AISuggestionsProps) => {
-  const [suggestions, setSuggestions] = useState<any[]>([]);
+  const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [loading, setLoading] = useState(false);
 
   const CACHE_KEY = `ai_suggestions_${weddingId}`;
   const CACHE_TTL = 10 * 60 * 1000; // 10 minutes
 
-  const generateSuggestions = async () => {
+  const generateSuggestions = useCallback(async () => {
     setLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke("ai-wedding", {
@@ -39,13 +42,13 @@ const AISuggestions = ({ weddingId, weddingData }: AISuggestionsProps) => {
       if (error) throw error;
       if (data?.result?.suggestions) {
         setSuggestions(data.result.suggestions);
-        try { sessionStorage.setItem(CACHE_KEY, JSON.stringify({ suggestions: data.result.suggestions, ts: Date.now() })); } catch {}
+        try { sessionStorage.setItem(CACHE_KEY, JSON.stringify({ suggestions: data.result.suggestions, ts: Date.now() })); } catch { /* Storage may be unavailable in private browsing. */ }
       }
     } catch (e) {
       console.error("Failed to generate suggestions:", e);
     }
     setLoading(false);
-  };
+  }, [CACHE_KEY, weddingId]);
 
   useEffect(() => {
     try {
@@ -57,9 +60,9 @@ const AISuggestions = ({ weddingId, weddingData }: AISuggestionsProps) => {
           return;
         }
       }
-    } catch {}
+    } catch { /* Ignore malformed or unavailable cached suggestions. */ }
     generateSuggestions();
-  }, []);
+  }, [CACHE_KEY, CACHE_TTL, generateSuggestions]);
 
   const getPriorityStyles = (priority: string) => {
     switch (priority) {

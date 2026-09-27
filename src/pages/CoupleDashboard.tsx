@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Activity, AlertCircle, CalendarDays, Check, Clock, Copy, ExternalLink, FileText, Globe2, Heart, Image, Loader2, MapPin, MessageCircle, Pencil, Plus, Radio, Send, ShieldCheck, Sparkles, Trash2, User, Users, Wand2, X } from "lucide-react";
+import { Activity, AlertCircle, CalendarDays, Check, Clock, Copy, ExternalLink, FileText, Globe2, Heart, Image, Loader2, MapPin, MessageCircle, Pencil, Plus, Radio, Send, ShieldCheck, Trash2, User, Users, X } from "lucide-react";
 import { toast } from "sonner";
 import { Download } from 'lucide-react';
 
@@ -26,12 +26,24 @@ import NotificationPreferences from "@/components/dashboard/NotificationPreferen
 import AIChatAssistant from "@/components/dashboard/AIChatAssistant";
 import { WeddingRealtime } from "@/components/realtime/WeddingRealtime";
 import { getWeddingPhase } from "@/lib/weddingPhase";
+import { chooseMemberWeddingId } from "@/lib/coupleMembership";
 import { useAuth } from "@/hooks/useAuth";
 import NextUp from "@/components/dashboard/NextUp";
 import ReminderHistory from "@/components/dashboard/ReminderHistory";
 import MemoryKeepsake from "@/components/dashboard/MemoryKeepsake";
 import BudgetTracker from "@/components/dashboard/BudgetTracker";
 import GuestPracticalInfo from "@/components/wedding/GuestPracticalInfo";
+import SeatingPlanner from "@/components/dashboard/SeatingPlanner";
+import type { Database } from "@/integrations/supabase/types";
+
+type WeddingRow = Database["public"]["Tables"]["weddings"]["Row"] & { hero_image?: string | null };
+type RsvpRow = Database["public"]["Tables"]["rsvps"]["Row"];
+type GalleryRow = Database["public"]["Tables"]["gallery"]["Row"];
+type GuestPhotoRow = Database["public"]["Tables"]["guest_photos"]["Row"];
+type CheckinRow = Database["public"]["Tables"]["checkins"]["Row"];
+type GuestbookRow = Database["public"]["Tables"]["guestbook"]["Row"];
+type MomentRow = Database["public"]["Tables"]["wedding_moments"]["Row"];
+type EventRow = Database["public"]["Tables"]["events"]["Row"];
 
 const withTimeout = async <T,>(promise: PromiseLike<T>, ms = 4500): Promise<T> => {
   let timeoutId: ReturnType<typeof setTimeout>;
@@ -80,28 +92,29 @@ const CoupleDashboard = () => {
   const { user, loading: authLoading } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   const previewRequested = searchParams.get("preview") === "1";
-  const [weddingId, setWeddingId] = useState(sessionStorage.getItem("couple_wedding_id") || "");
-  const [weddingSlug, setWeddingSlug] = useState(sessionStorage.getItem("couple_wedding_slug") || searchParams.get("slug") || "");
-  const [accessCode, setAccessCode] = useState(sessionStorage.getItem("couple_access_code") || "");
+  const [weddingId, setWeddingId] = useState(previewRequested ? sessionStorage.getItem("couple_wedding_id") || "" : "");
+  const [weddingSlug, setWeddingSlug] = useState(previewRequested ? sessionStorage.getItem("couple_wedding_slug") || searchParams.get("slug") || "" : "");
+  const [accessCode, setAccessCode] = useState(previewRequested ? sessionStorage.getItem("couple_access_code") || "" : "");
 
-  const [wedding, setWedding] = useState<any>(null);
-  const [rsvps, setRsvps] = useState<any[]>([]);
-  const [galleryImages, setGalleryImages] = useState<any[]>([]);
-  const [guestPhotos, setGuestPhotos] = useState<any[]>([]);
-  const [checkins, setCheckins] = useState<any[]>([]);
-  const [guestbookMessages, setGuestbookMessages] = useState<any[]>([]);
-  const [moments, setMoments] = useState<any[]>([]);
-  const [events, setEvents] = useState<any[]>([]);
+  const [wedding, setWedding] = useState<WeddingRow | null>(null);
+  const [rsvps, setRsvps] = useState<RsvpRow[]>([]);
+  const [galleryImages, setGalleryImages] = useState<GalleryRow[]>([]);
+  const [guestPhotos, setGuestPhotos] = useState<GuestPhotoRow[]>([]);
+  const [checkins, setCheckins] = useState<CheckinRow[]>([]);
+  const [guestbookMessages, setGuestbookMessages] = useState<GuestbookRow[]>([]);
+  const [moments, setMoments] = useState<MomentRow[]>([]);
+  const [events, setEvents] = useState<EventRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [showTour, setShowTour] = useState(false);
   const [showEditDetails, setShowEditDetails] = useState(false);
   const [activeTab, setActiveTab] = useState(searchParams.get("tab") === "website" ? "profile" : searchParams.get("tab") || "home");
   const [guestSearch, setGuestSearch] = useState("");
   const [guestFilter, setGuestFilter] = useState<"all" | "confirmed" | "pending" | "declined" | "checked-in">("all");
-  const [selectedGuest, setSelectedGuest] = useState<any | null>(null);
+  const [selectedGuest, setSelectedGuest] = useState<RsvpRow | null>(null);
   const [publishing, setPublishing] = useState(false);
   const [memoryView, setMemoryView] = useState('photos');
   const [updatesView, setUpdatesView] = useState<'share' | 'activity' | 'report'>('share');
+  const [guestView, setGuestView] = useState<'responses' | 'seating'>('responses');
   useEffect(() => {
     const tab = searchParams.get('tab') || 'home';
     setActiveTab(tab === 'website' ? 'profile' : tab);
@@ -129,17 +142,17 @@ const CoupleDashboard = () => {
     setWeddingId(previewWedding.id);
     setWeddingSlug(previewWedding.slug);
     setAccessCode(previewWedding.access_code);
-    setWedding(previewWedding);
-    setRsvps(previewRsvps);
+    setWedding(previewWedding as WeddingRow);
+    setRsvps(previewRsvps as RsvpRow[]);
     setGalleryImages([]);
     setGuestPhotos([]);
     setCheckins([]);
     setGuestbookMessages([
       { id: "message-1", guest_name: "Sofia Grant", message: "Counting the days. This page already feels so personal.", approved: true, created_at: new Date().toISOString() },
       { id: "message-2", guest_name: "Mia Carter", message: "I still need to confirm travel, but I am so excited.", approved: false, created_at: new Date().toISOString() },
-    ]);
-    setMoments([{ id: "moment-1", title: "Proposal dinner", approved: false, created_at: new Date().toISOString() }]);
-    setEvents(previewEvents);
+    ] as GuestbookRow[]);
+    setMoments([{ id: "moment-1", title: "Proposal dinner", approved: false, created_at: new Date().toISOString() } as unknown as MomentRow]);
+    setEvents(previewEvents as EventRow[]);
     setShowTour(false);
     setLoading(false);
   };
@@ -151,22 +164,24 @@ const CoupleDashboard = () => {
       .from("wedding_members")
       .select("wedding_id")
       .eq("user_id", user.id)
-      .order("joined_at", { ascending: true })
-      .limit(1)
-      .maybeSingle();
+      .order("joined_at", { ascending: true });
 
     if (error) {
       toast.error("We could not load your wedding yet. Please try again.");
       setLoading(false);
       return;
     }
-    if (!data?.wedding_id) {
+    const memberWeddingId = chooseMemberWeddingId(data || [], sessionStorage.getItem("couple_wedding_id"));
+    if (!memberWeddingId) {
+      sessionStorage.removeItem("couple_wedding_id");
+      sessionStorage.removeItem("couple_wedding_slug");
+      sessionStorage.removeItem("couple_access_code");
       navigate("/couple-onboarding", { replace: true });
       return;
     }
 
-    sessionStorage.setItem("couple_wedding_id", data.wedding_id);
-    setWeddingId(data.wedding_id);
+    sessionStorage.setItem("couple_wedding_id", memberWeddingId);
+    setWeddingId(memberWeddingId);
   };
 
   useEffect(() => {
@@ -186,21 +201,21 @@ const CoupleDashboard = () => {
     const checkinChannel = supabase
       .channel(`checkins-${weddingId}`)
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "checkins", filter: `wedding_id=eq.${weddingId}` },
-        (payload) => setCheckins((prev) => [payload.new as any, ...prev])
+        (payload) => setCheckins((prev) => [payload.new as CheckinRow, ...prev])
       )
       .subscribe();
 
     const rsvpChannel = supabase
       .channel(`rsvps-${weddingId}`)
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "rsvps", filter: `wedding_id=eq.${weddingId}` },
-        (payload) => setRsvps((prev) => [payload.new as any, ...prev])
+        (payload) => setRsvps((prev) => [payload.new as RsvpRow, ...prev])
       )
       .subscribe();
 
     const guestbookChannel = supabase
       .channel(`guestbook-${weddingId}`)
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "guestbook", filter: `wedding_id=eq.${weddingId}` },
-        (payload) => setGuestbookMessages((prev) => [payload.new as any, ...prev])
+        (payload) => setGuestbookMessages((prev) => [payload.new as GuestbookRow, ...prev])
       )
       .subscribe();
 
@@ -214,7 +229,7 @@ const CoupleDashboard = () => {
     const momentsChannel = supabase
       .channel(`moments-${weddingId}`)
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "wedding_moments", filter: `wedding_id=eq.${weddingId}` },
-        (payload) => setMoments((prev) => [payload.new as any, ...prev])
+        (payload) => setMoments((prev) => [payload.new as MomentRow, ...prev])
       )
       .subscribe();
 
@@ -299,7 +314,11 @@ const CoupleDashboard = () => {
     }
     if (wRes.data) {
       setWedding(wRes.data);
-      if (!(wRes.data as any).dashboard_tour_completed) {
+      setWeddingSlug(wRes.data.slug);
+      setAccessCode(wRes.data.access_code || "");
+      sessionStorage.setItem("couple_wedding_slug", wRes.data.slug);
+      sessionStorage.setItem("couple_access_code", wRes.data.access_code || "");
+      if (!wRes.data.dashboard_tour_completed) {
         setShowTour(true);
       }
     }
@@ -398,7 +417,7 @@ const CoupleDashboard = () => {
     const { error } = await supabase.from("weddings").update({ published: nextPublished }).eq("id", weddingId);
     setPublishing(false);
     if (error) return toast.error("We could not update your wedding page.");
-    setWedding((current: any) => ({ ...current, published: nextPublished }));
+    setWedding((current) => current ? { ...current, published: nextPublished } : current);
     toast.success(nextPublished ? "Your wedding is now live for guests." : "Your wedding is private again.");
   };
   const notifications = [
@@ -436,13 +455,10 @@ const CoupleDashboard = () => {
           progress={progress}
           completedTasks={completedTasks}
           totalTasks={totalTasks}
-          confirmed={confirmed}
           pending={pending}
           events={events}
           rsvps={rsvps}
           onTabChange={changeTab}
-          onEditDetails={() => setShowEditDetails(true)}
-          phase={weddingPhase}
         />
       )}
 
@@ -461,6 +477,8 @@ const CoupleDashboard = () => {
       {activeTab === "guests" && (
       <div className="space-y-5">
         <CouplePageHeading title="Guests" detail={`${rsvps.length} responses · ${pending} still deciding`} />
+        <div className="flex gap-2" role="tablist" aria-label="Guest views"><button role="tab" aria-selected={guestView === 'responses'} onClick={() => setGuestView('responses')} className={`min-h-11 rounded-full px-5 text-sm font-semibold ${guestView === 'responses' ? 'bg-[#b2dc6b] text-black' : 'bg-[#242424] text-white/70'}`}>Responses</button><button role="tab" aria-selected={guestView === 'seating'} onClick={() => setGuestView('seating')} className={`min-h-11 rounded-full px-5 text-sm font-semibold ${guestView === 'seating' ? 'bg-[#b2dc6b] text-black' : 'bg-[#242424] text-white/70'}`}>Seating</button></div>
+        {guestView === 'seating' ? <SeatingPlanner weddingId={weddingId!} published={wedding.published} rsvps={rsvps} /> : <>
 
         <div id="dashboard-overview" className="grid grid-cols-2 gap-3">
           {[
@@ -525,6 +543,7 @@ const CoupleDashboard = () => {
             />
           </div>
         </div>
+        </>}
 
       </div>
       )}
@@ -631,7 +650,13 @@ const CoupleDashboard = () => {
 export default CoupleDashboard;
 
 
-function WebsiteWorkspace({ wedding, weddingSlug, publishing, onPublish, onEditDetails }: any) {
+function WebsiteWorkspace({ wedding, weddingSlug, publishing, onPublish, onEditDetails }: {
+  wedding: WeddingRow;
+  weddingSlug: string;
+  publishing: boolean;
+  onPublish: () => void;
+  onEditDetails: () => void;
+}) {
   const weddingUrl = `${window.location.origin}/wedding/${weddingSlug}`;
   const copyLink = () => {
     navigator.clipboard.writeText(weddingUrl);
@@ -661,7 +686,7 @@ function WebsiteWorkspace({ wedding, weddingSlug, publishing, onPublish, onEditD
           <div className="mt-3 grid grid-cols-3 gap-2">
             <a href={weddingUrl} target="_blank" rel="noreferrer" className="rounded-2xl bg-card p-3 text-center font-body text-[10px]"><ExternalLink className="mx-auto mb-2 h-4 w-4" />Preview</a>
             <button onClick={copyLink} className="rounded-2xl bg-card p-3 text-center font-body text-[10px]"><Copy className="mx-auto mb-2 h-4 w-4" />Copy link</button>
-            <button onClick={onEditDetails} className="rounded-2xl bg-card p-3 text-center font-body text-[10px]"><Sparkles className="mx-auto mb-2 h-4 w-4" />Edit details</button>
+            <button onClick={onEditDetails} className="rounded-2xl bg-card p-3 text-center font-body text-[10px]"><Pencil className="mx-auto mb-2 h-4 w-4" />Edit details</button>
           </div>
         </div>
       </section>
@@ -669,7 +694,15 @@ function WebsiteWorkspace({ wedding, weddingSlug, publishing, onPublish, onEditD
   );
 }
 
-function PlannerSchedule({ wedding, events, onEditDetails, onRefresh }: any) {
+type EditableEvent = Omit<Pick<EventRow, "id" | "title" | "event_date" | "event_time" | "location" | "description" | "sort_order">, "sort_order"> & { sort_order?: number };
+
+function PlannerSchedule({ wedding, events, onEditDetails, onRefresh }: {
+  wedding: WeddingRow;
+  events: EventRow[];
+  pending: number;
+  onEditDetails: () => void;
+  onRefresh: () => Promise<void>;
+}) {
   const [selectedDate, setSelectedDate] = useState(wedding.wedding_date?.slice(0, 10) || new Date().toLocaleDateString('en-CA'));
   const date = new Date(`${selectedDate}T12:00:00`);
   const dateKey = (day: Date) => `${day.getFullYear()}-${String(day.getMonth() + 1).padStart(2, '0')}-${String(day.getDate()).padStart(2, '0')}`;
@@ -679,9 +712,9 @@ function PlannerSchedule({ wedding, events, onEditDetails, onRefresh }: any) {
     return day;
   });
   const emptyEvent = { id: "", title: "", event_date: wedding.wedding_date || "", event_time: "", location: "", description: "" };
-  const [editing, setEditing] = useState<any | null>(null);
+  const [editing, setEditing] = useState<EditableEvent | null>(null);
   const [saving, setSaving] = useState(false);
-  const selectedEvents = events.filter((event: any) => (event.event_date || wedding.wedding_date || selectedDate).slice(0, 10) === selectedDate);
+  const selectedEvents = events.filter((event) => (event.event_date || wedding.wedding_date || selectedDate).slice(0, 10) === selectedDate);
 
   const saveEvent = async () => {
     if (!editing?.title.trim()) return toast.error("Add an event title.");

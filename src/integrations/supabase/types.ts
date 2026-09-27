@@ -1155,6 +1155,8 @@ export type Database = {
           capacity: number
           created_at: string
           id: string
+          position_x: number | null
+          position_y: number | null
           sort_order: number
           table_name: string
           wedding_id: string
@@ -1163,6 +1165,8 @@ export type Database = {
           capacity?: number
           created_at?: string
           id?: string
+          position_x?: number | null
+          position_y?: number | null
           sort_order?: number
           table_name: string
           wedding_id: string
@@ -1171,6 +1175,8 @@ export type Database = {
           capacity?: number
           created_at?: string
           id?: string
+          position_x?: number | null
+          position_y?: number | null
           sort_order?: number
           table_name?: string
           wedding_id?: string
@@ -1783,6 +1789,41 @@ export type Database = {
           },
         ]
       }
+      wedding_seating_plans: {
+        Row: {
+          markers: Json
+          plan_image_path: string | null
+          published_at: string | null
+          published_snapshot: Json | null
+          updated_at: string
+          wedding_id: string
+        }
+        Insert: {
+          markers?: Json
+          plan_image_path?: string | null
+          published_at?: string | null
+          published_snapshot?: Json | null
+          updated_at?: string
+          wedding_id: string
+        }
+        Update: {
+          markers?: Json
+          plan_image_path?: string | null
+          published_at?: string | null
+          published_snapshot?: Json | null
+          updated_at?: string
+          wedding_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wedding_seating_plans_wedding_id_fkey"
+            columns: ["wedding_id"]
+            isOneToOne: true
+            referencedRelation: "weddings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       wedding_setup: {
         Row: {
           celebration_completed: boolean
@@ -2124,6 +2165,10 @@ export type Database = {
       is_wedding_member: {
         Args: { target_wedding_id: string }
         Returns: boolean
+      }
+      publish_wedding_seating: {
+        Args: { p_wedding_id: string }
+        Returns: Json
       }
       queue_rsvp_reminder: {
         Args: { p_rsvp_id?: string; p_wedding_id: string }

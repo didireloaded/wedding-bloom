@@ -1,6 +1,9 @@
 export type WeddingPhase = "draft" | "upcoming" | "rsvp_closing" | "wedding_day" | "live" | "completed" | "archive";
 
-export const getWeddingPhase = (wedding: any, events: any[] = [], now = new Date()): WeddingPhase => {
+type PhaseWedding = { published?: boolean | null; wedding_date?: string | null; live_mode?: boolean | null } | null;
+type PhaseEvent = { event_time?: string | null };
+
+export const getWeddingPhase = (wedding: PhaseWedding, events: PhaseEvent[] = [], now = new Date()): WeddingPhase => {
   if (!wedding?.published) return "draft";
   if (!wedding.wedding_date) return "upcoming";
   const start = new Date(wedding.wedding_date);
@@ -22,7 +25,7 @@ export const getWeddingPhase = (wedding: any, events: any[] = [], now = new Date
   return days >= -7 ? "completed" : "archive";
 };
 
-export const getGuestState = ({ rsvp, checkedIn = false, nearVenue = false }: { rsvp?: any; checkedIn?: boolean; nearVenue?: boolean }) => {
+export const getGuestState = ({ rsvp, checkedIn = false, nearVenue = false }: { rsvp?: { attending?: boolean | null } | null; checkedIn?: boolean; nearVenue?: boolean }) => {
   if (checkedIn) return "checked_in";
   if (nearVenue) return "near_venue";
   if (!rsvp) return "unknown_guest";

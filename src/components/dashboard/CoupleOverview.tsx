@@ -1,8 +1,21 @@
 import { ArrowUpRight, CalendarDays, Check, Clock, Image, Users } from 'lucide-react';
+import type { Database } from '@/integrations/supabase/types';
 
-export default function CoupleOverview({ wedding, progress, completedTasks, totalTasks, pending, events, rsvps, onTabChange }: any) {
-  const confirmed = rsvps.filter((r: any) => r.attending === true).length;
-  const declined = rsvps.filter((r: any) => r.attending === false).length;
+type Tables = Database['public']['Tables'];
+type OverviewProps = {
+  wedding: Pick<Tables['weddings']['Row'], 'couple_names' | 'wedding_date' | 'ceremony_venue' | 'published' | 'cover_image'>;
+  progress: number;
+  completedTasks: number;
+  totalTasks: number;
+  pending: number;
+  events: Pick<Tables['events']['Row'], 'id' | 'title' | 'event_date' | 'event_time' | 'location'>[];
+  rsvps: Pick<Tables['rsvps']['Row'], 'attending'>[];
+  onTabChange: (tab: string) => void;
+};
+
+export default function CoupleOverview({ wedding, progress, completedTasks, totalTasks, pending, events, rsvps, onTabChange }: OverviewProps) {
+  const confirmed = rsvps.filter((r) => r.attending === true).length;
+  const declined = rsvps.filter((r) => r.attending === false).length;
   const date = wedding.wedding_date ? new Date(`${wedding.wedding_date.slice(0, 10)}T12:00:00`) : null;
   const days = date ? Math.max(0, Math.ceil((date.getTime() - Date.now()) / 86400000)) : null;
   const needs = [
@@ -26,7 +39,7 @@ export default function CoupleOverview({ wedding, progress, completedTasks, tota
       <div className="fv-segments" aria-label={`${confirmed} confirmed, ${pending} undecided, ${declined} declined`}>{[{ value: confirmed, color: '#b2dc6b' }, { value: pending, color: '#22c4b5' }, { value: declined, color: '#fa7589' }].map((part, i) => <span key={i} style={{ flex: part.value || .15, background: rsvps.length ? part.color : '#333' }} />)}</div>
       <div className="fv-response-labels"><span><i style={{ background: '#b2dc6b' }} />Confirmed <b>{confirmed}</b></span><span><i style={{ background: '#22c4b5' }} />Undecided <b>{pending}</b></span><span><i style={{ background: '#fa7589' }} />Declined <b>{declined}</b></span></div>
     </section>
-    <section className="fv-section"><div className="fv-section-title"><h2>On the calendar</h2><button onClick={() => onTabChange('calendar')} aria-label="Open calendar"><ArrowUpRight size={20} /></button></div>{events.length ? events.slice(0, 2).map((event: any, i: number) => <button className={`fv-event-preview tone-${i}`} key={event.id} onClick={() => onTabChange('calendar')}><span><CalendarDays size={15} />{event.event_date || wedding.wedding_date || 'Date to be set'}</span><strong>{event.title}</strong><small><Clock size={13} />{event.event_time || 'Time to be set'}{event.location ? ` · ${event.location}` : ''}</small></button>) : <button className="fv-empty-action" onClick={() => onTabChange('calendar')}>Add your first wedding event <ArrowUpRight size={17} /></button>}</section>
+    <section className="fv-section"><div className="fv-section-title"><h2>On the calendar</h2><button onClick={() => onTabChange('calendar')} aria-label="Open calendar"><ArrowUpRight size={20} /></button></div>{events.length ? events.slice(0, 2).map((event, i) => <button className={`fv-event-preview tone-${i}`} key={event.id} onClick={() => onTabChange('calendar')}><span><CalendarDays size={15} />{event.event_date || wedding.wedding_date || 'Date to be set'}</span><strong>{event.title}</strong><small><Clock size={13} />{event.event_time || 'Time to be set'}{event.location ? ` · ${event.location}` : ''}</small></button>) : <button className="fv-empty-action" onClick={() => onTabChange('calendar')}>Add your first wedding event <ArrowUpRight size={17} /></button>}</section>
     {wedding.cover_image && <button className="fv-photo-link" onClick={() => onTabChange('moments')}><img src={wedding.cover_image} alt={wedding.couple_names} /><span><Image size={17} />Your memories<ArrowUpRight size={17} /></span></button>}
   </div>;
 }

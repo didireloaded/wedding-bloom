@@ -25,42 +25,47 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(!previewMode);
   const [isAdmin, setIsAdmin] = useState(previewMode);
 
-  const refreshRole = async (nextUser: User | null) => {
-    if (!nextUser) {
-      setIsAdmin(false);
-      return;
-    }
-    const { data } = await supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", nextUser.id)
-      .eq("role", "admin")
-      .maybeSingle();
-    setIsAdmin(Boolean(data));
-  };
-
   useEffect(() => {
     if (previewMode) return;
     let active = true;
-    supabase.auth.getSession().then(async ({ data }) => {
-      if (!active) return;
-      setSession(data.session);
-      setUser(data.session?.user ?? null);
-      await refreshRole(data.session?.user ?? null);
-      setLoading(false);
+    let roleRequest = 0;
+    let receivedAuthEvent = false;
+    const applySession = (nextSession: Session | null) => {
+      const request = ++roleRequest;
+      const nextUser = nextSession?.user ?? null;
+      setSession(nextSession);
+      setUser(nextUser);
+      setIsAdmin(false);
+      setLoading(Boolean(nextUser));
+      if (!nextUser) return;
+
+      // Run after the auth callback releases Supabase's cross-tab lock.
+      setTimeout(async () => {
+        if (!active || request !== roleRequest) return;
+        try {
+          const { data } = await supabase
+            .from("user_roles")
+            .select("role")
+            .eq("user_id", nextUser.id)
+            .eq("role", "admin")
+            .maybeSingle();
+          if (active && request === roleRequest) setIsAdmin(Boolean(data));
+        } catch (error) {
+          console.error("Could not load account role:", error);
+        } finally {
+          if (active && request === roleRequest) setLoading(false);
+        }
+      }, 0);
+    };
+
+    void supabase.auth.getSession().then(({ data }) => {
+      if (active && !receivedAuthEvent) applySession(data.session);
+    }).catch(() => {
+      if (active && !receivedAuthEvent) setLoading(false);
     });
     const { data: listener } = supabase.auth.onAuthStateChange((_event, nextSession) => {
-      setSession(nextSession);
-      setUser(nextSession?.user ?? null);
-      setLoading(true);
-      // Supabase emits auth changes while holding its cross-tab lock. Defer
-      // database work until the callback returns so another tab cannot deadlock it.
-      setTimeout(() => {
-        if (!active) return;
-        void refreshRole(nextSession?.user ?? null).finally(() => {
-          if (active) setLoading(false);
-        });
-      }, 0);
+      receivedAuthEvent = true;
+      applySession(nextSession);
     });
     return () => { active = false; listener.subscription.unsubscribe(); };
   }, [previewMode]);

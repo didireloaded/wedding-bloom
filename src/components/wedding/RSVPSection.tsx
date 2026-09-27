@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from "react";
 import type { GuestResponse } from '@/hooks/useGuestContext';
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { Heart, Sparkles, MessageSquare, CalendarPlus } from "lucide-react";
+import { Heart, MessageSquare, CalendarPlus } from "lucide-react";
 import { generateICS } from "@/lib/calendarUtils";
 import { getGuestSessionToken, saveGuestSessionToken } from "@/lib/guestSession";
 import GuestPrivacyNote from "./GuestPrivacyNote";
@@ -227,7 +227,7 @@ const RSVPSection = ({ weddingId, weddingDate, ceremonyTime, venue, coupleNames,
                 : "border-foreground/15 text-muted-foreground hover:border-foreground/30"
             }`}
           >
-            <Sparkles className="w-4 h-4" />
+            <MessageSquare className="w-4 h-4" />
             {useNaturalLanguage ? "Use Form Instead" : "Just type what you want to say"}
           </button>
         </motion.div>
@@ -258,7 +258,7 @@ const RSVPSection = ({ weddingId, weddingDate, ceremonyTime, venue, coupleNames,
               disabled={parsingAI || !naturalInput.trim()}
               className="flex min-h-[56px] w-full items-center justify-center gap-2 rounded-full bg-foreground py-4 font-body text-xs font-semibold text-background disabled:opacity-50"
             >
-              <Sparkles className="w-4 h-4" />
+              <MessageSquare className="w-4 h-4" />
               {parsingAI ? "Understanding..." : "Submit"}
             </button>
           </motion.div>

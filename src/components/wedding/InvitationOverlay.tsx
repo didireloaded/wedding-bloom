@@ -20,7 +20,7 @@ export default function InvitationOverlay({ coupleNames, date, venue, coverImage
 
   return <AnimatePresence>
     <motion.div className="guest-invite" initial={{ opacity: 0 }} animate={{ opacity: opening ? 0 : 1, scale: opening ? 1.035 : 1, filter: opening ? "blur(10px)" : "blur(0px)" }} transition={{ duration: opening ? .65 : .35 }}>
-      {coverImage && <div className="guest-invite-media"><img className="guest-invite-backdrop" src={coverImage} alt="" aria-hidden="true" /><img className="guest-invite-photo" src={coverImage} alt={`${coupleNames} together`} /></div>}
+      {coverImage && <div className="guest-invite-media"><img className="guest-invite-backdrop" src={coverImage} alt="" aria-hidden="true" /><img className="guest-invite-photo" src={coverImage} alt={`${coupleNames} wedding cover image`} /></div>}
       <div className="guest-invite-shade" />
       <div className="guest-invite-top"><strong>ForeverVow</strong><span>Wedding invitation</span></div>
       <motion.section initial={{ y: 24, opacity: 0 }} animate={{ y: opening ? -35 : 0, opacity: opening ? 0 : 1 }} transition={{ delay: opening ? 0 : .15, duration: .5 }}>

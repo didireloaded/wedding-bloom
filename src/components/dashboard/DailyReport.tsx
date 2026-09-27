@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
-import { Newspaper, ChevronLeft, ChevronRight, RefreshCw, Sparkles, Calendar } from "lucide-react";
+import { Newspaper, ChevronLeft, ChevronRight, RefreshCw, Calendar } from "lucide-react";
 import { format, subDays, isToday, parseISO } from "date-fns";
 import { toast } from 'sonner';
 
@@ -25,11 +25,7 @@ const DailyReport = ({ weddingId }: DailyReportProps) => {
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
 
-  useEffect(() => {
-    fetchReports();
-  }, [weddingId]);
-
-  const fetchReports = async () => {
+  const fetchReports = useCallback(async () => {
     setLoading(true);
     if (weddingId === 'preview-wedding') { setLoading(false); return; }
     const { data, error } = await supabase
@@ -44,7 +40,11 @@ const DailyReport = ({ weddingId }: DailyReportProps) => {
       setReports(data as Report[]);
     }
     setLoading(false);
-  };
+  }, [weddingId]);
+
+  useEffect(() => {
+    void fetchReports();
+  }, [fetchReports]);
 
   const generateReport = async () => {
     if (weddingId === 'preview-wedding') return toast.info('Sign in to generate your wedding report.');
@@ -109,8 +109,8 @@ const DailyReport = ({ weddingId }: DailyReportProps) => {
             disabled={generating}
             className="inline-flex items-center gap-2 px-6 py-3 bg-foreground text-background font-body text-xs tracking-[0.15em] uppercase min-h-[44px] disabled:opacity-50"
           >
-            <Sparkles className={`w-4 h-4 ${generating ? "animate-pulse" : ""}`} />
-            {generating ? "Generating..." : "Generate Today's Report"}
+            <Newspaper className={`w-4 h-4 ${generating ? "animate-pulse" : ""}`} />
+            {generating ? "Preparing..." : "Prepare Today's Report"}
           </button>
         </div>
       </div>
@@ -165,7 +165,7 @@ const DailyReport = ({ weddingId }: DailyReportProps) => {
             onClick={generateReport}
             disabled={generating}
             className="p-2 hover:bg-muted rounded-full transition-colors min-h-[36px] min-w-[36px] flex items-center justify-center"
-            title="Generate new report"
+            title="Refresh report"
           >
             <RefreshCw className={`w-4 h-4 text-muted-foreground ${generating ? "animate-spin" : ""}`} />
           </button>

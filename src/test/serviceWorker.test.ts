@@ -3,11 +3,11 @@ import { runInNewContext } from "node:vm";
 import { describe, expect, it, vi } from "vitest";
 
 function worker() {
-  const handlers: Record<string, (event: any) => void> = {};
+  const handlers: Record<string, (event: unknown) => void> = {};
   const openWindow = vi.fn();
   runInNewContext(readFileSync("public/sw.js", "utf8"), {
     URL,
-    self: { location: { origin: "https://example.com" }, addEventListener: (name: string, handler: any) => { handlers[name] = handler; }, clients: { matchAll: async () => [], openWindow } },
+    self: { location: { origin: "https://example.com" }, addEventListener: (name: string, handler: (event: unknown) => void) => { handlers[name] = handler; }, clients: { matchAll: async () => [], openWindow } },
   });
   return { handlers, openWindow };
 }

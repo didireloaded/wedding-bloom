@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { X, ArrowRight, ArrowLeft, Sparkles } from "lucide-react";
+import { X, ArrowRight, ArrowLeft, Heart } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 interface WalkthroughStep {
@@ -75,7 +75,7 @@ const DashboardWalkthrough = ({ weddingId, show, onComplete }: DashboardWalkthro
     setVisible(false);
     await supabase
       .from("weddings")
-      .update({ dashboard_tour_completed: true } as any)
+      .update({ dashboard_tour_completed: true })
       .eq("id", weddingId);
     onComplete();
   }, [weddingId, onComplete]);
@@ -112,7 +112,7 @@ const DashboardWalkthrough = ({ weddingId, show, onComplete }: DashboardWalkthro
       <div className="fixed inset-0 z-[100] flex items-center justify-center bg-muted backdrop-blur-sm">
         <div className="bg-background border border-border max-w-md w-full mx-4 p-8 text-center space-y-6 animate-in fade-in zoom-in-95 duration-300">
           <div className="w-12 h-12 mx-auto rounded-full bg-primary/10 flex items-center justify-center">
-            <Sparkles className="w-6 h-6 text-primary" />
+            <Heart className="w-6 h-6 text-primary" />
           </div>
           <div>
             <h2 className="font-display text-2xl font-light mb-2">

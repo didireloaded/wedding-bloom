@@ -2,11 +2,14 @@ import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import type { Database } from "@/integrations/supabase/types";
+
+type WeddingDetails = Pick<Database["public"]["Tables"]["weddings"]["Row"], "wedding_date" | "ceremony_venue" | "reception_venue" | "ceremony_time" | "reception_time" | "dress_code" | "story" | "contact_email">;
 
 interface EditWeddingDetailsProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  wedding: any;
+  wedding: WeddingDetails | null;
   weddingId: string;
   accessCode: string;
   onSaved: () => void;
@@ -47,7 +50,7 @@ const EditWeddingDetails = ({
     }
   }, [wedding, open]);
 
-  const handleChange = (field: string, value: string) => {
+  const handleChange = (field: keyof typeof form, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
   };
 
@@ -67,7 +70,7 @@ const EditWeddingDetails = ({
     }
   };
 
-  const fields: { key: string; label: string; type: "text" | "date" | "textarea" }[] = [
+  const fields: { key: keyof typeof form; label: string; type: "text" | "date" | "textarea" }[] = [
     { key: "wedding_date", label: "Wedding Date", type: "date" },
     { key: "ceremony_venue", label: "Ceremony Venue", type: "text" },
     { key: "ceremony_time", label: "Ceremony Time", type: "text" },
@@ -99,7 +102,7 @@ const EditWeddingDetails = ({
               {field.type === "textarea" ? (
                 <textarea
                   id={`wedding-${field.key}`}
-                  value={(form as any)[field.key]}
+                  value={form[field.key]}
                   onChange={(e) => handleChange(field.key, e.target.value)}
                   maxLength={2000}
                   rows={4}
@@ -109,7 +112,7 @@ const EditWeddingDetails = ({
                 <input
                   id={`wedding-${field.key}`}
                   type={field.type}
-                  value={(form as any)[field.key]}
+                  value={form[field.key]}
                   onChange={(e) => handleChange(field.key, e.target.value)}
                   maxLength={200}
                   className="w-full rounded-xl border border-border bg-background px-3 py-2 font-body text-sm focus:outline-none focus:ring-1 focus:ring-primary min-h-[44px]"

@@ -1,5 +1,8 @@
 import { motion } from "framer-motion";
 import { Activity } from "lucide-react";
+import type { Database } from "@/integrations/supabase/types";
+
+type Tables = Database["public"]["Tables"];
 
 interface ActivityItem {
   id: string;
@@ -10,11 +13,11 @@ interface ActivityItem {
 }
 
 interface ActivityFeedProps {
-  rsvps: any[];
-  guestbookMessages: any[];
-  guestPhotos: any[];
-  checkins: any[];
-  moments?: any[];
+  rsvps: Pick<Tables["rsvps"]["Row"], "id" | "attending" | "guest_name" | "guest_count" | "submitted_at">[];
+  guestbookMessages: Pick<Tables["guestbook"]["Row"], "id" | "guest_name" | "created_at">[];
+  guestPhotos: Pick<Tables["guest_photos"]["Row"], "id" | "guest_name" | "created_at">[];
+  checkins: Pick<Tables["checkins"]["Row"], "id" | "guest_name" | "checkin_time">[];
+  moments?: Pick<Tables["wedding_moments"]["Row"], "id" | "guest_name" | "message" | "created_at">[];
 }
 
 const ActivityFeed = ({ rsvps, guestbookMessages, guestPhotos, checkins, moments = [] }: ActivityFeedProps) => {

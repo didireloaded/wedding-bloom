@@ -4,11 +4,12 @@ import { Camera, X } from "lucide-react";
 import { submitGuestContent } from "@/lib/guestContent";
 import { toast } from "sonner";
 import GuestPrivacyNote from "./GuestPrivacyNote";
+import type { Database } from "@/integrations/supabase/types";
 
 interface ShareMomentFormProps {
   weddingId: string;
   isLiveMode?: boolean;
-  onPosted: (moment: any) => void;
+  onPosted: (moment: Database["public"]["Tables"]["wedding_moments"]["Row"]) => void;
 }
 
 const ShareMomentForm = ({ weddingId, isLiveMode, onPosted }: ShareMomentFormProps) => {

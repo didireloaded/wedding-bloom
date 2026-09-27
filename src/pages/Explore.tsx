@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
-import { ArrowDownLeft, ArrowRight, ArrowUpRight, Bell, CalendarDays, Camera, Check, CheckCheck, ChevronLeft, ChevronRight, Clock3, Copy, Download, Flower2, Heart, Home, MapPin, MessageCircle, Music2, Plus, RotateCcw, Search, Send, Settings2, ShieldCheck, SlidersHorizontal, Sparkles, Users, Utensils, Wallet, X } from 'lucide-react';
+import { ArrowDownLeft, ArrowRight, ArrowUpRight, Bell, CalendarDays, Camera, Check, CheckCheck, ChevronLeft, ChevronRight, Clock3, Copy, Download, Flower2, Heart, Home, MapPin, MessageCircle, Music2, Plus, RotateCcw, Search, Send, Settings2, ShieldCheck, SlidersHorizontal, Users, Utensils, Wallet, X } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
 import { categories, categoryColors, DEMO_KEY, demoPhoto, demoTotals, freshDemo, loadDemo, locations, money, weddingDate, type DemoGuest, type DemoState } from '@/lib/explore-demo';
 import './Explore.css';

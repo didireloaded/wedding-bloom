@@ -3,18 +3,27 @@ import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import ShareMomentForm from "./ShareMomentForm";
 import MomentCard from "./MomentCard";
+import GuestRsvpPrompt from "./GuestRsvpPrompt";
 import { Star } from "lucide-react";
+import type { Database } from "@/integrations/supabase/types";
+
+type Moment = Database["public"]["Tables"]["wedding_moments"]["Row"];
+type ReactionCounts = { heart: number; applause: number };
+type FeedMoment = Moment & { reaction_counts: ReactionCounts };
+type Reaction = Database["public"]["Tables"]["moment_reactions"]["Row"];
 
 interface LiveFeedProps {
   weddingId: string;
   coupleNames?: string;
   isLiveMode?: boolean;
+  canPost: boolean;
+  onRsvp: () => void;
 }
 
 const PAGE_SIZE = 20;
 
-const LiveFeed = ({ weddingId, coupleNames, isLiveMode }: LiveFeedProps) => {
-  const [moments, setMoments] = useState<any[]>([]);
+const LiveFeed = ({ weddingId, coupleNames, isLiveMode, canPost, onRsvp }: LiveFeedProps) => {
+  const [moments, setMoments] = useState<FeedMoment[]>([]);
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(true);
   const [totalCount, setTotalCount] = useState(0);
@@ -26,7 +35,7 @@ const LiveFeed = ({ weddingId, coupleNames, isLiveMode }: LiveFeedProps) => {
   const loadMoreRef = useRef<HTMLDivElement>(null);
   const feedTopRef = useRef<HTMLDivElement>(null);
   const offsetRef = useRef(0);
-  const pendingMoments = useRef<any[]>([]);
+  const pendingMoments = useRef<FeedMoment[]>([]);
 
   const fetchMoments = useCallback(async (offset: number) => {
     const { data } = await supabase
@@ -46,7 +55,7 @@ const LiveFeed = ({ weddingId, coupleNames, isLiveMode }: LiveFeedProps) => {
       .select("moment_id, reaction_type")
       .in("moment_id", momentIds);
     const counts: Record<string, { heart: number; applause: number }> = {};
-    (data ?? []).forEach((r: any) => {
+    (data ?? []).forEach((r) => {
       if (!counts[r.moment_id]) counts[r.moment_id] = { heart: 0, applause: 0 };
       if (r.reaction_type === "heart") counts[r.moment_id].heart++;
       else if (r.reaction_type === "applause") counts[r.moment_id].applause++;
@@ -65,8 +74,8 @@ const LiveFeed = ({ weddingId, coupleNames, isLiveMode }: LiveFeedProps) => {
     setTotalCount(count ?? 0);
 
     const data = await fetchMoments(0);
-    const reactions = await fetchReactions(data.map((m: any) => m.id));
-    const enriched = data.map((m: any) => ({ ...m, reaction_counts: reactions[m.id] || { heart: 0, applause: 0 } }));
+    const reactions = await fetchReactions(data.map((m) => m.id));
+    const enriched = data.map((m) => ({ ...m, reaction_counts: reactions[m.id] || { heart: 0, applause: 0 } }));
     setMoments(enriched);
     offsetRef.current = data.length;
     setHasMore(data.length === PAGE_SIZE);
@@ -75,8 +84,8 @@ const LiveFeed = ({ weddingId, coupleNames, isLiveMode }: LiveFeedProps) => {
 
   const loadMore = useCallback(async () => {
     const data = await fetchMoments(offsetRef.current);
-    const reactions = await fetchReactions(data.map((m: any) => m.id));
-    const enriched = data.map((m: any) => ({ ...m, reaction_counts: reactions[m.id] || { heart: 0, applause: 0 } }));
+    const reactions = await fetchReactions(data.map((m) => m.id));
+    const enriched = data.map((m) => ({ ...m, reaction_counts: reactions[m.id] || { heart: 0, applause: 0 } }));
     setMoments((prev) => [...prev, ...enriched]);
     offsetRef.current += data.length;
     setHasMore(data.length === PAGE_SIZE);
@@ -119,7 +128,7 @@ const LiveFeed = ({ weddingId, coupleNames, isLiveMode }: LiveFeedProps) => {
         table: "wedding_moments",
         filter: `wedding_id=eq.${weddingId}`,
       }, (payload) => {
-        const newMoment = payload.new as any;
+        const newMoment = payload.new as Moment;
         if (!newMoment.approved) return;
 
         const enriched = { ...newMoment, reaction_counts: { heart: 0, applause: 0 } };
@@ -159,7 +168,7 @@ const LiveFeed = ({ weddingId, coupleNames, isLiveMode }: LiveFeedProps) => {
         schema: "public",
         table: "moment_reactions",
       }, (payload) => {
-        const r = payload.new as any;
+        const r = payload.new as Reaction;
         setMoments((prev) =>
           prev.map((m) =>
             m.id === r.moment_id
@@ -192,7 +201,7 @@ const LiveFeed = ({ weddingId, coupleNames, isLiveMode }: LiveFeedProps) => {
     return () => observer.disconnect();
   }, [hasMore, loadMore]);
 
-  const handleNewMoment = (moment: any) => {
+  const handleNewMoment = (moment: Moment) => {
     const enriched = { ...moment, reaction_counts: { heart: 0, applause: 0 } };
     setMoments((prev) => [enriched, ...prev]);
     setTotalCount((c) => c + 1);
@@ -262,7 +271,7 @@ const LiveFeed = ({ weddingId, coupleNames, isLiveMode }: LiveFeedProps) => {
             <h2 className="wedding-heading">Share This Day</h2>
           )}
           <p className={`font-body text-sm mt-4 max-w-md mx-auto ${isLiveMode ? "text-primary-foreground/60" : "text-muted-foreground"}`}>
-            Post a photo or message — everyone here can see it instantly.
+            Share a photo or message. The couple reviews posts before guests see them.
           </p>
         </div>
 
@@ -279,11 +288,11 @@ const LiveFeed = ({ weddingId, coupleNames, isLiveMode }: LiveFeedProps) => {
         )}
 
         {/* Form */}
-        <ShareMomentForm
+        {canPost ? <ShareMomentForm
           weddingId={weddingId}
           isLiveMode={isLiveMode}
           onPosted={handleNewMoment}
-        />
+        /> : <GuestRsvpPrompt onRsvp={onRsvp} />}
 
         {/* Top Moments */}
         {topMoments.length > 0 && (

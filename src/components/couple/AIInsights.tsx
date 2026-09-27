@@ -1,23 +1,28 @@
-import { useState, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { motion } from "framer-motion";
 import { 
-  Sparkles, Users, Utensils, Clock, MessageSquare, Camera, 
+  Users, Utensils, Clock, MessageSquare, Camera,
   TrendingUp, AlertCircle, CheckCircle, Lightbulb, Mail, 
-  Map, Bell, Calendar, RefreshCw 
+  Map, Bell, Calendar, RefreshCw, type LucideIcon
 } from "lucide-react";
+
+type WeddingRecord = Record<string, unknown>;
+interface RsvpRecord extends Record<string, unknown> { attending?: boolean | null }
+interface Insight { icon?: string; type?: string; title: string; description: string }
+interface Suggestion extends Insight { priority?: string; action?: string }
 
 interface AIInsightsProps {
   weddingData: {
-    wedding: any;
-    rsvps: any[];
-    guestbookMessages: any[];
-    checkins: any[];
-    guestPhotos: any[];
+    wedding: WeddingRecord;
+    rsvps: RsvpRecord[];
+    guestbookMessages: WeddingRecord[];
+    checkins: WeddingRecord[];
+    guestPhotos: WeddingRecord[];
   };
 }
 
-const iconMap: Record<string, any> = {
+const iconMap: Record<string, LucideIcon> = {
   users: Users,
   utensils: Utensils,
   clock: Clock,
@@ -34,13 +39,13 @@ const iconMap: Record<string, any> = {
 };
 
 const AIInsights = ({ weddingData }: AIInsightsProps) => {
-  const [insights, setInsights] = useState<any[]>([]);
-  const [suggestions, setSuggestions] = useState<any[]>([]);
+  const [insights, setInsights] = useState<Insight[]>([]);
+  const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [loadingInsights, setLoadingInsights] = useState(false);
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
   const [lastGenerated, setLastGenerated] = useState<string | null>(null);
 
-  const generateInsights = async () => {
+  const generateInsights = useCallback(async () => {
     setLoadingInsights(true);
     try {
       const { data, error } = await supabase.functions.invoke("ai-wedding", {
@@ -48,16 +53,16 @@ const AIInsights = ({ weddingData }: AIInsightsProps) => {
       });
       if (error) throw error;
       if (data?.result?.insights) {
-        setInsights(data.result.insights);
+        setInsights(data.result.insights as Insight[]);
         setLastGenerated(new Date().toLocaleTimeString());
       }
     } catch (e) {
       console.error("Failed to generate insights:", e);
     }
     setLoadingInsights(false);
-  };
+  }, [weddingData]);
 
-  const generateSuggestions = async () => {
+  const generateSuggestions = useCallback(async () => {
     setLoadingSuggestions(true);
     try {
       const { data, error } = await supabase.functions.invoke("ai-wedding", {
@@ -65,18 +70,18 @@ const AIInsights = ({ weddingData }: AIInsightsProps) => {
       });
       if (error) throw error;
       if (data?.result?.suggestions) {
-        setSuggestions(data.result.suggestions);
+        setSuggestions(data.result.suggestions as Suggestion[]);
       }
     } catch (e) {
       console.error("Failed to generate suggestions:", e);
     }
     setLoadingSuggestions(false);
-  };
+  }, [weddingData]);
 
   useEffect(() => {
     generateInsights();
     generateSuggestions();
-  }, []);
+  }, [generateInsights, generateSuggestions]);
 
   const refreshAll = () => {
     generateInsights();
@@ -105,7 +110,7 @@ const AIInsights = ({ weddingData }: AIInsightsProps) => {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-full bg-wedding-champagne flex items-center justify-center">
-            <Sparkles className="w-5 h-5 text-wedding-gold" />
+            <Lightbulb className="w-5 h-5 text-wedding-gold" />
           </div>
           <div>
             <h2 className="font-body text-xl font-semibold">Wedding overview</h2>
@@ -235,7 +240,7 @@ const AIInsights = ({ weddingData }: AIInsightsProps) => {
           <div>
             <p className="text-muted-foreground text-xs mb-1">Confirmed</p>
             <p className="font-display text-2xl font-light">
-              {weddingData.rsvps?.filter((r: any) => r.attending === true).length || 0}
+              {weddingData.rsvps?.filter((r) => r.attending === true).length || 0}
             </p>
           </div>
           <div>

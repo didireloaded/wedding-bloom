@@ -21,12 +21,21 @@ import GuestPracticalInfo from '@/components/wedding/GuestPracticalInfo';
 import { resolveGuestExperience } from "@/lib/guestExperience";
 import GuestBottomNav from "@/components/wedding/GuestBottomNav";
 import GuestHome from "@/components/wedding/GuestHome";
+import GuestSeat from "@/components/wedding/GuestSeat";
 import NotificationPrompt from "@/components/wedding/NotificationPrompt";
 import GuestNotificationInbox from "@/components/wedding/GuestNotificationInbox";
 import { getGuestSessionToken } from "@/lib/guestSession";
 import { GuestWeddingRealtime } from "@/components/realtime/WeddingRealtime";
 import { ArrowLeft, Bell, BookOpen, Images, MessageCircle } from "lucide-react";
+import type { Database } from "@/integrations/supabase/types";
 import "@/components/wedding/guest-theme.css";
+
+type WeddingPageWedding = Database["public"]["Tables"]["weddings"]["Row"] & {
+  story_image?: string | null;
+  venue_latitude?: number | null;
+  venue_longitude?: number | null;
+  checkin_radius_meters?: number | null;
+};
 
 const VenueSection = lazy(() => import("@/components/wedding/VenueSection"));
 const PhotoGallery = lazy(() => import("@/components/wedding/PhotoGallery"));
@@ -44,7 +53,7 @@ const SectionPlaceholder = () => (
   </div>
 );
 
-const GUEST_VIEWS = new Set(["home", "schedule", "venue", "directions", "map", "rsvp", "more", "story", "wall", "photos", "moments", "capture", "checkin", "updates"]);
+const GUEST_VIEWS = new Set(["home", "schedule", "venue", "directions", "map", "seat", "rsvp", "more", "story", "wall", "photos", "moments", "capture", "checkin", "updates"]);
 
 const LazyVisible = ({ children, rootMargin = "300px" }: { children: React.ReactNode; rootMargin?: string }) => {
   const { ref, isVisible } = useLazySection(rootMargin);
@@ -67,15 +76,18 @@ const WeddingPage = () => {
   const isPreview = slug === "preview" && searchParams.get("preview") === "1";
   const [invitationOpen, setInvitationOpen] = useState(isPreview);
   const weddingData = useWeddingData(isPreview ? undefined : slug);
-  const wedding = isPreview ? previewWedding : weddingData.wedding;
+  const wedding = (isPreview ? previewWedding : weddingData.wedding) as WeddingPageWedding | null;
   const guest = useGuestContext(isPreview ? undefined : wedding?.id);
+  const storedGuestSession = !isPreview && wedding?.id ? getGuestSessionToken(wedding.id) : null;
   const events = weddingSchedule(isPreview ? previewEvents : weddingData.events, wedding);
   const gallery = isPreview ? previewGallery : weddingData.gallery;
   const updates = isPreview ? previewUpdates : weddingData.updates;
   const loading = isPreview ? false : weddingData.loading;
   const requestedView = searchParams.get("view") || "home";
   const [guestTab, setGuestTab] = useState(GUEST_VIEWS.has(requestedView) ? requestedView : "home");
+  const [assistantOpen, setAssistantOpen] = useState(false);
   useEffect(() => { setGuestTab(GUEST_VIEWS.has(requestedView) ? requestedView : 'home'); }, [requestedView]);
+  useEffect(() => { if (guest.data?.response) setInvitationOpen(true); }, [guest.data?.response]);
 
   useEffect(() => {
     if (loading || !wedding || !window.location.hash) return;
@@ -112,7 +124,7 @@ const WeddingPage = () => {
     : "";
   const weddingPhase = getWeddingPhase(wedding, events);
   const guestState = getGuestState({ rsvp: guest.data?.response, checkedIn: guest.data?.checked_in });
-  const guestExperience = resolveGuestExperience(weddingPhase, guestState);
+  const guestExperience = resolveGuestExperience(weddingPhase, guestState, Boolean(guest.data?.seat));
   const isPreWedding = weddingPhase === "upcoming" || weddingPhase === "rsvp_closing";
   const isWeddingDay = weddingPhase === "wedding_day" || weddingPhase === "live";
   const isPostWedding = weddingPhase === "completed" || weddingPhase === "archive";
@@ -129,7 +141,7 @@ const WeddingPage = () => {
     const nextParams = new URLSearchParams(searchParams);
     nextParams.set('view', tab);
     setSearchParams(nextParams, { replace: true });
-    const target = tab === "schedule" ? "events" : tab === 'updates' ? 'guest-updates' : tab === "venue" || tab === "directions" || tab === "map" ? "venue" : tab === "rsvp" ? "rsvp" : tab === "checkin" ? "checkin" : tab === "photos" || tab === "moments" || tab === "wall" ? "memories" : null;
+    const target = tab === "schedule" ? "events" : tab === 'updates' ? 'guest-updates' : tab === "venue" || tab === "directions" || tab === "map" ? "venue" : tab === "seat" ? "seat" : tab === "rsvp" ? "rsvp" : tab === "checkin" ? "checkin" : tab === "photos" || tab === "moments" || tab === "wall" ? "memories" : null;
     if (target) document.getElementById(target)?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
@@ -158,7 +170,7 @@ const WeddingPage = () => {
       </Helmet>
 
       {/* 1. Invitation Overlay */}
-      {isPreWedding && !invitationOpen && (
+      {isPreWedding && !invitationOpen && !(storedGuestSession && !guest.data && !guest.error) && (
         <InvitationOverlay
           coupleNames={wedding.couple_names}
           date={weddingDate}
@@ -188,11 +200,11 @@ const WeddingPage = () => {
           </div>
         ) : null}
         {/* 2. Nav */}
-        <div className="hidden md:block"><WeddingNav coupleNames={wedding.couple_names} /></div>
+        <div className="hidden md:block"><WeddingNav coupleNames={wedding.couple_names} hasResponded={Boolean(guest.data?.response)} /></div>
 
         <div className="md:hidden">
-          {guestTab === "home" && <GuestHome wedding={wedding} phase={weddingPhase} guestState={guestState} response={guest.data?.response} onAction={handleGuestAction} />}
-          {guestTab === "more" && <GuestMore wedding={wedding} hasUpdates={updates.length > 0} onAction={handleGuestAction} />}
+          {guestTab === "home" && <GuestHome wedding={wedding} phase={weddingPhase} guestState={guestState} response={guest.data?.response} hasSeat={Boolean(guest.data?.seat)} onAction={handleGuestAction} />}
+          {guestTab === "more" && <GuestMore wedding={wedding} hasUpdates={updates.length > 0} hasResponse={Boolean(guest.data?.response)} onAction={handleGuestAction} onOpenAssistant={() => setAssistantOpen(true)} />}
           {["story", "wall", "photos", "moments"].includes(guestTab) && <MobileBack title={guestTab === "story" ? "Our story" : guestTab === "wall" ? "Guestbook" : guestTab === "photos" ? "Photos" : "Updates"} onBack={() => handleGuestAction("more")} />}
           {!isPreview && guestTab === "home" && <NotificationPrompt weddingId={wedding.id} coupleNames={wedding.couple_names} guestSession={getGuestSessionToken(wedding.id)} />}
         </div>
@@ -201,10 +213,10 @@ const WeddingPage = () => {
           {guest.error && <div role="alert" className="mx-auto max-w-xl px-5 py-3 text-sm text-red-700">{guest.error.message}<button onClick={() => void guest.refetch()} className="ml-2 min-h-11 underline">Retry</button></div>}
           <GuestNotificationInbox weddingId={wedding.id} guestSession={guest.session} items={guest.data?.notifications || []} onRefresh={guest.refetch} onAction={handleGuestAction} />
         </div>}
-        {!isPreview && guest.data?.response && <div className="hidden md:block"><GuestHome wedding={wedding} phase={weddingPhase} guestState={guestState} response={guest.data.response} onAction={handleGuestAction} /></div>}
+        {!isPreview && guest.data?.response && <div className="hidden md:block"><GuestHome wedding={wedding} phase={weddingPhase} guestState={guestState} response={guest.data.response} hasSeat={Boolean(guest.data?.seat)} onAction={handleGuestAction} /></div>}
 
         {/* 3. Hero */}
-        <div className="hidden md:block"><WeddingHero coupleNames={wedding.couple_names} date={weddingDate} venue={wedding.ceremony_venue} coverImage={wedding.cover_image} weddingDate={wedding.wedding_date} ceremonyTime={wedding.ceremony_time} /></div>
+        <div className="hidden md:block"><WeddingHero coupleNames={wedding.couple_names} date={weddingDate} venue={wedding.ceremony_venue} coverImage={wedding.cover_image} weddingDate={wedding.wedding_date} ceremonyTime={wedding.ceremony_time} hasResponded={Boolean(guest.data?.response)} /></div>
 
         {/* 4. Countdown */}
         {isPreWedding && wedding.wedding_date && <div className="hidden md:block"><WeddingCountdown weddingDate={wedding.wedding_date} /></div>}
@@ -216,7 +228,7 @@ const WeddingPage = () => {
               story={wedding.story}
               weddingDate={wedding.wedding_date}
               onAddToCalendar={handleAddToCalendar}
-              storyImage={(wedding as any).story_image}
+              storyImage={wedding.story_image}
             />
           </div>
         )}
@@ -243,6 +255,8 @@ const WeddingPage = () => {
           </LazyVisible></div>
         )}
 
+        {guest.data?.response?.attending === true && <div className={`${guestTab === "seat" ? "block" : "hidden"} md:block`}><GuestSeat seat={guest.data.seat || null} /></div>}
+
         <div id="checkin" />
         <div className={`${['venue','directions','map','more'].includes(guestTab) ? 'block' : 'hidden'} md:block`}><GuestPracticalInfo weddingId={wedding.id} dressCode={wedding.dress_code} /></div>
 
@@ -252,9 +266,9 @@ const WeddingPage = () => {
               weddingId={wedding.id}
               coupleNames={wedding.couple_names}
               venue={wedding.ceremony_venue}
-              venueLatitude={(wedding as any).venue_latitude}
-              venueLongitude={(wedding as any).venue_longitude}
-              checkinRadiusMeters={(wedding as any).checkin_radius_meters}
+              venueLatitude={wedding.venue_latitude}
+              venueLongitude={wedding.venue_longitude}
+              checkinRadiusMeters={wedding.checkin_radius_meters}
             />
           </LazyVisible></div>
         )}
@@ -289,32 +303,32 @@ const WeddingPage = () => {
             </div>
           </section>
         ) : (
-          <div id="rsvp" className={`${guestTab === "rsvp" ? "block" : "hidden"} md:block`}><RSVPSection
+          <div id="rsvp" className={`${guestTab === "rsvp" ? "block" : "hidden"} ${guest.data?.response ? "" : "md:block"}`}><RSVPSection
             weddingId={wedding.id} weddingDate={wedding.wedding_date} ceremonyTime={wedding.ceremony_time}
             previousResponse={guest.data?.response} restoring={Boolean(guest.session && (guest.isLoading || guest.error))}
             venue={wedding.ceremony_venue || ""} coupleNames={wedding.couple_names}
-            rsvpDeadline={(wedding as any).rsvp_deadline} whatsappGroupUrl={(wedding as any).whatsapp_group_url}
-            maxGuests={(wedding as any).max_guests} rsvpImage={(wedding as any).rsvp_image}
+            rsvpDeadline={wedding.rsvp_deadline} whatsappGroupUrl={wedding.whatsapp_group_url}
+            maxGuests={wedding.max_guests} rsvpImage={wedding.rsvp_image}
           /></div>
         )}
 
         {/* 11. Guestbook */}
         <div className={`${guestTab === "wall" ? "block" : "hidden"} md:block`}><LazyVisible>
           <div id="guestbook">
-            <Guestbook weddingId={wedding.id} coupleNames={wedding.couple_names} />
+            <Guestbook weddingId={wedding.id} coupleNames={wedding.couple_names} canPost={isPreview || Boolean(guest.session)} onRsvp={() => handleGuestAction("rsvp")} />
           </div>
         </LazyVisible></div>
 
         {/* 12. Guest Photo Wall */}
         <div className={`${["photos", "capture"].includes(guestTab) ? "block" : "hidden"} md:block`}><LazyVisible>
           <div id="memories">
-            <GuestPhotoWall weddingId={wedding.id} />
+            <GuestPhotoWall weddingId={wedding.id} canPost={isPreview || Boolean(guest.session)} onRsvp={() => handleGuestAction("rsvp")} />
           </div>
         </LazyVisible></div>
 
         {/* 12.5. Live Feed */}
         {(isWeddingDay || isPostWedding) && <div className={`${guestTab === "moments" ? "block" : "hidden"} md:block`}><LazyVisible>
-          <div id="live-feed"><LiveFeed weddingId={wedding.id} coupleNames={wedding.couple_names} isLiveMode={wedding.live_mode} /></div>
+          <div id="live-feed"><LiveFeed weddingId={wedding.id} coupleNames={wedding.couple_names} isLiveMode={wedding.live_mode} canPost={isPreview || Boolean(guest.session)} onRsvp={() => handleGuestAction("rsvp")} /></div>
         </LazyVisible></div>}
 
         {/* 13. Photo Gallery */}
@@ -333,7 +347,7 @@ const WeddingPage = () => {
         <div className="hidden md:block"><WeddingFooter coupleNames={wedding.couple_names} date={weddingDate} venue={wedding.ceremony_venue} /></div>
 
         {/* 16. Chat Assistant */}
-        {!isPostWedding && <LazyVisible><WeddingChatAssistant weddingId={wedding.id} weddingData={wedding} events={events} gallery={gallery} updates={updates} /></LazyVisible>}
+        {!isPostWedding && <Suspense fallback={null}><WeddingChatAssistant weddingId={wedding.id} weddingData={wedding} events={events} gallery={gallery} updates={updates} open={assistantOpen} onOpenChange={setAssistantOpen} showMobileLauncher={guestTab === "home"} /></Suspense>}
 
         <div className="md:hidden"><GuestBottomNav tabs={guestExperience.tabs} active={guestTab} onChange={handleGuestAction} /></div>
       </div>
@@ -376,12 +390,13 @@ function MobileBack({ title, onBack }: { title: string; onBack: () => void }) {
   return <header className="guest-mobile-header"><button onClick={onBack} aria-label="Back to more"><ArrowLeft className="h-4 w-4" /></button><h1>{title}</h1></header>;
 }
 
-function GuestMore({ wedding, hasUpdates, onAction }: { wedding: any; hasUpdates: boolean; onAction: (tab: string) => void }) {
+function GuestMore({ wedding, hasUpdates, hasResponse, onAction, onOpenAssistant }: { wedding: WeddingPageWedding; hasUpdates: boolean; hasResponse: boolean; onAction: (tab: string) => void; onOpenAssistant: () => void }) {
   const items = [
     wedding.story && { id: "story", label: "Our story", detail: "How the couple found each other", icon: BookOpen },
     { id: "wall", label: "Guestbook", detail: "Leave a message for the couple", icon: MessageCircle },
     { id: "photos", label: "Photos", detail: "Share and view wedding memories", icon: Images },
     hasUpdates && { id: "moments", label: "Wedding updates", detail: "The latest news from the celebration", icon: Bell },
+    { id: "assistant", label: "Wedding assistant", detail: "Ask about the celebration", icon: MessageCircle },
   ].filter(Boolean) as { id: string; label: string; detail: string; icon: typeof Bell }[];
-  return <section className="guest-more"><p className="guest-kicker">Explore</p><h1>{wedding.couple_names}</h1><div className="guest-more-grid">{items.map((item, index) => { const Icon = item.icon; return <button key={item.id} onClick={() => onAction(item.id)} className={`guest-more-card tone-${index % 4}`}><span className="guest-more-icon"><Icon className="h-5 w-5" /></span><span><strong>{item.label}</strong><small>{item.detail}</small></span></button>; })}</div><div className="guest-details-card"><p>Wedding details</p><span>{wedding.wedding_date || "Date to be confirmed"}</span><span>{wedding.ceremony_venue || "Venue to be confirmed"}</span><span>{wedding.dress_code || "Dress code to be confirmed"}</span></div></section>;
+  return <section className="guest-more"><p className="guest-kicker">Explore</p><h1>{wedding.couple_names}</h1><div className="guest-more-grid">{items.map((item, index) => { const Icon = item.icon; return <button key={item.id} onClick={item.id === "assistant" ? onOpenAssistant : () => onAction(item.id)} className={`guest-more-card tone-${index % 4}`}><span className="guest-more-icon"><Icon className="h-5 w-5" /></span><span><strong>{item.label}</strong><small>{item.detail}</small></span></button>; })}</div><div className="guest-details-card"><p>Wedding details</p><span>{wedding.wedding_date || "Date to be confirmed"}</span><span>{wedding.ceremony_venue || "Venue to be confirmed"}</span><span>{wedding.dress_code || "Dress code to be confirmed"}</span>{hasResponse && <button onClick={() => onAction("rsvp")} className="mt-3 self-start text-xs text-white/65 underline">Change my response</button>}</div></section>;
 }

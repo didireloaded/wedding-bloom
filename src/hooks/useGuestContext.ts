@@ -5,7 +5,8 @@ import { getGuestSessionToken } from '@/lib/guestSession';
 
 export type GuestResponse = { id: string; guest_name: string; attending: boolean | null; guest_count: number; email: string | null; phone: string | null; dietary_preference: string | null; dietary_note: string | null; message: string | null };
 export type GuestNotification = { id: string; title: string; body: string; target_url: string; read_at: string | null; created_at: string };
-export type GuestContext = { notifications: GuestNotification[]; response: GuestResponse; checked_in: boolean };
+export type GuestSeat = { table_name: string; position_x: number | null; position_y: number | null; plan_image_path: string | null; markers: Array<{ id: string; kind: string; label: string; x: number; y: number }> };
+export type GuestContext = { notifications: GuestNotification[]; response: GuestResponse; checked_in: boolean; seat: GuestSeat | null };
 
 export function useGuestContext(weddingId?: string) {
   const client = useQueryClient();

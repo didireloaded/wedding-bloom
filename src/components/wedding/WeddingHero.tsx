@@ -9,9 +9,10 @@ interface WeddingHeroProps {
   coverImage?: string | null;
   weddingDate?: string | null;
   ceremonyTime?: string | null;
+  hasResponded?: boolean;
 }
 
-const WeddingHero = ({ coupleNames = "John & Anna", date = "24 JUNE 2026", venue = "TUSCANY, ITALY", coverImage, weddingDate, ceremonyTime }: WeddingHeroProps) => {
+const WeddingHero = ({ coupleNames = "John & Anna", date = "24 JUNE 2026", venue = "TUSCANY, ITALY", coverImage, weddingDate, ceremonyTime, hasResponded = false }: WeddingHeroProps) => {
   return (
     <section className="relative flex min-h-[560px] max-h-[720px] h-[78vh] items-end overflow-hidden">
       <div className="absolute inset-0">
@@ -20,7 +21,7 @@ const WeddingHero = ({ coupleNames = "John & Anna", date = "24 JUNE 2026", venue
           animate={{ scale: 1 }}
           transition={{ duration: 1.8, ease: "easeOut" }}
           src={coverImage}
-          alt="Wedding couple"
+          alt={`${coupleNames} wedding cover image`}
           className="w-full h-full object-contain bg-black"
           style={{ objectPosition: 'center 20%' }}
         /> : <div className="absolute inset-0 bg-[linear-gradient(145deg,#eecfc3_0%,#c7b6dc_55%,#202020_100%)]" />}
@@ -69,14 +70,14 @@ const WeddingHero = ({ coupleNames = "John & Anna", date = "24 JUNE 2026", venue
           className="mt-7 flex flex-wrap items-center gap-3"
         >
           <div className="flex flex-wrap items-center gap-3">
-            <span className="relative inline-flex">
+            {!hasResponded && <span className="relative inline-flex">
               <a
                 href="#rsvp"
                 className="relative inline-flex min-h-12 items-center rounded-full bg-white px-8 py-3.5 font-body text-xs font-semibold text-black transition-colors hover:bg-white/90"
               >
                 RSVP
               </a>
-            </span>
+            </span>}
             {weddingDate && (
               <button
                 onClick={() => generateICS(coupleNames, weddingDate, ceremonyTime || null, venue || "", window.location.href)}

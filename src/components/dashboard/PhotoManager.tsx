@@ -4,11 +4,12 @@ import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { Camera, Check, X, Upload, Image as ImageIcon } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import type { Database } from "@/integrations/supabase/types";
 
 interface PhotoManagerProps {
   weddingId: string;
-  galleryImages: any[];
-  guestPhotos: any[];
+  galleryImages: Database["public"]["Tables"]["gallery"]["Row"][];
+  guestPhotos: Database["public"]["Tables"]["guest_photos"]["Row"][];
   onRefresh: () => void;
 }
 

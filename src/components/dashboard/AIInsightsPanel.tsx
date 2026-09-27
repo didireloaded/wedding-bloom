@@ -1,23 +1,26 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { motion } from "framer-motion";
+import type { LucideIcon } from "lucide-react";
 import { 
-  Sparkles, Users, Utensils, Clock, MessageSquare, Camera, 
+  Users, Utensils, Clock, MessageSquare, Camera,
   TrendingUp, AlertCircle, CheckCircle, RefreshCw 
 } from "lucide-react";
+
+type Insight = { icon?: string; type?: string; title?: string; description?: string };
 
 interface AIInsightsPanelProps {
   weddingId: string;
   weddingData: {
-    wedding: any;
-    rsvps: any[];
-    guestbookMessages: any[];
-    checkins: any[];
-    guestPhotos: any[];
+    wedding: Record<string, unknown>;
+    rsvps: Record<string, unknown>[];
+    guestbookMessages: Record<string, unknown>[];
+    checkins: Record<string, unknown>[];
+    guestPhotos: Record<string, unknown>[];
   };
 }
 
-const iconMap: Record<string, any> = {
+const iconMap: Record<string, LucideIcon> = {
   users: Users,
   utensils: Utensils,
   clock: Clock,
@@ -29,14 +32,14 @@ const iconMap: Record<string, any> = {
 };
 
 const AIInsightsPanel = ({ weddingId, weddingData }: AIInsightsPanelProps) => {
-  const [insights, setInsights] = useState<any[]>([]);
+  const [insights, setInsights] = useState<Insight[]>([]);
   const [loading, setLoading] = useState(false);
   const [lastGenerated, setLastGenerated] = useState<string | null>(null);
 
   const CACHE_KEY = `ai_insights_${weddingId}`;
   const CACHE_TTL = 10 * 60 * 1000; // 10 minutes
 
-  const generateInsights = async () => {
+  const generateInsights = useCallback(async () => {
     setLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke("ai-wedding", {
@@ -47,13 +50,13 @@ const AIInsightsPanel = ({ weddingId, weddingData }: AIInsightsPanelProps) => {
         setInsights(data.result.insights);
         const now = new Date().toLocaleTimeString();
         setLastGenerated(now);
-        try { sessionStorage.setItem(CACHE_KEY, JSON.stringify({ insights: data.result.insights, time: now, ts: Date.now() })); } catch {}
+        try { sessionStorage.setItem(CACHE_KEY, JSON.stringify({ insights: data.result.insights, time: now, ts: Date.now() })); } catch { /* Storage may be unavailable in private browsing. */ }
       }
     } catch (e) {
       console.error("Failed to generate insights:", e);
     }
     setLoading(false);
-  };
+  }, [CACHE_KEY, weddingId]);
 
   useEffect(() => {
     try {
@@ -66,9 +69,9 @@ const AIInsightsPanel = ({ weddingId, weddingData }: AIInsightsPanelProps) => {
           return;
         }
       }
-    } catch {}
+    } catch { /* Ignore malformed or unavailable cached insights. */ }
     generateInsights();
-  }, []);
+  }, [CACHE_KEY, CACHE_TTL, generateInsights]);
 
   const getTypeStyles = (type: string) => {
     switch (type) {
@@ -85,7 +88,7 @@ const AIInsightsPanel = ({ weddingId, weddingData }: AIInsightsPanelProps) => {
     <div className="border border-border bg-background">
       <div className="p-4 border-b border-border flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Sparkles className="w-4 h-4 text-wedding-gold" />
+          <TrendingUp className="w-4 h-4 text-wedding-gold" />
           <h3 className="font-body text-xs tracking-[0.15em] uppercase">Your Wedding at a Glance</h3>
           {lastGenerated && (
             <span className="font-body text-[9px] text-muted-foreground ml-2">
@@ -134,7 +137,7 @@ const AIInsightsPanel = ({ weddingId, weddingData }: AIInsightsPanelProps) => {
           </div>
         ) : (
           <div className="py-8 text-center">
-            <Sparkles className="w-8 h-8 mx-auto text-muted-foreground/30 mb-2" strokeWidth={1} />
+            <TrendingUp className="w-8 h-8 mx-auto text-muted-foreground/30 mb-2" strokeWidth={1} />
             <p className="font-body text-sm text-muted-foreground">
               Add more RSVP and guest data to generate insights
             </p>

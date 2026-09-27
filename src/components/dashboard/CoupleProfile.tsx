@@ -4,8 +4,10 @@ import { ArrowLeft, Bell, ChevronRight, ClipboardCheck, Globe2, Info, LogOut, Pe
 import { useAuth } from '@/hooks/useAuth';
 import NotificationPreferences from './NotificationPreferences';
 import CouplePageHeading from './CouplePageHeading';
+import type { Database } from '@/integrations/supabase/types';
 
-type Props = { wedding: any; onEdit: () => void; publishing: ReactNode; information: ReactNode; budget: ReactNode; readiness: ReactNode };
+type ProfileWedding = Pick<Database['public']['Tables']['weddings']['Row'], 'id' | 'couple_names'> & Partial<Pick<Database['public']['Tables']['weddings']['Row'], 'published' | 'cover_image' | 'wedding_date'>>;
+type Props = { wedding: ProfileWedding; onEdit: () => void; publishing: ReactNode; information: ReactNode; budget: ReactNode; readiness: ReactNode };
 export default function CoupleProfile({ wedding, onEdit, publishing, information, budget, readiness }: Props) {
   const [params, setParams] = useSearchParams();
   const { signOut } = useAuth();
@@ -17,7 +19,7 @@ export default function CoupleProfile({ wedding, onEdit, publishing, information
     { id: 'readiness', title: 'Wedding readiness', subtitle: 'Finish the details before you share', icon: ClipboardCheck, content: readiness },
   ];
   const current = sections.find(item => item.id === params.get('section'));
-  const open = (section?: string) => { const next = new URLSearchParams(params); section ? next.set('section', section) : next.delete('section'); setParams(next); };
+  const open = (section?: string) => { const next = new URLSearchParams(params); if (section) next.set('section', section); else next.delete('section'); setParams(next); };
   if (current) return <div className="fv-profile-detail"><header className="fv-detail-header"><button onClick={() => open()} className="fv-icon-button" aria-label="Back to profile"><ArrowLeft size={20} /></button><h1>{current.title}</h1></header>{current.content}</div>;
   return <div className="fv-profile">
     <CouplePageHeading title="Profile" detail="Your wedding, your way" />
