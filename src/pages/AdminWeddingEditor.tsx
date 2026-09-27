@@ -287,6 +287,13 @@ const AdminWeddingEditor = () => {
   const weddingUrl = `${window.location.origin}/wedding/${wedding.slug}`;
   const tabs = ["details", "theme", "invite", "events", "guests", "rsvps", "gallery", "updates", "live", "photos", "moments", "accommodations", "qr"];
   const tabLabels: Record<string, string> = { details: "Details", theme: "Style", invite: "Invitation", events: "Schedule", guests: "Guest list", rsvps: "Responses", gallery: "Gallery", updates: "Updates", live: "Live updates", photos: "Guest photos", moments: "Moments", accommodations: "Stay & travel", qr: "QR code" };
+  const tabGroups = [
+    { label: "Wedding", tabs: ["details", "theme", "invite", "events", "accommodations", "qr"] },
+    { label: "Guests", tabs: ["guests", "rsvps"] },
+    { label: "Photos", tabs: ["gallery", "photos", "moments"] },
+    { label: "News", tabs: ["updates", "live"] },
+  ];
+  const activeGroup = tabGroups.find((group) => group.tabs.includes(activeTab)) || tabGroups[0];
 
   const rsvpConfirmed = rsvps.filter((r) => r.attending === true).length;
   const rsvpDeclined = rsvps.filter((r) => r.attending === false).length;
@@ -341,11 +348,21 @@ const AdminWeddingEditor = () => {
       </nav>
 
       <div className="sticky top-[65px] z-20 border-b border-black/5 bg-[#f3f3f5]/95 py-2 backdrop-blur-xl">
-        <div className="mx-auto max-w-6xl px-4 sm:hidden">
-          <label className="sr-only" htmlFor="admin-editor-section">Wedding section</label>
-          <select id="admin-editor-section" value={activeTab} onChange={(event) => setActiveTab(event.target.value)} className="min-h-11 w-full rounded-lg border border-black/10 bg-white px-3 text-sm font-semibold">
-            {tabs.map((tab) => <option key={tab} value={tab}>{tabLabels[tab]}</option>)}
-          </select>
+        <div className="mx-auto max-w-6xl space-y-2 px-4 sm:hidden">
+          <nav aria-label="Wedding editor groups" className="grid grid-cols-4 gap-1 rounded-lg bg-white p-1">
+            {tabGroups.map((group) => (
+              <button key={group.label} type="button" onClick={() => setActiveTab(group.tabs[0])} aria-current={activeGroup.label === group.label ? "page" : undefined} className={`min-h-10 rounded-md px-1 text-xs font-semibold ${activeGroup.label === group.label ? "bg-[#202020] text-white" : "text-black/60"}`}>
+                {group.label}
+              </button>
+            ))}
+          </nav>
+          <nav aria-label={`${activeGroup.label} sections`} className="grid grid-cols-3 gap-1">
+            {activeGroup.tabs.map((tab) => (
+              <button key={tab} type="button" onClick={() => setActiveTab(tab)} aria-current={activeTab === tab ? "page" : undefined} className={`min-h-10 rounded-md px-1 text-xs font-medium ${activeTab === tab ? "bg-[#ff6245] text-white" : "bg-white text-black/65"}`}>
+                {tabLabels[tab]}
+              </button>
+            ))}
+          </nav>
         </div>
         <div className="mx-auto hidden max-w-6xl gap-1 overflow-x-auto px-4 sm:flex sm:px-6">
           {tabs.map((t) => (
