@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { MessageSquare, Send, Sparkles, Minimize2, Maximize2 } from "lucide-react";
+import { MessageSquare, Send, Minimize2, Maximize2 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -124,8 +124,8 @@ const AIChatAssistant = ({ weddingId, isAdmin = false }: AIChatAssistantProps) =
     <div className={`overflow-hidden rounded-[24px] border border-border bg-background ${expanded ? "fixed inset-4 z-50 shadow-2xl" : ""}`}>
       <div className="p-4 border-b border-border flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <MessageSquare className="w-4 h-4 text-wedding-gold" />
-          <h3 className="font-body text-xs tracking-[0.15em] uppercase">
+          <MessageSquare className={`h-4 w-4 ${isAdmin ? "text-[#ff6245]" : "text-wedding-gold"}`} />
+          <h3 className={isAdmin ? "text-sm font-semibold" : "font-body text-xs tracking-[0.15em] uppercase"}>
             {isAdmin ? "Owner assistant" : "Wedding assistant"}
           </h3>
         </div>
@@ -147,7 +147,7 @@ const AIChatAssistant = ({ weddingId, isAdmin = false }: AIChatAssistantProps) =
       >
         {messages.length === 0 && (
           <div className="text-center py-6">
-            <Sparkles className="w-8 h-8 mx-auto text-muted-foreground/30 mb-3" strokeWidth={1} />
+            <MessageSquare className="w-8 h-8 mx-auto text-muted-foreground/30 mb-3" strokeWidth={1} />
             <p className="font-body text-sm text-muted-foreground mb-4">
               {isAdmin
                 ? "Ask me about any of your weddings"
@@ -158,7 +158,7 @@ const AIChatAssistant = ({ weddingId, isAdmin = false }: AIChatAssistantProps) =
                 <button
                   key={q}
                   onClick={() => setInput(q)}
-                  className="px-3 py-2 border border-border/50 font-body text-xs text-muted-foreground hover:bg-muted/30 transition-colors"
+                  className={`border border-border/50 px-3 py-2 text-xs text-muted-foreground transition-colors hover:bg-muted/30 ${isAdmin ? "rounded-full font-semibold" : "font-body"}`}
                 >
                   {q}
                 </button>

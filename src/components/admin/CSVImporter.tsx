@@ -3,8 +3,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import Papa from "papaparse";
 import { motion, AnimatePresence } from "framer-motion";
-import { Upload, Sparkles, Check, X, AlertTriangle, FileSpreadsheet, ArrowRight, Shield, Palette } from "lucide-react";
+import { Upload, LoaderCircle, Check, X, AlertTriangle, FileSpreadsheet, ArrowRight, Shield, Palette } from "lucide-react";
 import { cleanWeddingRow, generateAccessCode, type ColumnMapping, type CleanedWedding } from "@/lib/cleanWeddingData";
+import type { Json } from "@/integrations/supabase/types";
 
 type Stage = "upload" | "analyzing" | "themes" | "preview" | "importing" | "done";
 
@@ -15,6 +16,19 @@ interface ThemeResult {
   font_display?: string;
   font_body?: string;
   reason?: string;
+}
+
+interface WeddingThemeJson {
+  primary: string;
+  secondary: string;
+  accent: string;
+  background: string;
+  foreground: string;
+  primary_name: string;
+  secondary_name: string;
+  accent_name: string;
+  font_display: string;
+  font_body: string;
 }
 
 interface CSVImporterProps {
@@ -117,7 +131,7 @@ const CSVImporter = ({ adminUserId, onComplete }: CSVImporterProps) => {
 
     // Fetch existing themes from DB
     const { data: existingThemes } = await supabase
-      .from("themes" as any)
+      .from("themes")
       .select("id, name, primary_color, secondary_color, accent_color")
       .order("name");
 
@@ -168,19 +182,19 @@ const CSVImporter = ({ adminUserId, onComplete }: CSVImporterProps) => {
     let failed = 0;
 
     // Fetch all themes for ID lookup
-    const { data: allThemes } = await supabase.from("themes" as any).select("id, name");
-    const themeMap = new Map((allThemes || []).map((t: any) => [t.name, t.id]));
+    const { data: allThemes } = await supabase.from("themes").select("id, name");
+    const themeMap = new Map((allThemes || []).map((theme) => [theme.name, theme.id]));
 
     for (let i = 0; i < weddings.length; i++) {
       const w = weddings[i];
       const themeResult = detectedThemes.get(i);
       let themeId: string | null = null;
-      let themeJsonb: any = null;
+      let themeJsonb: WeddingThemeJson | null = null;
 
       if (themeResult) {
         if (themeResult.new_theme && themeResult.colors) {
           // Create new theme in DB
-          const { data: newTheme, error: themeErr } = await supabase.from("themes" as any).insert({
+          const { data: newTheme, error: themeErr } = await supabase.from("themes").insert({
             name: themeResult.theme,
             primary_color: themeResult.colors.primary,
             secondary_color: themeResult.colors.secondary,
@@ -190,32 +204,30 @@ const CSVImporter = ({ adminUserId, onComplete }: CSVImporterProps) => {
             font_display: "Inter",
             font_body: "Inter",
             generated_by_ai: true,
-          } as any).select("id, primary_color, secondary_color, accent_color, background_color, foreground_color, font_display, font_body, name").single();
+          }).select("id, primary_color, secondary_color, accent_color, background_color, foreground_color, font_display, font_body, name").single();
 
           if (!themeErr && newTheme) {
-            const t = newTheme as any;
-            themeId = t.id;
-            themeMap.set(themeResult.theme, t.id);
+            themeId = newTheme.id;
+            themeMap.set(themeResult.theme, newTheme.id);
             themeJsonb = {
-              primary: t.primary_color, secondary: t.secondary_color, accent: t.accent_color,
-              background: t.background_color, foreground: t.foreground_color,
+              primary: newTheme.primary_color, secondary: newTheme.secondary_color, accent: newTheme.accent_color,
+              background: newTheme.background_color, foreground: newTheme.foreground_color,
               primary_name: themeResult.theme, secondary_name: themeResult.theme, accent_name: themeResult.theme,
-              font_display: t.font_display, font_body: t.font_body,
+              font_display: newTheme.font_display, font_body: newTheme.font_body,
             };
           }
         } else {
           // Use existing theme
           themeId = themeMap.get(themeResult.theme) || null;
           if (themeId) {
-            const { data: existingTheme } = await supabase.from("themes" as any)
+            const { data: existingTheme } = await supabase.from("themes")
               .select("*").eq("id", themeId).single();
             if (existingTheme) {
-              const t = existingTheme as any;
               themeJsonb = {
-                primary: t.primary_color, secondary: t.secondary_color, accent: t.accent_color,
-                background: t.background_color, foreground: t.foreground_color,
-                primary_name: t.name, secondary_name: t.name, accent_name: t.name,
-                font_display: t.font_display, font_body: t.font_body,
+                primary: existingTheme.primary_color, secondary: existingTheme.secondary_color, accent: existingTheme.accent_color,
+                background: existingTheme.background_color, foreground: existingTheme.foreground_color,
+                primary_name: existingTheme.name, secondary_name: existingTheme.name, accent_name: existingTheme.name,
+                font_display: existingTheme.font_display, font_body: existingTheme.font_body,
               };
             }
           }
@@ -239,8 +251,8 @@ const CSVImporter = ({ adminUserId, onComplete }: CSVImporterProps) => {
         admin_user_id: adminUserId,
         published: true,
         theme_id: themeId,
-        theme: themeJsonb,
-      } as any);
+        theme: themeJsonb as unknown as Json | null,
+      });
 
       if (error) {
         console.error(`Failed: ${w.couple_names}`, error.message);
@@ -272,13 +284,13 @@ const CSVImporter = ({ adminUserId, onComplete }: CSVImporterProps) => {
   const themesDetected = detectedThemes.size > 0;
 
   return (
-    <div className="border border-border p-6 space-y-6">
+    <div className="space-y-6 rounded-2xl border border-black/5 bg-white p-5 sm:p-6">
       <div className="flex items-center gap-3">
-        <Sparkles className="w-5 h-5 text-wedding-gold" />
+        <FileSpreadsheet className="h-5 w-5 text-[#ff6245]" />
         <h2 className="font-body text-xl font-semibold">Wedding import</h2>
       </div>
 
-      <div className="flex items-center gap-2 px-3 py-2 bg-muted/50 border border-border text-xs font-body text-muted-foreground">
+      <div className="flex items-center gap-2 rounded-xl border border-black/5 bg-[#f3f3f5] px-3 py-2 text-xs text-muted-foreground">
         <Shield className="w-3.5 h-3.5" />
         <span>ForeverVow maps fields, cleans data and detects themes. Nothing is saved until you confirm.</span>
       </div>
@@ -287,11 +299,11 @@ const CSVImporter = ({ adminUserId, onComplete }: CSVImporterProps) => {
         {/* UPLOAD */}
         {stage === "upload" && (
           <motion.div key="upload" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-            <label className="flex flex-col items-center justify-center gap-3 cursor-pointer py-12 border-2 border-dashed border-foreground/15 hover:border-foreground/30 transition-colors">
+            <label className="flex cursor-pointer flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-black/15 py-12 transition-colors hover:border-black/30">
               <FileSpreadsheet className="w-8 h-8 text-muted-foreground" />
               <span className="font-body text-sm text-muted-foreground">Drop a CSV file or click to upload</span>
-              <span className="font-body text-xs tracking-[0.2em] uppercase text-foreground px-4 py-2 border border-foreground/20">
-                Choose CSV File
+              <span className="rounded-full border border-black/15 bg-white px-4 py-2 text-xs font-semibold text-black">
+                Choose CSV file
               </span>
               <input type="file" accept=".csv" className="hidden" onChange={(e) => { if (e.target.files?.[0]) handleFile(e.target.files[0]); }} />
             </label>
@@ -301,7 +313,7 @@ const CSVImporter = ({ adminUserId, onComplete }: CSVImporterProps) => {
         {/* ANALYZING */}
         {stage === "analyzing" && (
           <motion.div key="analyzing" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex flex-col items-center gap-3 py-12">
-            <Sparkles className="w-6 h-6 text-wedding-gold animate-spin" />
+            <LoaderCircle className="h-6 w-6 animate-spin text-[#ff6245]" />
             <p className="font-body text-sm text-muted-foreground">Analyzing your CSV columns...</p>
             <p className="font-body text-xs text-muted-foreground">{rawRows.length} rows · {csvColumns.length} columns detected</p>
           </motion.div>
@@ -310,7 +322,7 @@ const CSVImporter = ({ adminUserId, onComplete }: CSVImporterProps) => {
         {/* THEME DETECTION */}
         {stage === "themes" && (
           <motion.div key="themes" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex flex-col items-center gap-4 py-12">
-            <Palette className="w-6 h-6 text-wedding-gold animate-pulse" />
+            <Palette className="h-6 w-6 animate-pulse text-[#ff6245]" />
             <p className="font-body text-sm text-muted-foreground">Detecting wedding themes...</p>
             <div className="w-full max-w-xs bg-muted h-2">
               <div className="bg-foreground h-2 transition-all duration-300" style={{ width: `${themeProgress}%` }} />
@@ -325,8 +337,8 @@ const CSVImporter = ({ adminUserId, onComplete }: CSVImporterProps) => {
             {/* Column Mapping Editor */}
             <div className="space-y-3">
               <div className="flex items-center gap-2">
-                <ArrowRight className="w-4 h-4 text-wedding-gold" />
-                <p className="wedding-label">COLUMN MAPPING</p>
+                <ArrowRight className="h-4 w-4 text-[#ff6245]" />
+                <p className="text-sm font-semibold">Column mapping</p>
               </div>
               <p className="font-body text-xs text-muted-foreground">Review these suggested mappings and adjust if needed.</p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -353,25 +365,25 @@ const CSVImporter = ({ adminUserId, onComplete }: CSVImporterProps) => {
             {!themesDetected && previewData.length > 0 && (
               <button
                 onClick={detectThemes}
-                className="flex items-center gap-2 px-6 py-3 border border-wedding-gold/40 text-wedding-gold font-body text-xs tracking-[0.2em] uppercase hover:bg-wedding-gold/5 transition-colors"
+                className="flex min-h-11 items-center gap-2 rounded-full border border-black/15 bg-white px-5 py-3 text-xs font-semibold text-black transition-colors hover:bg-black/5"
               >
-                <Palette className="w-4 h-4" /> DETECT THEMES
+                <Palette className="w-4 h-4" /> Detect themes
               </button>
             )}
 
             {/* Data Preview Table */}
             {previewData.length > 0 && (
               <div className="space-y-3">
-                <p className="wedding-label">PREVIEW ({previewData.length} WEDDINGS)</p>
-                <div className="overflow-x-auto border border-border">
+                <p className="text-sm font-semibold">Preview ({previewData.length} weddings)</p>
+                <div className="overflow-x-auto rounded-xl border border-black/10">
                   <table className="w-full font-body text-xs">
                     <thead>
                       <tr className="border-b border-border bg-muted/30">
-                        <th className="text-left p-2 font-normal tracking-wider text-muted-foreground">COUPLE</th>
-                        <th className="text-left p-2 font-normal tracking-wider text-muted-foreground">DATE</th>
-                        <th className="text-left p-2 font-normal tracking-wider text-muted-foreground">VENUE</th>
-                        <th className="text-left p-2 font-normal tracking-wider text-muted-foreground">DETECTED THEME</th>
-                        <th className="text-left p-2 font-normal tracking-wider text-muted-foreground">SLUG</th>
+                        <th className="p-2 text-left font-semibold text-muted-foreground">Couple</th>
+                        <th className="p-2 text-left font-semibold text-muted-foreground">Date</th>
+                        <th className="p-2 text-left font-semibold text-muted-foreground">Venue</th>
+                        <th className="p-2 text-left font-semibold text-muted-foreground">Detected theme</th>
+                        <th className="p-2 text-left font-semibold text-muted-foreground">Slug</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -388,7 +400,7 @@ const CSVImporter = ({ adminUserId, onComplete }: CSVImporterProps) => {
                                   <Palette className="w-3 h-3 text-wedding-gold" />
                                   <span>{theme.theme}</span>
                                   {theme.new_theme && (
-                                    <span className="text-[10px] px-1.5 py-0.5 bg-wedding-gold/10 text-wedding-gold tracking-wider">NEW</span>
+                                    <span className="rounded-full bg-[#ffe4dc] px-2 py-1 text-xs font-semibold text-[#df563a]">New</span>
                                   )}
                                 </span>
                               ) : (
@@ -406,14 +418,14 @@ const CSVImporter = ({ adminUserId, onComplete }: CSVImporterProps) => {
                 {/* AI Theme Decisions Log */}
                 {themesDetected && (
                   <div className="space-y-2">
-                    <p className="wedding-label">THEME DECISIONS</p>
+                    <p className="text-sm font-semibold">Theme decisions</p>
                     <div className="space-y-1 max-h-40 overflow-y-auto">
                       {previewData.map((w, i) => {
                         const theme = detectedThemes.get(i);
                         if (!theme) return null;
                         return (
-                          <div key={i} className="flex items-start gap-2 px-3 py-2 bg-muted/30 border border-border/50 text-xs font-body">
-                            <Sparkles className="w-3 h-3 text-wedding-gold mt-0.5 shrink-0" />
+                          <div key={i} className="flex items-start gap-2 rounded-xl border border-black/5 bg-[#f3f3f5] px-3 py-2 text-xs">
+                            <Palette className="w-3 h-3 text-wedding-gold mt-0.5 shrink-0" />
                             <div>
                               <span className="font-medium">{w.couple_names}</span>
                               <span className="text-muted-foreground"> → {theme.theme}</span>
@@ -441,15 +453,15 @@ const CSVImporter = ({ adminUserId, onComplete }: CSVImporterProps) => {
               <button
                 onClick={importWeddings}
                 disabled={previewData.length === 0}
-                className="flex items-center gap-2 px-6 py-3 bg-foreground text-background font-body text-xs tracking-[0.2em] uppercase disabled:opacity-40"
+                className="flex min-h-11 items-center gap-2 rounded-full bg-black px-5 py-3 text-xs font-semibold text-white disabled:opacity-40"
               >
-                <Check className="w-4 h-4" /> CONFIRM & IMPORT {previewData.length} WEDDING{previewData.length !== 1 ? "S" : ""}
+                <Check className="w-4 h-4" /> Confirm and import {previewData.length} wedding{previewData.length !== 1 ? "s" : ""}
               </button>
               <button
                 onClick={reset}
-                className="flex items-center gap-2 px-6 py-3 border border-foreground/20 font-body text-xs tracking-[0.2em] uppercase"
+                className="flex min-h-11 items-center gap-2 rounded-full border border-black/15 bg-white px-5 py-3 text-xs font-semibold"
               >
-                <X className="w-4 h-4" /> CANCEL
+                <X className="w-4 h-4" /> Cancel
               </button>
             </div>
           </motion.div>
@@ -470,13 +482,13 @@ const CSVImporter = ({ adminUserId, onComplete }: CSVImporterProps) => {
         {stage === "done" && (
           <motion.div key="done" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="text-center py-8 space-y-4">
             <Check className="w-10 h-10 text-wedding-sage mx-auto" />
-            <p className="font-display text-xl font-light">Import Complete</p>
+            <p className="text-xl font-semibold">Import complete</p>
             <p className="font-body text-sm text-muted-foreground">
               {importResults.success} wedding{importResults.success !== 1 ? "s" : ""} created with themes
               {importResults.failed > 0 && ` · ${importResults.failed} failed`}
             </p>
-            <button onClick={reset} className="px-6 py-3 border border-foreground/20 font-body text-xs tracking-[0.2em] uppercase">
-              IMPORT MORE
+            <button onClick={reset} className="min-h-11 rounded-full border border-black/15 bg-white px-5 py-3 text-xs font-semibold">
+              Import more
             </button>
           </motion.div>
         )}

@@ -1,29 +1,41 @@
 import { useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Sparkles, Download, Share2, Copy, Mail, MessageCircle, Wand2 } from "lucide-react";
+import { Download, Share2, Copy, Mail, MessageCircle, Pencil } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { motion } from "framer-motion";
+import type { Json } from "@/integrations/supabase/types";
 
 interface AIInvitationGeneratorProps {
   coupleNames: string;
   weddingDate: string;
   venue: string;
   weddingLink: string;
-  theme?: any;
+  theme?: Json;
+}
+
+interface InvitationMessages {
+  whatsapp_message?: string;
+  email_subject?: string;
+  email_body?: string;
+  formal_invitation?: string;
 }
 
 const AIInvitationGenerator = ({ coupleNames, weddingDate, venue, weddingLink, theme }: AIInvitationGeneratorProps) => {
   const [loading, setLoading] = useState(false);
-  const [messages, setMessages] = useState<any>(null);
+  const [messages, setMessages] = useState<InvitationMessages | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
   const cardRef = useRef<HTMLDivElement>(null);
 
-  const primaryColor = theme?.primary ? `hsl(${theme.primary})` : "hsl(30 10% 15%)";
-  const secondaryColor = theme?.secondary ? `hsl(${theme.secondary})` : "hsl(35 30% 88%)";
-  const accentColor = theme?.accent ? `hsl(${theme.accent})` : "hsl(38 60% 55%)";
-  const bgColor = theme?.background ? `hsl(${theme.background})` : "hsl(40 20% 97%)";
-  const fgColor = theme?.foreground ? `hsl(${theme.foreground})` : "hsl(30 10% 15%)";
+  const color = (name: string, fallback: string) => {
+    const value = theme && typeof theme === "object" && !Array.isArray(theme) ? theme[name] : null;
+    return typeof value === "string" ? `hsl(${value})` : fallback;
+  };
+  const primaryColor = color("primary", "hsl(30 10% 15%)");
+  const secondaryColor = color("secondary", "hsl(35 30% 88%)");
+  const accentColor = color("accent", "hsl(38 60% 55%)");
+  const bgColor = color("background", "hsl(40 20% 97%)");
+  const fgColor = color("foreground", "hsl(30 10% 15%)");
 
   const formattedDate = weddingDate
     ? new Date(weddingDate).toLocaleDateString("en-US", { day: "numeric", month: "long", year: "numeric" })
@@ -38,7 +50,7 @@ const AIInvitationGenerator = ({ coupleNames, weddingDate, venue, weddingLink, t
       if (error) throw error;
       if (data?.result) {
         setMessages(data.result);
-        toast.success("Invitation messages generated!");
+        toast.success("Invitation drafts ready.");
       }
     } catch {
       toast.error("Failed to generate messages.");
@@ -83,7 +95,7 @@ const AIInvitationGenerator = ({ coupleNames, weddingDate, venue, weddingLink, t
     <div className="space-y-6">
       {/* Invitation Card Preview */}
       <div className="space-y-3">
-        <p className="wedding-label">DIGITAL INVITATION CARD</p>
+        <p className="text-base font-semibold">Digital invitation card</p>
         <div
           ref={cardRef}
           className="mx-auto max-w-md p-10 text-center space-y-6"
@@ -113,8 +125,8 @@ const AIInvitationGenerator = ({ coupleNames, weddingDate, venue, weddingLink, t
         </div>
 
         <div className="flex justify-center gap-3 pt-2">
-          <button onClick={downloadCard} className="flex items-center gap-2 px-4 py-2 bg-foreground text-background font-body text-xs tracking-[0.2em] uppercase min-h-[44px]">
-            <Download className="w-4 h-4" /> DOWNLOAD
+          <button onClick={downloadCard} className="flex min-h-11 items-center gap-2 rounded-full bg-black px-5 py-2 text-xs font-semibold text-white">
+            <Download className="w-4 h-4" /> Download card
           </button>
         </div>
       </div>
@@ -123,19 +135,19 @@ const AIInvitationGenerator = ({ coupleNames, weddingDate, venue, weddingLink, t
       <div className="border-t border-border pt-6 space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Sparkles className="w-4 h-4 text-wedding-gold" />
-            <p className="wedding-label">INVITATION MESSAGES</p>
+            <MessageCircle className="h-4 w-4 text-[#ff6245]" />
+            <p className="text-base font-semibold">Invitation messages</p>
           </div>
-          <button onClick={generateMessages} disabled={loading} className="flex items-center gap-2 px-4 py-2 border border-wedding-gold/30 text-wedding-gold font-body text-xs tracking-[0.2em] uppercase hover:bg-wedding-gold/10 transition-colors min-h-[44px] disabled:opacity-50">
-            <Wand2 className="w-4 h-4" /> {loading ? "GENERATING..." : "GENERATE"}
+          <button onClick={generateMessages} disabled={loading} className="flex min-h-11 items-center gap-2 rounded-full border border-black/15 bg-white px-4 py-2 text-xs font-semibold text-black transition-colors hover:bg-black/5 disabled:opacity-50">
+            <Pencil className="w-4 h-4" /> {loading ? "Preparing..." : "Prepare drafts"}
           </button>
         </div>
 
         {messages && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
             {/* Formal invitation */}
-            <div className="p-4 border border-border space-y-2">
-              <p className="wedding-label">FORMAL INVITATION</p>
+            <div className="space-y-2 rounded-2xl border border-black/5 bg-white p-4">
+              <p className="text-sm font-semibold">Formal invitation</p>
               <p className="font-body text-sm leading-relaxed">{messages.formal_invitation}</p>
               <button onClick={() => copyText(messages.formal_invitation, "Invitation")} className="flex items-center gap-1 text-muted-foreground hover:text-foreground font-body text-xs min-h-[44px]">
                 <Copy className="w-3 h-3" /> {copied === "Invitation" ? "Copied!" : "Copy"}
@@ -144,17 +156,17 @@ const AIInvitationGenerator = ({ coupleNames, weddingDate, venue, weddingLink, t
 
             {/* Share buttons */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <button onClick={shareWhatsApp} className="flex items-center justify-center gap-2 px-4 py-3 bg-[#25D366] text-white font-body text-xs tracking-[0.15em] uppercase min-h-[48px]">
-                <MessageCircle className="w-4 h-4" /> SHARE ON WHATSAPP
+              <button onClick={shareWhatsApp} className="flex min-h-12 items-center justify-center gap-2 rounded-full bg-[#25D366] px-4 py-3 text-xs font-semibold text-white">
+                <MessageCircle className="w-4 h-4" /> Share on WhatsApp
               </button>
-              <button onClick={shareEmail} className="flex items-center justify-center gap-2 px-4 py-3 bg-foreground text-background font-body text-xs tracking-[0.15em] uppercase min-h-[48px]">
-                <Mail className="w-4 h-4" /> SHARE VIA EMAIL
+              <button onClick={shareEmail} className="flex min-h-12 items-center justify-center gap-2 rounded-full bg-black px-4 py-3 text-xs font-semibold text-white">
+                <Mail className="w-4 h-4" /> Share via email
               </button>
             </div>
 
             {/* WhatsApp message preview */}
-            <div className="p-4 border border-border space-y-2">
-              <p className="wedding-label">WHATSAPP MESSAGE</p>
+            <div className="space-y-2 rounded-2xl border border-black/5 bg-white p-4">
+              <p className="text-sm font-semibold">WhatsApp message</p>
               <p className="font-body text-sm leading-relaxed whitespace-pre-wrap">{messages.whatsapp_message}</p>
               <button onClick={() => copyText(messages.whatsapp_message, "WhatsApp")} className="flex items-center gap-1 text-muted-foreground hover:text-foreground font-body text-xs min-h-[44px]">
                 <Copy className="w-3 h-3" /> {copied === "WhatsApp" ? "Copied!" : "Copy"}
@@ -162,8 +174,8 @@ const AIInvitationGenerator = ({ coupleNames, weddingDate, venue, weddingLink, t
             </div>
 
             {/* Email preview */}
-            <div className="p-4 border border-border space-y-2">
-              <p className="wedding-label">EMAIL</p>
+            <div className="space-y-2 rounded-2xl border border-black/5 bg-white p-4">
+              <p className="text-sm font-semibold">Email</p>
               <p className="font-body text-xs text-muted-foreground">Subject: {messages.email_subject}</p>
               <p className="font-body text-sm leading-relaxed whitespace-pre-wrap">{messages.email_body}</p>
               <button onClick={() => copyText(`Subject: ${messages.email_subject}\n\n${messages.email_body}`, "Email")} className="flex items-center gap-1 text-muted-foreground hover:text-foreground font-body text-xs min-h-[44px]">

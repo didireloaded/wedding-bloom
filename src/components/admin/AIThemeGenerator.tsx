@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Sparkles, Palette, Wand2 } from "lucide-react";
+import { LoaderCircle, Palette } from "lucide-react";
 import { motion } from "framer-motion";
 
 interface Theme {
@@ -47,8 +47,9 @@ const AIThemeGenerator = ({ coupleNames, currentStyle, onStyleChange, onThemeGen
   }, []);
 
   const fetchThemes = async () => {
-    const { data } = await supabase.from("themes" as any).select("*").order("generated_by_ai").order("name");
-    if (data) setDbThemes(data as any as DBTheme[]);
+    const { data, error } = await supabase.from("themes").select("*").order("generated_by_ai").order("name");
+    if (error) toast.error("Wedding styles could not be loaded. Try again later.");
+    if (data) setDbThemes(data);
   };
 
   const selectExistingTheme = (theme: DBTheme) => {
@@ -78,7 +79,7 @@ const AIThemeGenerator = ({ coupleNames, currentStyle, onStyleChange, onThemeGen
       if (error) throw error;
       if (data?.result) {
         setPreview(data.result);
-        toast.success("Theme generated! Review and apply below.");
+        toast.success("Theme draft ready. Review and apply below.");
       }
     } catch {
       toast.error("Failed to generate theme.");
@@ -96,16 +97,20 @@ const AIThemeGenerator = ({ coupleNames, currentStyle, onStyleChange, onThemeGen
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-2 mb-2">
-        <Palette className="w-4 h-4 text-wedding-gold" />
-        <h4 className="wedding-label">WEDDING STYLE & THEME</h4>
+        <Palette className="h-4 w-4 text-[#ff6245]" />
+        <h4 className="text-base font-semibold">Wedding style</h4>
       </div>
+      <p className="text-xs text-black/55">Choose a look, review the preview, then apply it to this wedding.</p>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+        {dbThemes.length === 0 && ["Garden", "Romantic", "Modern", "Minimal", "Classic", "Coastal"].map((style) => (
+          <button key={style} onClick={() => { onStyleChange(style); setPreview(null); }} aria-pressed={currentStyle === style} className={`min-h-11 rounded-lg border px-3 py-2 text-left text-xs font-medium ${currentStyle === style ? "border-black bg-black text-white" : "border-black/15 bg-white text-black"}`}>{style}</button>
+        ))}
         {dbThemes.map((theme) => (
           <button
             key={theme.id}
-            onClick={() => { selectExistingTheme(theme); generate(theme.name); }}
-            className={`px-3 py-2 border font-body text-xs tracking-wider transition-colors min-h-[44px] text-left ${
+            onClick={() => selectExistingTheme(theme)}
+            className={`min-h-11 rounded-lg border px-3 py-2 text-left font-body text-xs font-medium transition-colors ${
               currentStyle === theme.name
                 ? "bg-foreground text-background border-foreground"
                 : "border-foreground/20 hover:border-foreground/40"
@@ -113,24 +118,22 @@ const AIThemeGenerator = ({ coupleNames, currentStyle, onStyleChange, onThemeGen
           >
             <span className="flex items-center gap-1.5">
               {theme.name}
-              {theme.generated_by_ai && (
-                <Sparkles className="w-3 h-3 text-wedding-gold shrink-0" />
-              )}
             </span>
           </button>
         ))}
       </div>
+      {currentStyle && <button onClick={() => void generate(currentStyle)} disabled={loading} className="min-h-11 rounded-full border border-black/15 px-4 text-xs font-semibold disabled:opacity-50">{preview ? "Refine this style" : "Preview this style"}</button>}
 
       {loading && (
         <div className="flex items-center gap-2 py-4">
-          <Sparkles className="w-4 h-4 text-wedding-gold animate-spin" />
-          <p className="font-body text-xs text-muted-foreground">Generating your theme...</p>
+          <LoaderCircle className="h-4 w-4 animate-spin text-[#ff6245]" />
+          <p className="font-body text-xs text-muted-foreground">Preparing your theme...</p>
         </div>
       )}
 
       {preview && !loading && (
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="p-6 border border-foreground/10 bg-card space-y-4">
-          <p className="wedding-label">GENERATED THEME PREVIEW</p>
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-4 rounded-lg border border-black/10 bg-[#f7f7f8] p-5">
+          <p className="text-sm font-semibold">Theme preview</p>
 
           <div className="grid grid-cols-3 gap-3">
             {[
@@ -162,7 +165,7 @@ const AIThemeGenerator = ({ coupleNames, currentStyle, onStyleChange, onThemeGen
 
           {/* Mini preview card */}
           <div
-            className="p-6 text-center space-y-2"
+            className="space-y-2 rounded-lg p-6 text-center"
             style={{ backgroundColor: `hsl(${preview.background})`, color: `hsl(${preview.foreground})` }}
           >
             <p className="text-xs tracking-[0.3em] uppercase" style={{ color: `hsl(${preview.accent})` }}>
@@ -180,11 +183,11 @@ const AIThemeGenerator = ({ coupleNames, currentStyle, onStyleChange, onThemeGen
           </div>
 
           <div className="flex gap-3 pt-2">
-            <button onClick={applyTheme} className="flex-1 py-3 bg-foreground text-background font-body text-xs tracking-[0.2em] uppercase min-h-[44px] flex items-center justify-center gap-2">
-              <Wand2 className="w-4 h-4" /> APPLY THEME
+            <button onClick={applyTheme} className="flex min-h-11 flex-1 items-center justify-center gap-2 rounded-full bg-black px-4 py-3 text-xs font-semibold text-white">
+              <Palette className="w-4 h-4" /> Apply style
             </button>
-            <button onClick={() => generate(currentStyle || dbThemes[0]?.name || "Classic white")} className="px-4 py-3 border border-foreground/20 font-body text-xs tracking-[0.2em] uppercase min-h-[44px]">
-              REGENERATE
+            <button onClick={() => generate(currentStyle || dbThemes[0]?.name || "Classic white")} className="min-h-11 rounded-full border border-black/15 px-4 py-3 text-xs font-semibold">
+              Try another
             </button>
           </div>
         </motion.div>
