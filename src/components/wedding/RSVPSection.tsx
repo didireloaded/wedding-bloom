@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import type { GuestResponse } from '@/hooks/useGuestContext';
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -7,6 +7,7 @@ import { Heart, MessageSquare, CalendarPlus } from "lucide-react";
 import { generateICS } from "@/lib/calendarUtils";
 import { getGuestSessionToken, saveGuestSessionToken } from "@/lib/guestSession";
 import GuestPrivacyNote from "./GuestPrivacyNote";
+import TurnstileChallenge from "./TurnstileChallenge";
 
 interface RSVPSectionProps {
   previousResponse?: GuestResponse;
@@ -33,6 +34,10 @@ const DIETARY_OPTIONS = [
 ];
 
 const RSVPSection = ({ weddingId, weddingDate, ceremonyTime, venue, coupleNames, rsvpDeadline, whatsappGroupUrl, maxGuests, rsvpImage, previousResponse, restoring }: RSVPSectionProps) => {
+  const challengeSiteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY as string | undefined;
+  const [challengeToken, setChallengeToken] = useState<string | null>(null);
+  const [challengeAttempt, setChallengeAttempt] = useState(0);
+  const onChallengeToken = useCallback((token: string | null) => setChallengeToken(token), []);
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -89,6 +94,7 @@ const RSVPSection = ({ weddingId, weddingDate, ceremonyTime, venue, coupleNames,
     if (restoring) { toast.error('Your saved response is still loading. Please retry from Home.'); return; }
     if (!form.attending) { toast.error("Please select whether you will attend."); return; }
     if (!form.name.trim()) { toast.error("Please enter your name."); return; }
+    if (!challengeToken) { toast.error("Please complete the verification before sending your RSVP."); return; }
     setSubmitting(true);
     if (!weddingId) {
       toast.error("Preview only. Open a published wedding to respond.");
@@ -96,17 +102,25 @@ const RSVPSection = ({ weddingId, weddingDate, ceremonyTime, venue, coupleNames,
       return;
     }
     try {
-      const { data, error } = await supabase.rpc("submit_guest_response" as never, {
-        p_wedding_id: weddingId,
-        p_response: form,
-        p_session_token: getGuestSessionToken(weddingId),
-      } as never);
-      if (error) throw error;
+      const { data, error } = await supabase.functions.invoke("submit-guest-response", {
+        body: {
+          wedding_id: weddingId,
+          response: form,
+          guest_session: getGuestSessionToken(weddingId),
+          challenge_token: challengeToken,
+        },
+      });
+      if (error) {
+        const detail = error.context instanceof Response ? await error.context.json().catch(() => null) : null;
+        throw new Error(typeof detail?.error === "string" ? detail.error : error.message);
+      }
       const result = data as { guest_session?: string } | null;
       if (!result?.guest_session) throw new Error("Your response could not be confirmed.");
       saveGuestSessionToken(weddingId, result.guest_session);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Your response was not saved. Please try again.");
+      setChallengeToken(null);
+      setChallengeAttempt((attempt) => attempt + 1);
       setSubmitting(false);
       return;
     }
@@ -406,9 +420,14 @@ const RSVPSection = ({ weddingId, weddingDate, ceremonyTime, venue, coupleNames,
             </div>
 
             {/* Submit */}
+            {challengeSiteKey ? (
+              <TurnstileChallenge key={challengeAttempt} siteKey={challengeSiteKey} onToken={onChallengeToken} />
+            ) : (
+              <p role="alert" className="font-body text-sm text-red-700">RSVP verification is unavailable. Please contact the couple.</p>
+            )}
             <button
               type="submit"
-              disabled={submitting}
+              disabled={submitting || !challengeSiteKey || !challengeToken}
               className="min-h-[56px] w-full rounded-full bg-foreground py-5 font-body text-xs font-semibold text-background shadow-lg shadow-foreground/10 transition-opacity hover:opacity-90 disabled:opacity-50"
             >
               {submitting ? "SENDING..." : "SEND RSVP"}
